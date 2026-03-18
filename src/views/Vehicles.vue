@@ -64,14 +64,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useVehicleStore } from '../store/modules/vehicleStore'
+import { useBatteryStore } from '../store/modules/batteryStore'
 
 const vehicleStore = useVehicleStore()
+const batteryStore = useBatteryStore()
 const showControlPanel = ref(false)
 const selectedVehicle = ref(null)
 
-const vehicles = ref([])
+const vehicles = computed(() => {
+  return vehicleStore.vehicles.map(vehicle => ({
+    ...vehicle,
+    alerts: batteryStore.batteryAlerts.filter(alert => alert.vid === vehicle.vid && !alert.resolved)
+  }))
+})
 
 const getBatteryLevelClass = (level) => {
   if (!level) return 'unknown'
@@ -95,37 +102,48 @@ const getAlertText = (alert) => {
     lowBattery: '电池电量过低',
     unreachable: '无法到达换电站'
   }
-  return alertMap[alert.type] || '未知报警'
+  return alertMap[alert.type] || alert.message || '未知报警'
 }
 
 const selectVehicle = (vid) => {
   selectedVehicle.value = vid
 }
 
-const refreshVehicles = () => {
-  // 模拟从后端获取数据
-  vehicles.value = vehicleStore.vehicles.map(v => ({
-    ...v,
-    online: vehicleStore.onlineVehicles.includes(v.vid)
-  }))
-}
-
-const controlLights = (vid) => {
-  if (vid) {
-    vehicleStore.controlVehicleLights(vid, 'flash')
+const refreshVehicles = async () => {
+  try {
+    await vehicleStore.fetchVehicles()
+    await batteryStore.fetchBatteries()
+  } catch (error) {
+    console.error('刷新数据失败:', error)
   }
 }
 
-const controlHorn = (vid) => {
+const controlLights = async (vid) => {
   if (vid) {
-    vehicleStore.controlVehicleHorn(vid, 'beep')
+    try {
+      await vehicleStore.controlVehicleLights(vid, 'flash')
+      alert('闪灯指令发送成功')
+    } catch (error) {
+      alert('指令发送失败: ' + error.message)
+    }
   }
 }
 
-onMounted(() => {
-  refreshVehicles()
-  // 模拟实时数据更新
-  setInterval(refreshVehicles, 3000)
+const controlHorn = async (vid) => {
+  if (vid) {
+    try {
+      await vehicleStore.controlVehicleHorn(vid, 'beep')
+      alert('鸣笛指令发送成功')
+    } catch (error) {
+      alert('指令发送失败: ' + error.message)
+    }
+  }
+}
+
+onMounted(async () => {
+  await refreshVehicles()
+  // 启动实时数据更新
+  vehicleStore.startRealTimeUpdates()
 })
 </script>
 
