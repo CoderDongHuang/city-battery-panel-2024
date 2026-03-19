@@ -77,9 +77,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useBatteryStore } from '../store/modules/batteryStore'
+import { useApiBatteryStore } from '../store/modules/apiBatteryStore'
 
-const batteryStore = useBatteryStore()
+const batteryStore = useApiBatteryStore()
 const filterStatus = ref('all')
 
 const filteredBatteries = computed(() => {
@@ -118,16 +118,20 @@ const formatTime = (timestamp) => {
 }
 
 const filterBatteries = () => {
-  // 过滤逻辑已在computed属性中实现
+  const params = filterStatus.value === 'all' ? {} : { status: filterStatus.value }
+  refreshBatteries(params)
 }
 
-const refreshBatteries = () => {
-  // 模拟从后端获取数据
-  console.log('刷新电池数据')
+const refreshBatteries = async (params = {}) => {
+  try {
+    await batteryStore.fetchBatteries(params)
+  } catch (error) {
+    console.error('刷新电池数据失败:', error)
+  }
 }
 
-onMounted(() => {
-  refreshBatteries()
+onMounted(async () => {
+  await refreshBatteries()
 })
 </script>
 

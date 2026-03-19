@@ -62,21 +62,29 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useVehicleStore } from '../store/modules/vehicleStore'
-import { useBatteryStore } from '../store/modules/batteryStore'
-import { useMapStore } from '../store/modules/mapStore'
+import { ref, onMounted, computed } from 'vue'
+import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
+import { useApiBatteryStore } from '../store/modules/apiBatteryStore'
+import { dashboardAPI, alertAPI } from '../services/api'
 
-const vehicleStore = useVehicleStore()
-const batteryStore = useBatteryStore()
-const mapStore = useMapStore()
+const vehicleStore = useApiVehicleStore()
+const batteryStore = useApiBatteryStore()
 
-const onlineVehiclesCount = ref(0)
-const totalBatteriesCount = ref(0)
-const activeAlertsCount = ref(0)
-const chargingStationsCount = ref(0)
-const recentAlerts = ref([])
-const lowBatteryVehicles = ref([])
+const overviewData = ref({
+  onlineVehicles: 0,
+  totalBatteries: 0,
+  activeAlerts: 0,
+  chargingStations: 0,
+  recentAlerts: [],
+  lowBatteryVehicles: []
+})
+
+const onlineVehiclesCount = computed(() => overviewData.value.onlineVehicles)
+const totalBatteriesCount = computed(() => overviewData.value.totalBatteries)
+const activeAlertsCount = computed(() => overviewData.value.activeAlerts)
+const chargingStationsCount = computed(() => overviewData.value.chargingStations)
+const recentAlerts = computed(() => overviewData.value.recentAlerts)
+const lowBatteryVehicles = computed(() => overviewData.value.lowBatteryVehicles)
 
 const getAlertTypeText = (type) => {
   const types = {
@@ -91,25 +99,43 @@ const formatTime = (timestamp) => {
   return new Date(timestamp).toLocaleTimeString('zh-CN')
 }
 
-const updateStats = () => {
-  onlineVehiclesCount.value = vehicleStore.onlineVehicles.length
-  totalBatteriesCount.value = batteryStore.batteries.length
-  activeAlertsCount.value = batteryStore.getActiveAlerts.length
-  chargingStationsCount.value = mapStore.chargingStations.length
-  
-  recentAlerts.value = batteryStore.batteryAlerts
-    .slice(-5)
-    .reverse()
-    
-  lowBatteryVehicles.value = vehicleStore.vehicles
-    .filter(v => v.batteryLevel < 30)
-    .slice(0, 5)
+const fetchOverview = async () => {
+  try {
+    const response = await dashboardAPI.getOverview()
+    if (response.code === 200) {
+      overviewData.value = response.data
+    }
+  } catch (error) {
+    console.error('获取系统概览失败:', error)
+    // 如果API不可用，使用本地数据作为fallback
+    updateLocalStats()
+  }
 }
 
-onMounted(() => {
-  updateStats()
-  // 模拟数据更新
-  setInterval(updateStats, 5000)
+const updateLocalStats = () => {
+  overviewData.value = {
+    onlineVehicles: vehicleStore.getOnlineVehicles.length,
+    totalBatteries: batteryStore.batteries.length,
+    activeAlerts: batteryStore.getActiveAlerts.length,
+    chargingStations: 5, // 默认值
+    recentAlerts: batteryStore.batteryAlerts.slice(-5).reverse(),
+    lowBatteryVehicles: vehicleStore.getLowBatteryVehicles.slice(0, 5)
+  }
+}
+
+onMounted(async () => {
+  // 先加载车辆和电池数据
+  await vehicleStore.fetchVehicles()
+  await batteryStore.fetchBatteries()
+  
+  // 然后获取系统概览
+  await fetchOverview()
+  
+  // 启动实时数据更新
+  vehicleStore.startRealTimeUpdates()
+  
+  // 定期刷新概览数据
+  setInterval(fetchOverview, 10000)
 })
 </script>
 

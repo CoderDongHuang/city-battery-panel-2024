@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'http://localhost:8080/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -81,31 +81,115 @@ export const dashboardAPI = {
 }
 
 // WebSocket连接（实时数据）
-export const createWebSocket = (onMessage) => {
-  const ws = new WebSocket('ws://localhost:3000/ws')
+export const createWebSocket = (onMessage, onStatusChange) => {
+  let ws = null
+  let reconnectAttempts = 0
+  const maxReconnectAttempts = 5
+  const reconnectDelay = 3000 // 3秒重连延迟
+  let reconnectTimeout = null
+  let heartbeatInterval = null
   
-  ws.onopen = () => {
-    console.log('WebSocket连接已建立')
-  }
-  
-  ws.onmessage = (event) => {
+  const connect = () => {
     try {
-      const data = JSON.parse(event.data)
-      onMessage(data)
+      ws = new WebSocket('ws://localhost:8080/ws')
+      
+      ws.onopen = () => {
+        console.log('WebSocket连接已建立')
+        reconnectAttempts = 0
+        onStatusChange && onStatusChange('connected')
+        
+        // 启动心跳检测
+        heartbeatInterval = setInterval(() => {
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'ping' }))
+          }
+        }, 30000) // 每30秒发送一次心跳
+      }
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          
+          // 忽略心跳响应
+          if (data.type === 'pong') {
+            return
+          }
+          
+          onMessage(data)
+        } catch (error) {
+          console.error('WebSocket消息解析错误:', error)
+        }
+      }
+      
+      ws.onclose = (event) => {
+        console.log('WebSocket连接已关闭', event.code, event.reason)
+        onStatusChange && onStatusChange('disconnected')
+        
+        // 清理心跳检测
+        if (heartbeatInterval) {
+          clearInterval(heartbeatInterval)
+          heartbeatInterval = null
+        }
+        
+        // 自动重连逻辑
+        if (reconnectAttempts < maxReconnectAttempts) {
+          console.log(`将在 ${reconnectDelay/1000} 秒后尝试重连 (${reconnectAttempts + 1}/${maxReconnectAttempts})`)
+          reconnectTimeout = setTimeout(() => {
+            reconnectAttempts++
+            connect()
+          }, reconnectDelay)
+        } else {
+          console.log('已达到最大重连次数，停止重连')
+          onStatusChange && onStatusChange('failed')
+        }
+      }
+      
+      ws.onerror = (error) => {
+        console.error('WebSocket错误:', error)
+        onStatusChange && onStatusChange('error')
+      }
+      
     } catch (error) {
-      console.error('WebSocket消息解析错误:', error)
+      console.error('WebSocket连接创建失败:', error)
+      onStatusChange && onStatusChange('error')
     }
   }
   
-  ws.onclose = () => {
-    console.log('WebSocket连接已关闭')
-  }
+  // 开始连接
+  connect()
   
-  ws.onerror = (error) => {
-    console.error('WebSocket错误:', error)
+  // 返回关闭函数
+  return {
+    close: () => {
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout)
+      }
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval)
+      }
+      if (ws) {
+        ws.close()
+      }
+    },
+    reconnect: () => {
+      reconnectAttempts = 0
+      if (ws) {
+        ws.close()
+      } else {
+        connect()
+      }
+    },
+    getStatus: () => {
+      if (!ws) return 'disconnected'
+      switch (ws.readyState) {
+        case WebSocket.CONNECTING: return 'connecting'
+        case WebSocket.OPEN: return 'connected'
+        case WebSocket.CLOSING: return 'closing'
+        case WebSocket.CLOSED: return 'disconnected'
+        default: return 'unknown'
+      }
+    }
   }
-  
-  return ws
 }
 
 export default api

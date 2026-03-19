@@ -65,18 +65,18 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useVehicleStore } from '../store/modules/vehicleStore'
-import { useBatteryStore } from '../store/modules/batteryStore'
+import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
+import { vehicleAPI, alertAPI, createWebSocket } from '../services/api'
 
-const vehicleStore = useVehicleStore()
-const batteryStore = useBatteryStore()
+const vehicleStore = useApiVehicleStore()
 const showControlPanel = ref(false)
 const selectedVehicle = ref(null)
+const alerts = ref([])
 
 const vehicles = computed(() => {
   return vehicleStore.vehicles.map(vehicle => ({
     ...vehicle,
-    alerts: batteryStore.batteryAlerts.filter(alert => alert.vid === vehicle.vid && !alert.resolved)
+    alerts: alerts.value.filter(alert => alert.vid === vehicle.vid && !alert.resolved)
   }))
 })
 
@@ -112,9 +112,20 @@ const selectVehicle = (vid) => {
 const refreshVehicles = async () => {
   try {
     await vehicleStore.fetchVehicles()
-    await batteryStore.fetchBatteries()
+    await fetchAlerts()
   } catch (error) {
     console.error('刷新数据失败:', error)
+  }
+}
+
+const fetchAlerts = async () => {
+  try {
+    const response = await alertAPI.getAlerts({ resolved: false })
+    if (response.code === 200) {
+      alerts.value = response.data
+    }
+  } catch (error) {
+    console.error('获取报警数据失败:', error)
   }
 }
 

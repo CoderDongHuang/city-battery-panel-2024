@@ -130,15 +130,19 @@ export const useApiVehicleStore = defineStore('apiVehicle', {
       this.wsConnection = createWebSocket((data) => {
         if (data.type === 'vehicle_update') {
           // 更新车辆数据
-          const vehicle = this.getVehicleById(data.vid)
-          if (vehicle) {
-            Object.assign(vehicle, data.status)
-          }
+          this.vehicles = data.data
+        } else if (data.type === 'initial_data') {
+          // 初始化数据
+          this.vehicles = data.data.vehicles || []
         } else if (data.type === 'vehicle_online') {
           this.setVehicleOnline(data.vid)
         } else if (data.type === 'vehicle_offline') {
           this.setVehicleOffline(data.vid)
         }
+      }, (status) => {
+        // 连接状态变化回调
+        this.wsStatus = status
+        console.log('WebSocket连接状态:', status)
       })
     },
     

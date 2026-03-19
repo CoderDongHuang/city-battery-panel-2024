@@ -154,8 +154,8 @@ const systemConfig = ref({
 
 // 通信配置
 const communicationConfig = ref({
-  serverUrl: 'http://localhost:3000/api',
-  websocketUrl: 'ws://localhost:3000/ws',
+  serverUrl: 'http://localhost:8080/api',
+  websocketUrl: 'ws://localhost:8080/ws',
   updateInterval: 5,
   timeout: 30
 })
@@ -216,8 +216,8 @@ const resetSettings = () => {
     }
     
     communicationConfig.value = {
-      serverUrl: 'http://localhost:3000/api',
-      websocketUrl: 'ws://localhost:3000/ws',
+      serverUrl: 'http://localhost:8080/api',
+      websocketUrl: 'ws://localhost:8080/ws',
       updateInterval: 5,
       timeout: 30
     }
