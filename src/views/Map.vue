@@ -1,74 +1,205 @@
 <template>
   <div class="map-view">
-    <h2>地图监控</h2>
-    
-    <div class="map-controls">
-      <div class="control-group">
-        <label>选择车辆:</label>
-        <select v-model="selectedVehicleId" @change="onVehicleSelect">
-          <option value="">全部车辆</option>
-          <option v-for="vehicle in onlineVehicles" :key="vehicle.vid" :value="vehicle.vid">
-            {{ vehicle.vid }}
-          </option>
-        </select>
-      </div>
-      
-      <div class="control-group">
-        <button class="btn btn-primary" @click="loadMapData">加载地图</button>
-        <button class="btn btn-secondary" @click="setRandomPosition">随机位置</button>
-      </div>
-    </div>
-    
-    <div class="map-container">
-      <div class="map-grid" v-if="mapGrid">
-        <div v-for="(row, y) in mapGrid" :key="y" class="map-row">
-          <div v-for="(cell, x) in row" :key="x" 
-               class="map-cell" 
-               :class="getCellClass(cell, x, y)"
-               @click="setVehiclePosition(x, y)"
-               :title="getCellTitle(cell, x, y)">
-            {{ getCellContent(cell, x, y) }}
-          </div>
-        </div>
-      </div>
-      
-      <div v-else class="map-placeholder">
-        <p>请先加载地图数据</p>
-        <button class="btn btn-primary" @click="loadMapData">加载地图</button>
-      </div>
-    </div>
-    
-    <div class="map-info">
-      <div class="info-panel">
-        <h3>地图图例</h3>
-        <div class="legend">
-          <div class="legend-item">
-            <span class="legend-color road"></span>
-            <span>道路 (0)</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-color station"></span>
-            <span>换电站 (1)</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-color obstacle"></span>
-            <span>障碍物 (2)</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-color vehicle"></span>
-            <span>车辆位置</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="route-info" v-if="recommendedRoute">
-        <h3>推荐路线</h3>
-        <div class="route-details">
-          <p>目标换电站: ({{ recommendedRoute.station.x }}, {{ recommendedRoute.station.y }})</p>
-          <p>预计距离: {{ recommendedRoute.distance }} 格</p>
-          <p v-if="recommendedRoute.rescueNeeded" class="rescue-warning">
-            ⚠️ 需要救援
+    <!-- 企业级头部区域 -->
+    <div class="enterprise-header">
+      <div class="header-content">
+        <div class="header-title-section">
+          <h1 class="main-title">地图监控系统</h1>
+          <p class="system-description">
+            实时监控城市电车分布、换电站位置及车辆运行状态，提供智能路径规划与救援调度功能
           </p>
+        </div>
+        <div class="header-status-section">
+          <div class="system-status">
+            <div class="status-indicator online"></div>
+            <span class="status-text">地图服务正常</span>
+          </div>
+          <div class="last-update">
+            <span class="update-label">最后更新</span>
+            <span class="update-time">{{ currentTime }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 地图控制面板 -->
+    <div class="map-controls-section">
+      <div class="section-header">
+        <div class="section-title-group">
+          <h2 class="section-title">地图控制</h2>
+          <p class="section-description">选择车辆并管理地图显示，支持智能路径规划</p>
+        </div>
+        <div class="section-controls">
+          <button class="refresh-btn" @click="loadMapData">
+            <span class="refresh-icon">🔄</span>
+            刷新地图
+          </button>
+        </div>
+      </div>
+      
+      <div class="controls-grid">
+        <div class="control-card">
+          <div class="control-header">
+            <div class="control-icon">🚗</div>
+            <div class="control-info">
+              <h3>车辆选择</h3>
+              <p>选择要监控的车辆</p>
+            </div>
+          </div>
+          <div class="control-body">
+            <select v-model="selectedVehicleId" @change="onVehicleSelect" class="vehicle-select">
+              <option value="">全部车辆</option>
+              <option v-for="vehicle in onlineVehicles" :key="vehicle.vid" :value="vehicle.vid">
+                {{ vehicle.vid }} - {{ vehicle.online ? '在线' : '离线' }}
+              </option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="control-card">
+          <div class="control-header">
+            <div class="control-icon">📍</div>
+            <div class="control-info">
+              <h3>位置管理</h3>
+              <p>车辆位置控制</p>
+            </div>
+          </div>
+          <div class="control-body">
+            <div class="position-actions">
+              <button class="action-btn primary" @click="setRandomPosition" :disabled="!selectedVehicleId">
+                <span class="action-icon">🎯</span>
+                随机位置
+              </button>
+              <button class="action-btn secondary" @click="clearSelection">
+                <span class="action-icon">🗑️</span>
+                清除选择
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 地图显示区域 -->
+    <div class="map-display-section">
+      <div class="section-header">
+        <div class="section-title-group">
+          <h2 class="section-title">城市地图</h2>
+          <p class="section-description">实时显示车辆分布和基础设施位置</p>
+        </div>
+        <div class="map-stats">
+          <div class="stat-item">
+            <span class="stat-label">在线车辆</span>
+            <span class="stat-value">{{ onlineVehicles.length }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">换电站</span>
+            <span class="stat-value">{{ chargingStationsCount }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="map-container">
+        <div class="map-grid" v-if="mapGrid">
+          <div v-for="(row, y) in mapGrid" :key="y" class="map-row">
+            <div v-for="(cell, x) in row" :key="x" 
+                 class="map-cell" 
+                 :class="getCellClass(cell, x, y)"
+                 @click="setVehiclePosition(x, y)"
+                 :title="getCellTitle(cell, x, y)">
+              {{ getCellContent(cell, x, y) }}
+            </div>
+          </div>
+        </div>
+        
+        <div v-else class="map-placeholder">
+          <div class="placeholder-icon">🗺️</div>
+          <h3>地图数据未加载</h3>
+          <p>请点击下方按钮加载城市地图数据</p>
+          <button class="load-map-btn" @click="loadMapData">
+            <span class="btn-icon">📡</span>
+            加载地图数据
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 信息面板区域 -->
+    <div class="info-panels-section">
+      <div class="info-panel">
+        <div class="panel-header">
+          <h3>地图图例</h3>
+          <div class="panel-badge">参考</div>
+        </div>
+        <div class="legend-grid">
+          <div class="legend-item">
+            <div class="legend-color road"></div>
+            <div class="legend-content">
+              <span class="legend-label">道路</span>
+              <span class="legend-desc">可通行区域</span>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color station"></div>
+            <div class="legend-content">
+              <span class="legend-label">换电站</span>
+              <span class="legend-desc">电池更换设施</span>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color obstacle"></div>
+            <div class="legend-content">
+              <span class="legend-label">障碍物</span>
+              <span class="legend-desc">不可通行区域</span>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color vehicle"></div>
+            <div class="legend-content">
+              <span class="legend-label">车辆</span>
+              <span class="legend-desc">在线车辆位置</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-panel route-info" v-if="recommendedRoute">
+        <div class="panel-header">
+          <h3>智能路径规划</h3>
+          <div class="panel-badge" :class="{ warning: recommendedRoute.rescueNeeded }">
+            {{ recommendedRoute.rescueNeeded ? '紧急' : '正常' }}
+          </div>
+        </div>
+        <div class="route-details">
+          <div class="route-item">
+            <span class="item-label">目标换电站</span>
+            <span class="item-value">({{ recommendedRoute.station.x }}, {{ recommendedRoute.station.y }})</span>
+          </div>
+          <div class="route-item">
+            <span class="item-label">预计距离</span>
+            <span class="item-value">{{ recommendedRoute.distance }} 格</span>
+          </div>
+          <div class="route-item" v-if="recommendedRoute.rescueNeeded">
+            <span class="item-label">状态</span>
+            <span class="item-value warning">⚠️ 需要救援支持</span>
+          </div>
+          <div class="route-actions">
+            <button class="action-btn primary">
+              <span class="action-icon">🚀</span>
+              开始导航
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-panel" v-else>
+        <div class="panel-header">
+          <h3>路径信息</h3>
+          <div class="panel-badge">待机</div>
+        </div>
+        <div class="route-placeholder">
+          <div class="placeholder-icon">🧭</div>
+          <p>请选择车辆以获取路径规划</p>
         </div>
       </div>
     </div>
@@ -90,6 +221,33 @@ const recommendedRoute = ref(null)
 const onlineVehicles = computed(() => {
   return vehicleStore.getOnlineVehicles
 })
+
+const chargingStationsCount = computed(() => {
+  if (!mapGrid.value) return 0
+  let count = 0
+  for (let y = 0; y < mapGrid.value.length; y++) {
+    for (let x = 0; x < mapGrid.value[y].length; x++) {
+      if (mapGrid.value[y][x] === 1) count++
+    }
+  }
+  return count
+})
+
+const currentTime = computed(() => {
+  return new Date().toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+})
+
+const clearSelection = () => {
+  selectedVehicleId.value = ''
+  recommendedRoute.value = null
+}
 
 const getCellClass = (cell, x, y) => {
   const classes = []
@@ -240,66 +398,332 @@ onMounted(() => {
 
 <style scoped>
 .map-view {
-  padding: 20px;
+  padding: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
-.map-controls {
+/* 企业级头部区域 */
+.enterprise-header {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  padding: 40px 0;
+  margin-bottom: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  width: 100%;
+  margin: 0;
+  padding: 0 32px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 15px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  align-items: flex-start;
+  gap: 40px;
 }
 
-.control-group {
+.header-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.main-title {
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.system-description {
+  font-size: 16px;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin: 0;
+  max-width: 600px;
+  font-weight: 300;
+}
+
+.header-status-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-end;
+  min-width: 200px;
+}
+
+.system-status {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.control-group label {
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #28a745;
+  animation: pulse 2s infinite;
+}
+
+.status-indicator.online {
+  background: #28a745;
+}
+
+.status-text {
+  font-size: 14px;
   font-weight: 500;
 }
 
-.control-group select {
-  padding: 5px 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.last-update {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
 }
 
-.btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
+.update-label {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.update-time {
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* 地图控制面板 */
+.map-controls-section {
+  width: 100%;
+  margin: 32px 0;
+  padding: 0 32px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  gap: 24px;
+}
+
+.section-title-group {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+  line-height: 1.2;
+}
+
+.section-description {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.section-controls {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid #007bff;
+  border-radius: 6px;
+  background: white;
+  color: #007bff;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
-.btn-primary {
-  background: #3498db;
+.refresh-btn:hover {
+  background: #007bff;
   color: white;
 }
 
-.btn-secondary {
-  background: #95a5a6;
+.refresh-icon {
+  font-size: 16px;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.control-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e9ecef;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.control-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.control-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.control-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.control-info {
+  flex: 1;
+}
+
+.control-info h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 4px 0;
+}
+
+.control-info p {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.vehicle-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background: #f8f9fa;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.vehicle-select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.position-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  color: #495057;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  flex: 1;
+}
+
+.action-btn.primary {
+  background: #007bff;
   color: white;
+  border-color: #007bff;
+}
+
+.action-btn.secondary {
+  background: #6c757d;
+  color: white;
+  border-color: #6c757d;
+}
+
+.action-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.action-icon {
+  font-size: 16px;
+}
+
+/* 地图显示区域 */
+.map-display-section {
+  width: 100%;
+  margin: 0 0 32px;
+  padding: 0 32px;
+}
+
+.map-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
 }
 
 .map-container {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  padding: 20px;
-  margin-bottom: 20px;
-  min-height: 400px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  padding: 32px;
+  margin-top: 24px;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .map-grid {
   display: inline-block;
-  border: 2px solid #2c3e50;
+  border: 3px solid #2c3e50;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .map-row {
@@ -307,111 +731,339 @@ onMounted(() => {
 }
 
 .map-cell {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border: 1px solid #bdc3c7;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.map-cell:hover {
-  transform: scale(1.1);
-  z-index: 1;
+  transition: all 0.3s ease;
   position: relative;
 }
 
+.map-cell:hover {
+  transform: scale(1.2);
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
 .map-cell.road {
-  background: #ecf0f1;
+  background: linear-gradient(135deg, #ecf0f1, #d5dbdb);
+  color: #2c3e50;
 }
 
 .map-cell.station {
-  background: #e74c3c;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
   color: white;
+  font-weight: 800;
 }
 
 .map-cell.obstacle {
-  background: #2c3e50;
+  background: linear-gradient(135deg, #2c3e50, #1a252f);
   color: white;
 }
 
 .map-cell.vehicle {
-  background: #3498db;
+  background: linear-gradient(135deg, #3498db, #2980b9);
   color: white;
   border: 2px solid #2980b9;
+  font-weight: 800;
 }
 
 .map-cell.selected-vehicle {
-  background: #f39c12;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
   border: 2px solid #e67e22;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(243, 156, 18, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); }
 }
 
 .map-placeholder {
-  height: 300px;
+  height: 400px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  color: #7f8c8d;
+  color: #6c757d;
+  text-align: center;
 }
 
-.map-info {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+.placeholder-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.7;
 }
 
-.info-panel, .route-info {
-  background: white;
-  padding: 15px;
+.map-placeholder h3 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #495057;
+}
+
+.map-placeholder p {
+  font-size: 16px;
+  margin: 0 0 24px 0;
+  color: #6c757d;
+}
+
+.load-map-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
-.legend {
-  margin-top: 10px;
+.load-map-btn:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.btn-icon {
+  font-size: 18px;
+}
+
+/* 信息面板区域 */
+.info-panels-section {
+  width: 100%;
+  margin: 0;
+  padding: 0 32px 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+}
+
+.info-panel {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e9ecef;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-panel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.panel-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.panel-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #28a745;
+  color: white;
+}
+
+.panel-badge.warning {
+  background: #dc3545;
+}
+
+.legend-grid {
+  display: grid;
+  gap: 16px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
-  font-size: 14px;
+  gap: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  transition: background-color 0.3s ease;
+}
+
+.legend-item:hover {
+  background: #e9ecef;
 }
 
 .legend-color {
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
-  border: 1px solid #bdc3c7;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .legend-color.road {
-  background: #ecf0f1;
+  background: linear-gradient(135deg, #ecf0f1, #d5dbdb);
 }
 
 .legend-color.station {
-  background: #e74c3c;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
 }
 
 .legend-color.obstacle {
-  background: #2c3e50;
+  background: linear-gradient(135deg, #2c3e50, #1a252f);
 }
 
 .legend-color.vehicle {
-  background: #3498db;
+  background: linear-gradient(135deg, #3498db, #2980b9);
 }
 
-.route-details p {
-  margin: 5px 0;
+.legend-content {
+  flex: 1;
 }
 
-.rescue-warning {
-  color: #e74c3c;
-  font-weight: bold;
+.legend-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+}
+
+.legend-desc {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.route-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.route-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.route-item:last-child {
+  border-bottom: none;
+}
+
+.item-label {
+  font-size: 14px;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.item-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.item-value.warning {
+  color: #dc3545;
+}
+
+.route-actions {
+  margin-top: 16px;
+}
+
+.route-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  color: #6c757d;
+  text-align: center;
+}
+
+.route-placeholder .placeholder-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .controls-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-panels-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .map-cell {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 24px;
+  }
+  
+  .header-status-section {
+    align-items: center;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .map-stats {
+    justify-content: space-between;
+  }
+  
+  .map-cell {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+  
+  .position-actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .map-controls-section,
+  .map-display-section,
+  .info-panels-section {
+    padding: 0 16px;
+  }
+  
+  .map-cell {
+    width: 25px;
+    height: 25px;
+    font-size: 10px;
+  }
 }
 </style>
