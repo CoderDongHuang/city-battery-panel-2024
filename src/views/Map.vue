@@ -1,28 +1,6 @@
 <template>
   <div class="map-view">
-    <!-- 企业级头部区域 -->
-    <div class="enterprise-header">
-      <div class="header-content">
-        <div class="header-title-section">
-          <h1 class="main-title">地图监控系统</h1>
-          <p class="system-description">
-            实时监控城市电车分布、换电站位置及车辆运行状态，提供智能路径规划与救援调度功能
-          </p>
-        </div>
-        <div class="header-status-section">
-          <div class="system-status">
-            <div class="status-indicator online"></div>
-            <span class="status-text">地图服务正常</span>
-          </div>
-          <div class="last-update">
-            <span class="update-label">最后更新</span>
-            <span class="update-time">{{ currentTime }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 地图控制面板 -->
+    <!-- 地图控制面板（大模块） -->
     <div class="map-controls-section">
       <div class="section-header">
         <div class="section-title-group">
@@ -80,7 +58,7 @@
       </div>
     </div>
 
-    <!-- 地图显示区域 -->
+    <!-- 地图显示区域（大模块） -->
     <div class="map-display-section">
       <div class="section-header">
         <div class="section-title-group">
@@ -99,39 +77,13 @@
         </div>
       </div>
       
-      <div class="map-container">
-        <div class="map-grid" v-if="mapGrid">
-          <div v-for="(row, y) in mapGrid" :key="y" class="map-row">
-            <div v-for="(cell, x) in row" :key="x" 
-                 class="map-cell" 
-                 :class="getCellClass(cell, x, y)"
-                 @click="setVehiclePosition(x, y)"
-                 :title="getCellTitle(cell, x, y)">
-              {{ getCellContent(cell, x, y) }}
-            </div>
-          </div>
+      <!-- 地图图例（放在地图上方） -->
+      <div class="map-legend">
+        <div class="legend-header">
+          <h4>地图图例</h4>
+          <span class="legend-badge">参考指南</span>
         </div>
-        
-        <div v-else class="map-placeholder">
-          <div class="placeholder-icon">🗺️</div>
-          <h3>地图数据未加载</h3>
-          <p>请点击下方按钮加载城市地图数据</p>
-          <button class="load-map-btn" @click="loadMapData">
-            <span class="btn-icon">📡</span>
-            加载地图数据
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 信息面板区域 -->
-    <div class="info-panels-section">
-      <div class="info-panel">
-        <div class="panel-header">
-          <h3>地图图例</h3>
-          <div class="panel-badge">参考</div>
-        </div>
-        <div class="legend-grid">
+        <div class="legend-items">
           <div class="legend-item">
             <div class="legend-color road"></div>
             <div class="legend-content">
@@ -163,43 +115,93 @@
         </div>
       </div>
       
-      <div class="info-panel route-info" v-if="recommendedRoute">
-        <div class="panel-header">
-          <h3>智能路径规划</h3>
-          <div class="panel-badge" :class="{ warning: recommendedRoute.rescueNeeded }">
-            {{ recommendedRoute.rescueNeeded ? '紧急' : '正常' }}
+      <div class="map-container">
+        <div class="map-grid" v-if="mapGrid">
+          <div v-for="(row, y) in mapGrid" :key="y" class="map-row">
+            <div v-for="(cell, x) in row" :key="x" 
+                 class="map-cell" 
+                 :class="getCellClass(cell, x, y)"
+                 @click="setVehiclePosition(x, y)"
+                 :title="getCellTitle(cell, x, y)">
+              {{ getCellContent(cell, x, y) }}
+            </div>
           </div>
         </div>
-        <div class="route-details">
-          <div class="route-item">
-            <span class="item-label">目标换电站</span>
-            <span class="item-value">({{ recommendedRoute.station.x }}, {{ recommendedRoute.station.y }})</span>
-          </div>
-          <div class="route-item">
-            <span class="item-label">预计距离</span>
-            <span class="item-value">{{ recommendedRoute.distance }} 格</span>
-          </div>
-          <div class="route-item" v-if="recommendedRoute.rescueNeeded">
-            <span class="item-label">状态</span>
-            <span class="item-value warning">⚠️ 需要救援支持</span>
-          </div>
-          <div class="route-actions">
-            <button class="action-btn primary">
-              <span class="action-icon">🚀</span>
-              开始导航
-            </button>
-          </div>
+        
+        <div v-else class="map-placeholder">
+          <div class="placeholder-icon">🗺️</div>
+          <h3>地图数据未加载</h3>
+          <p>请点击下方按钮加载城市地图数据</p>
+          <button class="load-map-btn" @click="loadMapData">
+            <span class="btn-icon">📡</span>
+            加载地图数据
+          </button>
         </div>
       </div>
-      
-      <div class="info-panel" v-else>
-        <div class="panel-header">
-          <h3>路径信息</h3>
-          <div class="panel-badge">待机</div>
+    </div>
+
+    <!-- 信息面板区域（大模块） -->
+    <div class="info-panels-section">
+      <div class="panel-grid">
+        <div class="info-panel">
+          <div class="panel-header">
+            <h3>车辆状态监控</h3>
+            <div class="panel-badge">实时</div>
+          </div>
+          <div class="vehicle-status">
+            <div class="status-item">
+              <span class="status-label">在线车辆</span>
+              <span class="status-value">{{ onlineVehicles.length }}</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">离线车辆</span>
+              <span class="status-value">{{ offlineVehicles.length }}</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">报警车辆</span>
+              <span class="status-value warning">{{ alertVehicles.length }}</span>
+            </div>
+          </div>
         </div>
-        <div class="route-placeholder">
-          <div class="placeholder-icon">🧭</div>
-          <p>请选择车辆以获取路径规划</p>
+        
+        <div class="info-panel route-info" v-if="recommendedRoute">
+          <div class="panel-header">
+            <h3>智能路径规划</h3>
+            <div class="panel-badge" :class="{ warning: recommendedRoute.rescueNeeded }">
+              {{ recommendedRoute.rescueNeeded ? '紧急' : '正常' }}
+            </div>
+          </div>
+          <div class="route-details">
+            <div class="route-item">
+              <span class="item-label">目标换电站</span>
+              <span class="item-value">({{ recommendedRoute.station.x }}, {{ recommendedRoute.station.y }})</span>
+            </div>
+            <div class="route-item">
+              <span class="item-label">预计距离</span>
+              <span class="item-value">{{ recommendedRoute.distance }} 格</span>
+            </div>
+            <div class="route-item" v-if="recommendedRoute.rescueNeeded">
+              <span class="item-label">状态</span>
+              <span class="item-value warning">⚠️ 需要救援支持</span>
+            </div>
+            <div class="route-actions">
+              <button class="action-btn primary">
+                <span class="action-icon">🚀</span>
+                开始导航
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="info-panel" v-else>
+          <div class="panel-header">
+            <h3>路径信息</h3>
+            <div class="panel-badge">待机</div>
+          </div>
+          <div class="route-placeholder">
+            <div class="placeholder-icon">🧭</div>
+            <p>请选择车辆以获取路径规划</p>
+          </div>
         </div>
       </div>
     </div>
@@ -218,8 +220,17 @@ const selectedVehicleId = ref('')
 const mapGrid = ref(null)
 const recommendedRoute = ref(null)
 
+// 计算属性
 const onlineVehicles = computed(() => {
-  return vehicleStore.getOnlineVehicles
+  return vehicleStore.vehicles.filter(v => v.online)
+})
+
+const offlineVehicles = computed(() => {
+  return vehicleStore.vehicles.filter(v => !v.online)
+})
+
+const alertVehicles = computed(() => {
+  return vehicleStore.vehicles.filter(v => v.alerts && v.alerts.length > 0)
 })
 
 const chargingStationsCount = computed(() => {
@@ -252,12 +263,10 @@ const clearSelection = () => {
 const getCellClass = (cell, x, y) => {
   const classes = []
   
-  // 基础单元格类型
   if (cell === 0) classes.push('road')
   else if (cell === 1) classes.push('station')
   else if (cell === 2) classes.push('obstacle')
   
-  // 检查是否有车辆在此位置
   const vehicleAtPosition = Object.entries(mapStore.vehiclePositions).find(
     ([vid, pos]) => pos.x === x + 1 && pos.y === y + 1
   )
@@ -273,7 +282,6 @@ const getCellClass = (cell, x, y) => {
 }
 
 const getCellContent = (cell, x, y) => {
-  // 检查是否有车辆在此位置
   const vehicleAtPosition = Object.entries(mapStore.vehiclePositions).find(
     ([vid, pos]) => pos.x === x + 1 && pos.y === y + 1
   )
@@ -294,7 +302,6 @@ const getCellTitle = (cell, x, y) => {
   else if (cell === 1) type = '换电站'
   else if (cell === 2) type = '障碍物'
   
-  // 检查是否有车辆在此位置
   const vehicleAtPosition = Object.entries(mapStore.vehiclePositions).find(
     ([vid, pos]) => pos.x === x + 1 && pos.y === y + 1
   )
@@ -308,7 +315,7 @@ const getCellTitle = (cell, x, y) => {
 }
 
 const loadMapData = async () => {
-  // 这里应该加载实际的地图文件，暂时使用模拟数据
+  // 模拟地图数据（实际应从文件读取）
   const mockMapData = Array(10).fill().map(() => 
     Array(10).fill().map(() => Math.floor(Math.random() * 3))
   ).map(row => row.join(' ')).join('\n')
@@ -322,7 +329,6 @@ const setVehiclePosition = (x, y) => {
     const position = { x: x + 1, y: y + 1 }
     mapStore.setVehiclePosition(selectedVehicleId.value, position)
     
-    // 计算到最近换电站的路线
     const nearest = mapStore.findNearestChargingStation(position)
     if (nearest) {
       const vehicle = vehicleStore.getVehicleById(selectedVehicleId.value)
@@ -340,11 +346,9 @@ const setVehiclePosition = (x, y) => {
 const setRandomPosition = () => {
   if (selectedVehicleId.value && mapGrid.value) {
     const roads = []
-    
-    // 找到所有道路位置
     for (let y = 0; y < mapGrid.value.length; y++) {
       for (let x = 0; x < mapGrid.value[y].length; x++) {
-        if (mapGrid.value[y][x] === 0) { // 道路
+        if (mapGrid.value[y][x] === 0) {
           roads.push({ x: x + 1, y: y + 1 })
         }
       }
@@ -354,7 +358,6 @@ const setRandomPosition = () => {
       const randomPos = roads[Math.floor(Math.random() * roads.length)]
       mapStore.setVehiclePosition(selectedVehicleId.value, randomPos)
       
-      // 重新计算路线
       const nearest = mapStore.findNearestChargingStation(randomPos)
       if (nearest) {
         const vehicle = vehicleStore.getVehicleById(selectedVehicleId.value)
@@ -398,115 +401,51 @@ onMounted(() => {
 
 <style scoped>
 .map-view {
-  padding: 0;
+  padding: 24px;   /* 与 Dashboard 统一内边距 */
   min-height: 100vh;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
-/* 企业级头部区域 */
-.enterprise-header {
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  color: white;
-  padding: 40px 0;
-  margin-bottom: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.header-content {
-  width: 100%;
-  margin: 0;
-  padding: 0 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 40px;
-}
-
-.header-title-section {
-  flex: 1;
-  min-width: 0;
-}
-
-.main-title {
-  font-size: 36px;
-  font-weight: 700;
-  margin: 0 0 16px 0;
-  line-height: 1.2;
-  letter-spacing: -0.5px;
-}
-
-.system-description {
-  font-size: 16px;
-  line-height: 1.6;
-  opacity: 0.9;
-  margin: 0;
-  max-width: 600px;
-  font-weight: 300;
-}
-
-.header-status-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  align-items: flex-end;
-  min-width: 200px;
-}
-
-.system-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #28a745;
-  animation: pulse 2s infinite;
-}
-
-.status-indicator.online {
-  background: #28a745;
-}
-
-.status-text {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.last-update {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.update-label {
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-.update-time {
-  font-size: 14px;
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
-}
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
-}
-
-/* 地图控制面板 */
+/* 大模块间距设置 - 与系统概览页面保持一致 */
 .map-controls-section {
-  width: 100%;
-  margin: 32px 0;
-  padding: 0 32px;
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 48px;          /* 大模块间距 */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
 }
 
+.map-display-section {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 48px;          /* 大模块间距 */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.info-panels-section {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 0;             /* 最后一个模块不要下边距 */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+/* 大模块悬停效果 */
+.map-controls-section:hover,
+.map-display-section:hover,
+.info-panels-section:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* 移除外层card-section样式，避免重复 */
+
+/* 头部样式（已移除，保留原有内部样式） */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -566,6 +505,7 @@ onMounted(() => {
   font-size: 16px;
 }
 
+/* 控制卡片样式（保持原有） */
 .controls-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -676,13 +616,7 @@ onMounted(() => {
   font-size: 16px;
 }
 
-/* 地图显示区域 */
-.map-display-section {
-  width: 100%;
-  margin: 0 0 32px;
-  padding: 0 32px;
-}
-
+/* 地图区域 */
 .map-stats {
   display: flex;
   gap: 24px;
@@ -706,16 +640,110 @@ onMounted(() => {
   color: #1a1a1a;
 }
 
-.map-container {
+/* 地图图例样式 */
+.map-legend {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid #e9ecef;
+}
+
+.legend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.legend-header h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.legend-badge {
+  background: #007bff;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.legend-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
   background: white;
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+}
+
+.legend-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.legend-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.legend-color.road {
+  background: linear-gradient(135deg, #ecf0f1, #d5dbdb);
+  border: 1px solid #bdc3c7;
+}
+
+.legend-color.station {
+  background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.legend-color.obstacle {
+  background: linear-gradient(135deg, #dc3545, #e83e8c);
+}
+
+.legend-color.vehicle {
+  background: linear-gradient(135deg, #ffc107, #fd7e14);
+}
+
+.legend-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.legend-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.legend-desc {
+  font-size: 12px;
+  color: #666;
+}
+
+.map-container {
+  background: #f8f9fa;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   padding: 32px;
   margin-top: 24px;
   min-height: 500px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow-x: auto;
 }
 
 .map-grid {
@@ -840,10 +868,7 @@ onMounted(() => {
 }
 
 /* 信息面板区域 */
-.info-panels-section {
-  width: 100%;
-  margin: 0;
-  padding: 0 32px 40px;
+.panel-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 24px;
@@ -1010,11 +1035,9 @@ onMounted(() => {
   .controls-grid {
     grid-template-columns: 1fr;
   }
-  
-  .info-panels-section {
+  .panel-grid {
     grid-template-columns: 1fr;
   }
-  
   .map-cell {
     width: 35px;
     height: 35px;
@@ -1022,44 +1045,31 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .header-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 24px;
+  .map-view {
+    padding: 16px;
   }
-  
-  .header-status-section {
-    align-items: center;
+  .card-section {
+    padding: 20px;
   }
-  
   .section-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
   }
-  
   .map-stats {
     justify-content: space-between;
   }
-  
   .map-cell {
     width: 30px;
     height: 30px;
     font-size: 12px;
   }
-  
   .position-actions {
     flex-direction: column;
   }
 }
 
 @media (max-width: 480px) {
-  .map-controls-section,
-  .map-display-section,
-  .info-panels-section {
-    padding: 0 16px;
-  }
-  
   .map-cell {
     width: 25px;
     height: 25px;

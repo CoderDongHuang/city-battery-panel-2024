@@ -82,6 +82,11 @@ export const useBatteryStore = defineStore('battery', {
       if (alert) {
         alert.resolved = true
       }
+    },
+    
+    startRealTimeUpdates() {
+      console.log('电池实时更新已启动')
+      // 这里可以添加WebSocket连接逻辑
     }
   }
 })

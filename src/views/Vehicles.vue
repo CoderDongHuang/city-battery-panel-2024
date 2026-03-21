@@ -87,75 +87,167 @@
         </div>
       </div>
 
-      <div class="vehicles-grid">
-        <div v-for="vehicle in filteredVehicles" :key="vehicle.vid" 
-             class="vehicle-card"
-             :class="{ 
-               online: vehicle.online, 
-               offline: !vehicle.online,
-               selected: selectedVehicle === vehicle.vid,
-               'has-alerts': vehicle.alerts && vehicle.alerts.length > 0
-             }"
-             @click="selectVehicle(vehicle.vid)">
-          
-          <!-- 车辆头部 -->
-          <div class="card-header">
-            <div class="vehicle-info">
+      <!-- 车辆表格 -->
+      <div class="vehicles-table">
+        <div class="table-header">
+          <div class="col-id">车辆编号</div>
+          <div class="col-status">状态</div>
+          <div class="col-battery">电池编号</div>
+          <div class="col-voltage">电压</div>
+          <div class="col-temperature">温度</div>
+          <div class="col-battery-level">电量</div>
+          <div class="col-alerts">报警</div>
+          <div class="col-actions">操作</div>
+        </div>
+
+        <div class="table-body">
+          <div v-for="vehicle in filteredVehicles" :key="vehicle.vid" 
+               class="table-row"
+               :class="{ 
+                 online: vehicle.online, 
+                 offline: !vehicle.online,
+                 'has-alerts': vehicle.alerts && vehicle.alerts.length > 0
+               }">
+            
+            <div class="col-id">
               <span class="vehicle-id">{{ vehicle.vid }}</span>
+            </div>
+            
+            <div class="col-status">
               <span class="status-badge" :class="{ online: vehicle.online }">
                 {{ vehicle.online ? '在线' : '离线' }}
               </span>
             </div>
-            <div class="vehicle-actions">
+            
+            <div class="col-battery">
+              <span class="battery-id">{{ vehicle.pid || '未安装' }}</span>
+            </div>
+            
+            <div class="col-voltage">
+              <span class="voltage-value">{{ vehicle.voltage ? vehicle.voltage + 'V' : '--' }}</span>
+            </div>
+            
+            <div class="col-temperature">
+              <span class="temperature-value">{{ vehicle.temperature ? vehicle.temperature + '°C' : '--' }}</span>
+            </div>
+            
+            <div class="col-battery-level">
+              <span class="battery-level" :class="getBatteryLevelClass(vehicle.batteryLevel)">
+                {{ vehicle.batteryLevel ? vehicle.batteryLevel + '%' : '--' }}
+              </span>
+            </div>
+            
+            <div class="col-alerts">
               <span v-if="vehicle.alerts && vehicle.alerts.length > 0" class="alert-indicator">
                 ⚠️ {{ vehicle.alerts.length }}
               </span>
+              <span v-else class="no-alerts">--</span>
             </div>
-          </div>
-
-          <!-- 车辆详情 -->
-          <div class="card-body">
-            <div class="info-grid">
-              <div class="info-item">
-                <label>电池编号</label>
-                <span class="info-value">{{ vehicle.pid || '未安装' }}</span>
-              </div>
-              <div class="info-item">
-                <label>电池电压</label>
-                <span class="info-value">{{ vehicle.voltage ? vehicle.voltage + 'V' : '--' }}</span>
-              </div>
-              <div class="info-item">
-                <label>电池温度</label>
-                <span class="info-value">{{ vehicle.temperature ? vehicle.temperature + '°C' : '--' }}</span>
-              </div>
-              <div class="info-item">
-                <label>剩余电量</label>
-                <span class="battery-level" :class="getBatteryLevelClass(vehicle.batteryLevel)">
-                  {{ vehicle.batteryLevel ? vehicle.batteryLevel + '%' : '--' }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- 报警信息 -->
-          <div v-if="vehicle.alerts && vehicle.alerts.length > 0" class="card-footer">
-            <div class="alerts-list">
-              <div v-for="alert in vehicle.alerts.slice(0, 2)" :key="alert.id" class="alert-item">
-                <span class="alert-icon">⚠️</span>
-                <span class="alert-text">{{ getAlertText(alert) }}</span>
-              </div>
-              <div v-if="vehicle.alerts.length > 2" class="alert-more">
-                还有 {{ vehicle.alerts.length - 2 }} 条报警
-              </div>
+            
+            <div class="col-actions">
+              <button class="btn btn-small btn-primary" @click="viewVehicleDetails(vehicle)">
+                查看详情
+              </button>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- 空状态 -->
-      <div v-if="filteredVehicles.length === 0" class="empty-state">
-        <div class="empty-icon">🚗</div>
-        <div class="empty-text">暂无车辆数据</div>
+        <!-- 空状态 -->
+        <div v-if="filteredVehicles.length === 0" class="empty-state">
+          <div class="empty-icon">🚗</div>
+          <div class="empty-text">暂无车辆数据</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 车辆详情模态框 -->
+    <div v-if="showVehicleDetails" class="modal-overlay" @click="showVehicleDetails = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>车辆详细信息</h3>
+          <button class="modal-close" @click="showVehicleDetails = false">×</button>
+        </div>
+        
+        <div class="modal-body">
+          <div v-if="selectedVehicleDetails" class="details-container">
+            <!-- 基本信息表格 -->
+            <div class="details-section">
+              <h4>基本信息</h4>
+              <div class="details-table">
+                <div class="detail-row">
+                  <div class="detail-label">车辆编号</div>
+                  <div class="detail-value">{{ selectedVehicleDetails.vid }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">状态</div>
+                  <div class="detail-value">
+                    <span class="status-badge" :class="{ online: selectedVehicleDetails.online }">
+                      {{ selectedVehicleDetails.online ? '在线' : '离线' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">电池编号</div>
+                  <div class="detail-value">{{ selectedVehicleDetails.pid || '未安装' }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">电压</div>
+                  <div class="detail-value">{{ selectedVehicleDetails.voltage ? selectedVehicleDetails.voltage + 'V' : '--' }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">温度</div>
+                  <div class="detail-value">{{ selectedVehicleDetails.temperature ? selectedVehicleDetails.temperature + '°C' : '--' }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">剩余电量</div>
+                  <div class="detail-value">
+                    <span class="battery-level" :class="getBatteryLevelClass(selectedVehicleDetails.batteryLevel)">
+                      {{ selectedVehicleDetails.batteryLevel ? selectedVehicleDetails.batteryLevel + '%' : '--' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">最后更新时间</div>
+                  <div class="detail-value">{{ selectedVehicleDetails.lastUpdate || '--' }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 报警信息表格 -->
+            <div v-if="selectedVehicleDetails.alerts && selectedVehicleDetails.alerts.length > 0" class="details-section">
+              <h4>报警信息 ({{ selectedVehicleDetails.alerts.length }}条)</h4>
+              <div class="alerts-table">
+                <div class="table-header">
+                  <div class="col-id">ID</div>
+                  <div class="col-type">类型</div>
+                  <div class="col-time">时间</div>
+                  <div class="col-message">描述</div>
+                </div>
+                <div class="table-body">
+                  <div v-for="alert in selectedVehicleDetails.alerts" :key="alert.id" class="table-row">
+                    <div class="col-id">{{ formatAlertId(alert.id) }}</div>
+                    <div class="col-type">
+                      <span class="alert-type" :class="getAlertTypeClass(alert.type)">
+                        {{ getAlertTypeText(alert.type) }}
+                      </span>
+                    </div>
+                    <div class="col-time">{{ formatTime(alert.timestamp) }}</div>
+                    <div class="col-message">{{ alert.message || '无描述' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div v-else class="details-section">
+              <h4>报警信息</h4>
+              <div class="no-alerts">暂无报警信息</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button class="btn btn-primary" @click="showVehicleDetails = false">关闭</button>
+        </div>
       </div>
     </div>
   </div>
@@ -219,6 +311,50 @@ const getAlertText = (alert) => {
     unreachable: '无法到达换电站'
   }
   return alertMap[alert.type] || alert.message || '未知报警'
+}
+
+const getAlertTypeClass = (type) => {
+  const typeMap = {
+    'low_battery': 'warning',
+    'high_temperature': 'danger',
+    'low_voltage': 'warning',
+    'offline': 'info',
+    'error': 'danger'
+  }
+  return typeMap[type] || 'info'
+}
+
+const getAlertTypeText = (type) => {
+  const typeMap = {
+    'low_battery': '电量不足',
+    'high_temperature': '温度过高',
+    'low_voltage': '电压过低',
+    'offline': '设备离线',
+    'error': '系统错误'
+  }
+  return typeMap[type] || type
+}
+
+const formatTime = (timestamp) => {
+  return new Date(timestamp).toLocaleString('zh-CN')
+}
+
+const formatAlertId = (id) => {
+  // 将ID缩短为4位数字，例如：0001, 0002, 0003...
+  if (!id) return '0000'
+  // 如果是字符串，提取数字部分；如果是数字，直接使用
+  const num = typeof id === 'string' ? parseInt(id.replace(/\D/g, '')) || 0 : id
+  // 确保是4位数字，不足补零
+  return String(num % 10000).padStart(4, '0')
+}
+
+const showVehicleDetails = ref(false)
+const selectedVehicleDetails = ref(null)
+
+const viewVehicleDetails = (vehicle) => {
+  console.log('查看车辆详情:', vehicle)
+  selectedVehicleDetails.value = vehicle
+  showVehicleDetails.value = true
 }
 
 const selectVehicle = (vid) => {
@@ -491,175 +627,152 @@ onMounted(async () => {
   background: #0056b3;
 }
 
-/* 车辆网格 */
-.vehicles-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
-
-.vehicle-card {
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
+/* 车辆表格 */
+.vehicles-table {
   background: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.vehicle-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+.table-header {
+  display: grid;
+  grid-template-columns: 120px 100px 120px 100px 100px 100px 80px 120px;
+  padding: 20px 24px;
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 1px solid #e9ecef;
+  gap: 16px;
 }
 
-.vehicle-card.selected {
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+.table-body {
+  max-height: 500px;
+  overflow-y: auto;
 }
 
-.vehicle-card.online {
+.table-row {
+  display: grid;
+  grid-template-columns: 120px 100px 120px 100px 100px 100px 80px 120px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.table-row:hover {
+  background: #f8f9fa;
+  transform: translateY(-1px);
+}
+
+.table-row.online {
   border-left: 4px solid #28a745;
 }
 
-.vehicle-card.offline {
+.table-row.offline {
   border-left: 4px solid #dc3545;
 }
 
-.vehicle-card.has-alerts {
+.table-row.has-alerts {
   border-left: 4px solid #ffc107;
 }
 
-/* 卡片头部 */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.vehicle-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.vehicle-id {
-  font-size: 18px;
+/* 表格列样式 */
+.col-id .vehicle-id {
+  font-size: 16px;
   font-weight: 600;
   color: #1a1a1a;
 }
 
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
+.col-status .status-badge {
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
+  display: inline-block;
 }
 
-.status-badge.online {
+.col-status .status-badge.online {
   background: #d4edda;
   color: #155724;
 }
 
-.status-badge:not(.online) {
+.col-status .status-badge:not(.online) {
   background: #f8d7da;
   color: #721c24;
 }
 
-.alert-indicator {
-  background: #fff3cd;
-  color: #856404;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-/* 卡片主体 */
-.card-body {
-  padding: 20px;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.info-item label {
-  font-size: 12px;
-  color: #666;
+.col-battery .battery-id {
+  font-size: 14px;
+  color: #1a1a1a;
   font-weight: 500;
 }
 
-.info-value {
+.col-voltage .voltage-value,
+.col-temperature .temperature-value {
   font-size: 14px;
   color: #1a1a1a;
+  font-weight: 500;
+}
+
+.col-battery-level .battery-level {
+  font-size: 14px;
   font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
-.battery-level {
-  font-weight: 600;
+.col-battery-level .battery-level.high {
+  background: #d4edda;
+  color: #155724;
 }
 
-.battery-level.high {
-  color: #28a745;
+.col-battery-level .battery-level.medium {
+  background: #fff3cd;
+  color: #856404;
 }
 
-.battery-level.medium {
-  color: #ffc107;
+.col-battery-level .battery-level.low {
+  background: #f8d7da;
+  color: #721c24;
 }
 
-.battery-level.low {
-  color: #dc3545;
-}
-
-.battery-level.unknown {
+.col-battery-level .battery-level.unknown {
+  background: #f8f9fa;
   color: #6c757d;
 }
 
-/* 卡片底部 */
-.card-footer {
-  padding: 16px 20px;
-  background: #fff3cd;
-  border-top: 1px solid #ffeaa7;
-}
-
-.alerts-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.alert-item {
-  display: flex;
+.col-alerts .alert-indicator {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #fff3cd;
+  color: #856404;
+  border-radius: 6px;
   font-size: 12px;
+  font-weight: 500;
 }
 
-.alert-icon {
+.col-alerts .no-alerts {
+  color: #6c757d;
   font-size: 14px;
 }
 
-.alert-text {
-  color: #856404;
-  flex: 1;
+.col-actions .btn-small {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
-.alert-more {
-  font-size: 11px;
-  color: #666;
-  text-align: center;
-  margin-top: 4px;
+.col-actions .btn-small:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* 空状态 */
@@ -669,7 +782,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: #666;
+  color: #6c757d;
+  grid-column: 1 / -1;
 }
 
 .empty-icon {
@@ -679,6 +793,7 @@ onMounted(async () => {
 
 .empty-text {
   font-size: 16px;
+  font-weight: 500;
 }
 
 /* 响应式设计 */
@@ -727,6 +842,210 @@ onMounted(async () => {
 .control-actions {
   display: flex;
   gap: 10px;
+}
+
+/* 模态框样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+.modal-body {
+  padding: 0;
+}
+
+.modal-footer {
+  padding: 24px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  background: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+}
+
+/* 详情容器样式 */
+.details-container {
+  padding: 24px;
+}
+
+.details-section {
+  margin-bottom: 32px;
+}
+
+.details-section h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #007bff;
+}
+
+.details-table {
+  background: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.detail-row {
+  display: flex;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  flex: 0 0 150px;
+  padding: 16px;
+  background: #e9ecef;
+  font-weight: 600;
+  color: #495057;
+  border-right: 1px solid #dee2e6;
+}
+
+.detail-value {
+  flex: 1;
+  padding: 16px;
+  background: white;
+  color: #1a1a1a;
+}
+
+/* 报警表格样式 */
+.alerts-table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.alerts-table .table-header {
+  display: grid;
+  grid-template-columns: 80px 120px 180px 1fr;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 1px solid #e9ecef;
+  gap: 16px;
+  text-align: center;
+}
+
+.alerts-table .table-body {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.alerts-table .table-row {
+  display: grid;
+  grid-template-columns: 80px 120px 180px 1fr;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.alerts-table .table-row:last-child {
+  border-bottom: none;
+}
+
+.alert-type {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.alert-type.warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.alert-type.danger {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.alert-type.info {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.no-alerts {
+  text-align: center;
+  padding: 32px;
+  color: #6c757d;
+  font-style: italic;
 }
 
 .vehicles-grid {

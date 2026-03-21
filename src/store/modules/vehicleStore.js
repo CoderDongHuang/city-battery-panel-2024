@@ -104,10 +104,8 @@ export const useVehicleStore = defineStore('vehicle', {
     },
     
     startRealTimeUpdates() {
-      mockDataService.startRealTimeUpdates((data) => {
-        this.vehicles = data.vehicles
-        this.onlineVehicles = data.vehicles.filter(v => v.online).map(v => v.vid)
-      })
+      console.log('车辆实时更新已启动')
+      // 这里可以添加WebSocket连接逻辑
     }
   }
 })

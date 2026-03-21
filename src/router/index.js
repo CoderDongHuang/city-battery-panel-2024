@@ -32,6 +32,12 @@ const routes = [
         meta: { title: '地图监控' }
       },
       {
+        path: 'alerts',
+        name: 'Alerts',
+        component: () => import('../views/Alerts.vue'),
+        meta: { title: '报警管理' }
+      },
+      {
         path: 'settings',
         name: 'Settings',
         component: () => import('../views/Settings.vue'),

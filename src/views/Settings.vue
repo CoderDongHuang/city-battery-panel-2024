@@ -1,8 +1,13 @@
 <template>
   <div class="settings">
-    <h2>系统设置</h2>
-    
-    <div class="settings-grid">
+    <!-- 设置配置区域（大模块） -->
+    <div class="settings-grid-section">
+      <div class="section-header">
+        <h2 class="section-title">系统设置</h2>
+        <p class="section-description">配置系统参数、通信设置、地图配置和界面选项</p>
+      </div>
+      
+      <div class="settings-grid">
       <div class="setting-section">
         <h3>系统参数配置</h3>
         <div class="setting-item">
@@ -94,15 +99,23 @@
           <input v-model="uiConfig.showAnimations" type="checkbox" />
         </div>
       </div>
-    </div>
-    
-    <div class="actions">
+      </div>
+      
+      <div class="actions">
       <button class="btn btn-primary" @click="saveSettings">保存设置</button>
       <button class="btn btn-secondary" @click="resetSettings">恢复默认</button>
       <button class="btn btn-warning" @click="testConnection">测试连接</button>
+      </div>
     </div>
     
-    <div class="system-info">
+    <!-- 系统信息区域（大模块） -->
+    <div class="system-info-section">
+      <div class="section-header">
+        <h2 class="section-title">系统信息</h2>
+        <p class="section-description">查看系统运行状态和连接信息</p>
+      </div>
+      
+      <div class="system-info">
       <h3>系统信息</h3>
       <div class="info-grid">
         <div class="info-item">
@@ -128,6 +141,7 @@
         <div class="info-item">
           <label>最后更新时间:</label>
           <span>{{ systemInfo.lastUpdate }}</span>
+        </div>
         </div>
       </div>
     </div>
@@ -283,7 +297,65 @@ onMounted(() => {
 
 <style scoped>
 .settings {
-  padding: 20px;
+  padding: 24px;   /* 与 Dashboard 统一内边距 */
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* 大模块间距设置 - 与系统概览页面保持一致 */
+.settings-grid-section {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 48px;          /* 大模块间距 */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.system-info-section {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 0;             /* 最后一个模块不要下边距 */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+/* 大模块悬停效果 */
+.settings-grid-section:hover,
+.system-info-section:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* 头部样式（与 Dashboard 保持一致） */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  gap: 24px;
+}
+
+.section-title-group {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+  line-height: 1.2;
+}
+
+.section-description {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
 }
 
 .settings-grid {

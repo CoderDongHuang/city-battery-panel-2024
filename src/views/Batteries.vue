@@ -78,80 +78,79 @@
         </div>
       </div>
 
-      <div class="batteries-grid">
-        <div v-for="battery in filteredBatteries" :key="battery.pid" 
-             class="battery-card"
-             :class="getBatteryStatusClass(battery)">
-          
-          <!-- 电池头部 -->
-          <div class="card-header">
-            <div class="battery-info">
+      <!-- 电池表格 -->
+      <div class="batteries-table">
+        <div class="table-header">
+          <div class="col-id">电池编号</div>
+          <div class="col-status">状态</div>
+          <div class="col-vehicle">当前车辆</div>
+          <div class="col-voltage">电压</div>
+          <div class="col-temperature">温度</div>
+          <div class="col-capacity">剩余电量</div>
+          <div class="col-health">健康状态</div>
+          <div class="col-cycles">循环次数</div>
+          <div class="col-actions">操作</div>
+        </div>
+
+        <div class="table-body">
+          <div v-for="battery in filteredBatteries" :key="battery.pid" 
+               class="table-row"
+               :class="getBatteryStatusClass(battery)">
+            
+            <div class="col-id">
               <span class="battery-id">{{ battery.pid }}</span>
+            </div>
+            
+            <div class="col-status">
               <span class="status-badge" :class="battery.status">
                 {{ getStatusText(battery.status) }}
               </span>
             </div>
-            <div class="battery-actions">
-              <span v-if="battery.health < 80" class="health-warning">
-                ⚠️ 健康度低
+            
+            <div class="col-vehicle">
+              <span class="vehicle-value">{{ battery.currentVehicle || '未使用' }}</span>
+            </div>
+            
+            <div class="col-voltage">
+              <span class="voltage-value">{{ battery.voltage ? battery.voltage + 'V' : '--' }}</span>
+            </div>
+            
+            <div class="col-temperature">
+              <span class="temperature-value">{{ battery.temperature ? battery.temperature + '°C' : '--' }}</span>
+            </div>
+            
+            <div class="col-capacity">
+              <span class="battery-level" :class="getBatteryLevelClass(battery.remainingCapacity)">
+                {{ battery.remainingCapacity ? battery.remainingCapacity + '%' : '--' }}
               </span>
             </div>
-          </div>
-
-          <!-- 电池详情 -->
-          <div class="card-body">
-            <div class="info-grid">
-              <div class="info-item">
-                <label>当前车辆</label>
-                <span class="info-value">{{ battery.currentVehicle || '未使用' }}</span>
-              </div>
-              <div class="info-item">
-                <label>电压</label>
-                <span class="info-value">{{ battery.voltage ? battery.voltage + 'V' : '--' }}</span>
-              </div>
-              <div class="info-item">
-                <label>温度</label>
-                <span class="info-value">{{ battery.temperature ? battery.temperature + '°C' : '--' }}</span>
-              </div>
-              <div class="info-item">
-                <label>剩余电量</label>
-                <span class="battery-level" :class="getBatteryLevelClass(battery.remainingCapacity)">
-                  {{ battery.remainingCapacity ? battery.remainingCapacity + '%' : '--' }}
-                </span>
-              </div>
-              <div class="info-item">
-                <label>健康状态</label>
-                <span class="health-level" :class="getHealthLevelClass(battery.health)">
-                  {{ battery.health ? battery.health + '%' : '--' }}
-                </span>
-              </div>
-              <div class="info-item">
-                <label>循环次数</label>
-                <span class="info-value">{{ battery.cycleCount || '--' }}</span>
-              </div>
+            
+            <div class="col-health">
+              <span class="health-level" :class="getHealthLevelClass(battery.health)">
+                {{ battery.health ? battery.health + '%' : '--' }}
+              </span>
+              <span v-if="battery.health < 80" class="health-warning">
+                ⚠️
+              </span>
             </div>
-          </div>
-
-          <!-- 使用历史 -->
-          <div class="card-footer" v-if="battery.history && battery.history.length > 0">
-            <div class="history-section">
-              <h4>最近使用记录</h4>
-              <div class="history-list">
-                <div v-for="(record, index) in battery.history.slice(-2)" :key="index" class="history-item">
-                  <span class="history-time">{{ formatTime(record.timestamp) }}</span>
-                  <span class="history-vehicle">{{ record.vehicleId }}</span>
-                  <span class="history-capacity">{{ record.capacity }}%</span>
-                </div>
-              </div>
+            
+            <div class="col-cycles">
+              <span class="cycles-value">{{ battery.cycleCount || '--' }}</span>
+            </div>
+            
+            <div class="col-actions">
+              <button class="btn btn-small btn-primary" @click="viewBatteryDetails(battery)">
+                查看详情
+              </button>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- 空状态 -->
-      <div v-if="filteredBatteries.length === 0" class="empty-state">
-        <div class="empty-icon">🔋</div>
-        <div class="empty-text">暂无电池数据</div>
+        <!-- 空状态 -->
+        <div v-if="filteredBatteries.length === 0" class="empty-state">
+          <div class="empty-icon">🔋</div>
+          <div class="empty-text">暂无电池数据</div>
+        </div>
       </div>
     </div>
 
@@ -166,16 +165,39 @@
             <h4>电池容量分布</h4>
           </div>
           <div class="chart-container">
-            <div class="mock-chart">
-              <div class="chart-bars">
-                <div class="chart-bar" style="height: 80%"></div>
-                <div class="chart-bar" style="height: 60%"></div>
-                <div class="chart-bar" style="height: 90%"></div>
-                <div class="chart-bar" style="height: 70%"></div>
-                <div class="chart-bar" style="height: 85%"></div>
-              </div>
-              <div class="chart-labels">
-                <span>0-20%</span><span>20-40%</span><span>40-60%</span><span>60-80%</span><span>80-100%</span>
+            <!-- 简化的折线图布局 -->
+            <div class="simple-line-chart">
+              <svg class="line-chart-svg" viewBox="0 0 400 180">
+                <!-- 背景网格线 -->
+                <line x1="0" y1="36" x2="400" y2="36" stroke="#e9ecef" stroke-width="1" />
+                <line x1="0" y1="72" x2="400" y2="72" stroke="#e9ecef" stroke-width="1" />
+                <line x1="0" y1="108" x2="400" y2="108" stroke="#e9ecef" stroke-width="1" />
+                <line x1="0" y1="144" x2="400" y2="144" stroke="#e9ecef" stroke-width="1" />
+                
+                <!-- 折线 -->
+                <polyline points="40,36 120,72 200,18 280,54 360,27" 
+                          fill="none" stroke="#007bff" stroke-width="2" />
+                
+                <!-- 数据点 -->
+                <circle cx="40" cy="36" r="4" fill="#007bff" />
+                <circle cx="120" cy="72" r="4" fill="#007bff" />
+                <circle cx="200" cy="18" r="4" fill="#007bff" />
+                <circle cx="280" cy="54" r="4" fill="#007bff" />
+                <circle cx="360" cy="27" r="4" fill="#007bff" />
+                
+                <!-- 数据标签 -->
+                <text x="40" y="32" text-anchor="middle" font-size="10" fill="#007bff">80%</text>
+                <text x="120" y="68" text-anchor="middle" font-size="10" fill="#007bff">60%</text>
+                <text x="200" y="14" text-anchor="middle" font-size="10" fill="#007bff">90%</text>
+                <text x="280" y="50" text-anchor="middle" font-size="10" fill="#007bff">70%</text>
+                <text x="360" y="23" text-anchor="middle" font-size="10" fill="#007bff">85%</text>
+              </svg>
+              <div class="x-axis-labels">
+                <span>0-20%</span>
+                <span>20-40%</span>
+                <span>40-60%</span>
+                <span>60-80%</span>
+                <span>80-100%</span>
               </div>
             </div>
           </div>
@@ -186,13 +208,148 @@
             <h4>温度分布</h4>
           </div>
           <div class="chart-container">
-            <div class="mock-chart">
-              <div class="temperature-gauge">
-                <div class="gauge-fill" style="height: 65%"></div>
-                <div class="gauge-label">25°C</div>
+            <div class="temperature-distribution">
+              <!-- 饼图：使用单一 conic-gradient -->
+              <div class="temperature-pie">
+                <div class="pie-segments" style="background: conic-gradient(
+                  #28a745 0% 40%,
+                  #ffc107 40% 70%,
+                  #fd7e14 70% 90%,
+                  #dc3545 90% 100%
+                );"></div>
+                <div class="pie-center">
+                  <span class="pie-value">25°C</span>
+                  <span class="pie-label">平均温度</span>
+                </div>
+              </div>
+              <div class="temperature-legend">
+                <div class="legend-item">
+                  <span class="legend-color" style="background: #28a745;"></span>
+                  <span class="legend-label">正常 (0-25°C)</span>
+                  <span class="legend-count">40%</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color" style="background: #ffc107;"></span>
+                  <span class="legend-label">偏高 (25-35°C)</span>
+                  <span class="legend-count">30%</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color" style="background: #fd7e14;"></span>
+                  <span class="legend-label">高温 (35-45°C)</span>
+                  <span class="legend-count">20%</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color" style="background: #dc3545;"></span>
+                  <span class="legend-label">危险 (>45°C)</span>
+                  <span class="legend-count">10%</span>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 电池详情模态框 -->
+    <div v-if="showBatteryDetails" class="modal-overlay" @click="showBatteryDetails = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>电池详细信息</h3>
+          <button class="modal-close" @click="showBatteryDetails = false">×</button>
+        </div>
+        
+        <div class="modal-body">
+          <div v-if="selectedBatteryDetails" class="details-container">
+            <!-- 基本信息表格 -->
+            <div class="details-section">
+              <h4>基本信息</h4>
+              <div class="details-table">
+                <div class="detail-row">
+                  <div class="detail-label">电池编号</div>
+                  <div class="detail-value">{{ selectedBatteryDetails.pid }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">状态</div>
+                  <div class="detail-value">
+                    <span class="status-badge" :class="selectedBatteryDetails.status">
+                      {{ getStatusText(selectedBatteryDetails.status) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">当前车辆</div>
+                  <div class="detail-value">{{ selectedBatteryDetails.currentVehicle || '未使用' }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">电压</div>
+                  <div class="detail-value">{{ selectedBatteryDetails.voltage ? selectedBatteryDetails.voltage + 'V' : '--' }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">温度</div>
+                  <div class="detail-value">{{ selectedBatteryDetails.temperature ? selectedBatteryDetails.temperature + '°C' : '--' }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">剩余电量</div>
+                  <div class="detail-value">
+                    <span class="battery-level" :class="getBatteryLevelClass(selectedBatteryDetails.remainingCapacity)">
+                      {{ selectedBatteryDetails.remainingCapacity ? selectedBatteryDetails.remainingCapacity + '%' : '--' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">健康状态</div>
+                  <div class="detail-value">
+                    <span class="health-level" :class="getHealthLevelClass(selectedBatteryDetails.health)">
+                      {{ selectedBatteryDetails.health ? selectedBatteryDetails.health + '%' : '--' }}
+                    </span>
+                    <span v-if="selectedBatteryDetails.health < 80" class="health-warning">⚠️ 健康度低</span>
+                  </div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">循环次数</div>
+                  <div class="detail-value">{{ selectedBatteryDetails.cycleCount || '--' }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">生产日期</div>
+                  <div class="detail-value">{{ selectedBatteryDetails.productionDate || '--' }}</div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-label">最后维护时间</div>
+                  <div class="detail-value">{{ selectedBatteryDetails.lastMaintenance || '--' }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 使用历史表格 -->
+            <div v-if="selectedBatteryDetails.history && selectedBatteryDetails.history.length > 0" class="details-section">
+              <h4>使用历史 (最近5条)</h4>
+              <div class="history-table">
+                <div class="table-header">
+                  <div class="col-time">时间</div>
+                  <div class="col-vehicle">车辆编号</div>
+                  <div class="col-capacity">电量</div>
+                  <div class="col-duration">使用时长</div>
+                </div>
+                <div class="table-body">
+                  <div v-for="(record, index) in selectedBatteryDetails.history.slice(-5)" :key="index" class="table-row">
+                    <div class="col-time">{{ formatTime(record.timestamp) }}</div>
+                    <div class="col-vehicle">{{ record.vehicleId || '--' }}</div>
+                    <div class="col-capacity">{{ record.capacity ? record.capacity + '%' : '--' }}</div>
+                    <div class="col-duration">{{ record.duration || '--' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div v-else class="details-section">
+              <h4>使用历史</h4>
+              <div class="no-history">暂无使用记录</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button class="btn btn-primary" @click="showBatteryDetails = false">关闭</button>
         </div>
       </div>
     </div>
@@ -258,6 +415,15 @@ const formatTime = (timestamp) => {
     hour: '2-digit', 
     minute: '2-digit' 
   })
+}
+
+const showBatteryDetails = ref(false)
+const selectedBatteryDetails = ref(null)
+
+const viewBatteryDetails = (battery) => {
+  console.log('查看电池详情:', battery)
+  selectedBatteryDetails.value = battery
+  showBatteryDetails.value = true
 }
 
 const refreshBatteries = async () => {
@@ -464,204 +630,189 @@ onMounted(async () => {
   color: #666;
 }
 
-/* 电池网格 */
-.batteries-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
-}
-
-.battery-card {
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
+/* 电池表格 */
+.batteries-table {
   background: white;
-  transition: all 0.3s ease;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.battery-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+.table-header {
+  display: grid;
+  grid-template-columns: 120px 100px 120px 100px 100px 100px 100px 80px 120px;
+  padding: 20px 24px;
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 1px solid #e9ecef;
+  gap: 16px;
 }
 
-.battery-card.in-use {
+.table-body {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 120px 100px 120px 100px 100px 100px 100px 80px 120px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.table-row:hover {
+  background: #f8f9fa;
+  transform: translateY(-1px);
+}
+
+.table-row.in-use {
   border-left: 4px solid #28a745;
 }
 
-.battery-card.available {
+.table-row.available {
   border-left: 4px solid #17a2b8;
 }
 
-.battery-card.maintenance {
+.table-row.maintenance {
   border-left: 4px solid #ffc107;
 }
 
-/* 卡片头部 */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.battery-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.battery-id {
-  font-size: 18px;
+/* 表格列样式 */
+.col-id .battery-id {
+  font-size: 16px;
   font-weight: 600;
   color: #1a1a1a;
 }
 
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
+.col-status .status-badge {
+  padding: 6px 12px;
+  border-radius: 6px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
+  display: inline-block;
 }
 
-.status-badge.inUse {
+.col-status .status-badge.inUse {
   background: #d4edda;
   color: #155724;
 }
 
-.status-badge.available {
+.col-status .status-badge.available {
   background: #d1ecf1;
   color: #0c5460;
 }
 
-.status-badge.maintenance {
+.col-status .status-badge.maintenance {
   background: #fff3cd;
   color: #856404;
 }
 
-.health-warning {
-  background: #fff3cd;
-  color: #856404;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-/* 卡片主体 */
-.card-body {
-  padding: 20px;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.info-item label {
-  font-size: 12px;
-  color: #666;
+.col-vehicle .vehicle-value {
+  font-size: 14px;
+  color: #1a1a1a;
   font-weight: 500;
 }
 
-.info-value {
+.col-voltage .voltage-value,
+.col-temperature .temperature-value {
   font-size: 14px;
   color: #1a1a1a;
-  font-weight: 600;
+  font-weight: 500;
 }
 
-.battery-level {
-  font-weight: 600;
-}
-
-.battery-level.high {
-  color: #28a745;
-}
-
-.battery-level.medium {
-  color: #ffc107;
-}
-
-.battery-level.low {
-  color: #dc3545;
-}
-
-.battery-level.unknown {
-  color: #6c757d;
-}
-
-.health-level {
-  font-weight: 600;
-}
-
-.health-level.excellent {
-  color: #28a745;
-}
-
-.health-level.good {
-  color: #17a2b8;
-}
-
-.health-level.fair {
-  color: #ffc107;
-}
-
-.health-level.poor {
-  color: #dc3545;
-}
-
-.health-level.unknown {
-  color: #6c757d;
-}
-
-/* 卡片底部 */
-.card-footer {
-  padding: 16px 20px;
-  background: #f8f9fa;
-  border-top: 1px solid #e9ecef;
-}
-
-.history-section h4 {
+.col-capacity .battery-level {
   font-size: 14px;
   font-weight: 600;
-  color: #666;
-  margin: 0 0 12px 0;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
-.history-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.col-capacity .battery-level.high {
+  background: #d4edda;
+  color: #155724;
 }
 
-.history-item {
-  display: flex;
-  justify-content: space-between;
+.col-capacity .battery-level.medium {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.col-capacity .battery-level.low {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.col-capacity .battery-level.unknown {
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+.col-health .health-level {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-right: 8px;
+}
+
+.col-health .health-level.excellent {
+  background: #d4edda;
+  color: #155724;
+}
+
+.col-health .health-level.good {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.col-health .health-level.fair {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.col-health .health-level.poor {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.col-health .health-level.unknown {
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+.col-health .health-warning {
+  display: inline-flex;
   align-items: center;
+  padding: 4px 6px;
+  background: #fff3cd;
+  color: #856404;
+  border-radius: 4px;
   font-size: 12px;
-  color: #666;
 }
 
-.history-time {
-  font-weight: 600;
+.col-cycles .cycles-value {
+  font-size: 14px;
+  color: #1a1a1a;
+  font-weight: 500;
 }
 
-.history-vehicle {
-  flex: 1;
-  text-align: center;
+.col-actions .btn-small {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
-.history-capacity {
-  font-weight: 600;
-  color: #007bff;
+.col-actions .btn-small:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* 空状态 */
@@ -671,7 +822,8 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: #666;
+  color: #6c757d;
+  grid-column: 1 / -1;
 }
 
 .empty-icon {
@@ -681,6 +833,7 @@ onMounted(async () => {
 
 .empty-text {
   font-size: 16px;
+  font-weight: 500;
 }
 
 /* 图表区域 */
@@ -711,58 +864,104 @@ onMounted(async () => {
   margin: 0 0 16px 0;
 }
 
-.mock-chart {
+.chart-container {
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 简化的折线图布局 */
+.simple-line-chart {
+  height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
 }
 
-.chart-bars {
-  display: flex;
-  align-items: end;
-  gap: 8px;
-  height: 100px;
-  width: 100%;
-}
-
-.chart-bar {
+.line-chart-svg {
   flex: 1;
-  background: linear-gradient(to top, #007bff, #66b3ff);
-  border-radius: 2px 2px 0 0;
-  min-height: 20px;
+  width: 100%;
+  height: 100%;
 }
 
-.chart-labels {
+.x-axis-labels {
   display: flex;
   justify-content: space-between;
-  width: 100%;
-  font-size: 10px;
+  padding: 8px 0 0 0;
+  font-size: 12px;
   color: #666;
 }
 
-.temperature-gauge {
-  position: relative;
-  width: 80px;
-  height: 100px;
-  background: #e9ecef;
-  border-radius: 40px 40px 0 0;
-  overflow: hidden;
-}
-
-.gauge-fill {
-  position: absolute;
-  bottom: 0;
+/* 温度分布饼图样式 */
+.temperature-distribution {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 100%;
   width: 100%;
-  background: linear-gradient(to top, #dc3545, #ff6b6b);
-  transition: height 0.3s ease;
+  justify-content: center;
 }
-
-.gauge-label {
+.temperature-pie {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.pie-segments {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+.pie-center {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.pie-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+.pie-label {
+  font-size: 10px;
+  color: #666;
+  margin-top: 2px;
+}
+.temperature-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+.legend-label {
+  flex: 1;
+  color: #666;
+}
+.legend-count {
   font-weight: 600;
   color: #1a1a1a;
 }
@@ -816,15 +1015,184 @@ onMounted(async () => {
   }
 }
 
-.chart-placeholder {
-  height: 200px;
-  background: #f8f9fa;
-  border: 2px dashed #dee2e6;
-  border-radius: 8px;
+/* 模态框样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: #e9ecef;
+  color: #333;
+}
+
+.modal-body {
+  padding: 0;
+}
+
+.modal-footer {
+  padding: 24px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  background: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+}
+
+/* 详情容器样式 */
+.details-container {
+  padding: 24px;
+}
+
+.details-section {
+  margin-bottom: 32px;
+}
+
+.details-section h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #007bff;
+}
+
+.details-table {
+  background: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.detail-row {
+  display: flex;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  flex: 0 0 150px;
+  padding: 16px;
+  background: #e9ecef;
+  font-weight: 600;
+  color: #495057;
+  border-right: 1px solid #dee2e6;
+}
+
+.detail-value {
+  flex: 1;
+  padding: 16px;
+  background: white;
+  color: #1a1a1a;
+}
+
+/* 使用历史表格样式 */
+.history-table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.history-table .table-header {
+  display: grid;
+  grid-template-columns: 200px 120px 100px 120px;
+  padding: 16px 20px;
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 1px solid #e9ecef;
+  gap: 16px;
+  text-align: center;
+}
+
+.history-table .table-body {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.history-table .table-row {
+  display: grid;
+  grid-template-columns: 200px 120px 100px 120px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.history-table .table-row:last-child {
+  border-bottom: none;
+}
+
+.no-history {
+  text-align: center;
+  padding: 32px;
   color: #6c757d;
+  font-style: italic;
 }
 </style>
