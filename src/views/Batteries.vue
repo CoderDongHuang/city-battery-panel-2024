@@ -165,32 +165,32 @@
             <h4>电池容量分布</h4>
           </div>
           <div class="chart-container">
-            <!-- 简化的折线图布局 -->
-            <div class="simple-line-chart">
-              <svg class="line-chart-svg" viewBox="0 0 400 180">
+            <!-- 全新的折线图实现 - 使用正确的SVG坐标系 -->
+            <div class="grid-line-chart">
+              <svg class="line-chart-svg" viewBox="0 0 500 200" preserveAspectRatio="none">
                 <!-- 背景网格线 -->
-                <line x1="0" y1="36" x2="400" y2="36" stroke="#e9ecef" stroke-width="1" />
-                <line x1="0" y1="72" x2="400" y2="72" stroke="#e9ecef" stroke-width="1" />
-                <line x1="0" y1="108" x2="400" y2="108" stroke="#e9ecef" stroke-width="1" />
-                <line x1="0" y1="144" x2="400" y2="144" stroke="#e9ecef" stroke-width="1" />
+                <line x1="0" y1="40" x2="500" y2="40" stroke="#e9ecef" stroke-width="1" />
+                <line x1="0" y1="80" x2="500" y2="80" stroke="#e9ecef" stroke-width="1" />
+                <line x1="0" y1="120" x2="500" y2="120" stroke="#e9ecef" stroke-width="1" />
+                <line x1="0" y1="160" x2="500" y2="160" stroke="#e9ecef" stroke-width="1" />
                 
                 <!-- 折线 -->
-                <polyline points="40,36 120,72 200,18 280,54 360,27" 
+                <polyline points="50,160 150,120 250,180 350,140 450,165" 
                           fill="none" stroke="#007bff" stroke-width="2" />
                 
                 <!-- 数据点 -->
-                <circle cx="40" cy="36" r="4" fill="#007bff" />
-                <circle cx="120" cy="72" r="4" fill="#007bff" />
-                <circle cx="200" cy="18" r="4" fill="#007bff" />
-                <circle cx="280" cy="54" r="4" fill="#007bff" />
-                <circle cx="360" cy="27" r="4" fill="#007bff" />
+                <circle cx="50" cy="160" r="4" fill="#007bff" stroke="white" stroke-width="1" />
+                <circle cx="150" cy="120" r="4" fill="#007bff" stroke="white" stroke-width="1" />
+                <circle cx="250" cy="180" r="4" fill="#007bff" stroke="white" stroke-width="1" />
+                <circle cx="350" cy="140" r="4" fill="#007bff" stroke="white" stroke-width="1" />
+                <circle cx="450" cy="165" r="4" fill="#007bff" stroke="white" stroke-width="1" />
                 
                 <!-- 数据标签 -->
-                <text x="40" y="32" text-anchor="middle" font-size="10" fill="#007bff">80%</text>
-                <text x="120" y="68" text-anchor="middle" font-size="10" fill="#007bff">60%</text>
-                <text x="200" y="14" text-anchor="middle" font-size="10" fill="#007bff">90%</text>
-                <text x="280" y="50" text-anchor="middle" font-size="10" fill="#007bff">70%</text>
-                <text x="360" y="23" text-anchor="middle" font-size="10" fill="#007bff">85%</text>
+                <text x="50" y="155" text-anchor="middle" font-size="10" fill="#007bff">80%</text>
+                <text x="150" y="115" text-anchor="middle" font-size="10" fill="#007bff">60%</text>
+                <text x="250" y="175" text-anchor="middle" font-size="10" fill="#007bff">90%</text>
+                <text x="350" y="135" text-anchor="middle" font-size="10" fill="#007bff">70%</text>
+                <text x="450" y="160" text-anchor="middle" font-size="10" fill="#007bff">85%</text>
               </svg>
               <div class="x-axis-labels">
                 <span>0-20%</span>
@@ -358,9 +358,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useApiBatteryStore } from '../store/modules/apiBatteryStore'
+import { useBatteryStore } from '../store/modules/batteryStore'
 
-const batteryStore = useApiBatteryStore()
+const batteryStore = useBatteryStore()
 const filterStatus = ref('all')
 
 // 计算属性
@@ -871,27 +871,28 @@ onMounted(async () => {
   justify-content: center;
 }
 
-/* 简化的折线图布局 */
-.simple-line-chart {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.line-chart-svg {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-}
-
-.x-axis-labels {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0 0 0;
-  font-size: 12px;
-  color: #666;
-}
+/* 全新的折线图实现 - 使用正确的SVG坐标系 */
+ .grid-line-chart {
+   height: 100%;
+   width: 100%;
+   display: flex;
+   flex-direction: column;
+ }
+ 
+ .line-chart-svg {
+   flex: 1;
+   width: 100%;
+   height: calc(100% - 24px);
+   background: transparent;
+ }
+ 
+ .x-axis-labels {
+   display: flex;
+   justify-content: space-between;
+   padding: 4px 0 0 0;
+   font-size: 10px;
+   color: #666;
+ }
 
 /* 温度分布饼图样式 */
 .temperature-distribution {

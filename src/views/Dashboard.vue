@@ -184,51 +184,50 @@
             </div>
           </div>
           <div class="chart-container">
-            <!-- 简化的柱状图布局 -->
-            <div class="simple-bar-chart">
-              <div class="chart-bars">
-                <div class="chart-bar-container">
-                  <div class="chart-bar" style="height: 80%">
+            <!-- 全新的柱状图实现 - 使用CSS Grid -->
+            <div class="grid-bar-chart">
+              <!-- 柱形区域 -->
+              <div class="chart-area">
+                <div class="bar-grid">
+                  <div class="bar-item" style="--height: 80%">
+                    <div class="bar-fill"></div>
                     <span class="bar-value">80%</span>
                   </div>
-                  <span class="x-axis-label">一</span>
-                </div>
-                <div class="chart-bar-container">
-                  <div class="chart-bar" style="height: 60%">
+                  <div class="bar-item" style="--height: 60%">
+                    <div class="bar-fill"></div>
                     <span class="bar-value">60%</span>
                   </div>
-                  <span class="x-axis-label">二</span>
-                </div>
-                <div class="chart-bar-container">
-                  <div class="chart-bar" style="height: 90%">
+                  <div class="bar-item" style="--height: 90%">
+                    <div class="bar-fill"></div>
                     <span class="bar-value">90%</span>
                   </div>
-                  <span class="x-axis-label">三</span>
-                </div>
-                <div class="chart-bar-container">
-                  <div class="chart-bar" style="height: 70%">
+                  <div class="bar-item" style="--height: 70%">
+                    <div class="bar-fill"></div>
                     <span class="bar-value">70%</span>
                   </div>
-                  <span class="x-axis-label">四</span>
-                </div>
-                <div class="chart-bar-container">
-                  <div class="chart-bar" style="height: 85%">
+                  <div class="bar-item" style="--height: 85%">
+                    <div class="bar-fill"></div>
                     <span class="bar-value">85%</span>
                   </div>
-                  <span class="x-axis-label">五</span>
-                </div>
-                <div class="chart-bar-container">
-                  <div class="chart-bar" style="height: 75%">
+                  <div class="bar-item" style="--height: 75%">
+                    <div class="bar-fill"></div>
                     <span class="bar-value">75%</span>
                   </div>
-                  <span class="x-axis-label">六</span>
-                </div>
-                <div class="chart-bar-container">
-                  <div class="chart-bar" style="height: 95%">
+                  <div class="bar-item" style="--height: 95%">
+                    <div class="bar-fill"></div>
                     <span class="bar-value">95%</span>
                   </div>
-                  <span class="x-axis-label">日</span>
                 </div>
+              </div>
+              <!-- X轴标签 -->
+              <div class="x-axis">
+                <span>一</span>
+                <span>二</span>
+                <span>三</span>
+                <span>四</span>
+                <span>五</span>
+                <span>六</span>
+                <span>日</span>
               </div>
             </div>
           </div>
@@ -813,65 +812,69 @@ export default {
   overflow: hidden;
 }
 
-/* 简化的柱状图布局 */
-.simple-bar-chart {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.chart-bars {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 8px;
-  height: 100%;
-  width: 100%;
-  margin-bottom: 8px;
-}
-
-.chart-bar-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  height: 100%;
-}
-
-.chart-bar {
-  width: 100%;
-  background: linear-gradient(to top, #007bff, #66b3ff);
-  border-radius: 4px 4px 0 0;
-  min-height: 20px;
-  transition: height 0.5s ease;
-  position: relative;
-  display: flex;
-  align-items: start;
-  justify-content: center;
-}
-
-.bar-value {
-  position: absolute;
-  bottom: 100%;
-  margin-bottom: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #007bff;
-  background: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
-  white-space: nowrap;
-}
-
-.x-axis-label {
-  font-size: 14px;
-  color: #666;
-  margin-top: 8px;
-  text-align: center;
-  width: 100%;
-}
+/* 全新的柱状图实现 - 使用CSS Grid */
+ .grid-bar-chart {
+   height: 100%;
+   width: 100%;
+   display: flex;
+   flex-direction: column;
+ }
+ 
+ .chart-area {
+   flex: 1;
+   position: relative;
+   display: flex;
+   align-items: end;
+   margin-bottom: 8px;
+ }
+ 
+ .bar-grid {
+   display: grid;
+   grid-template-columns: repeat(7, 1fr);
+   gap: 8px;
+   width: 100%;
+   height: 100%;
+   align-items: end;
+ }
+ 
+ .bar-item {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   height: 100%;
+   position: relative;
+ }
+ 
+ .bar-fill {
+   width: 100%;
+   height: calc(var(--height) * 0.9);
+   background: linear-gradient(to top, #007bff, #66b3ff);
+   border-radius: 4px 4px 0 0;
+   min-height: 20px;
+   margin-bottom: 4px;
+ }
+ 
+ .bar-value {
+   font-size: 12px;
+   font-weight: 600;
+   color: #007bff;
+   background: white;
+   padding: 2px 6px;
+   border-radius: 4px;
+   border: 1px solid #e9ecef;
+   white-space: nowrap;
+   position: absolute;
+   top: -25px;
+ }
+ 
+ .x-axis {
+   display: grid;
+   grid-template-columns: repeat(7, 1fr);
+   gap: 8px;
+   font-size: 14px;
+   color: #666;
+   text-align: center;
+ }
 
 /* 饼图样式（多扇形 + 引导线） */
 .pie-chart-container {
