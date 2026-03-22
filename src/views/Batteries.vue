@@ -164,41 +164,61 @@
           <div class="chart-header">
             <h4>电池容量分布</h4>
           </div>
-          <div class="chart-container">
-            <!-- 全新的折线图实现 - 使用正确的SVG坐标系 -->
-            <div class="grid-line-chart">
-              <svg class="line-chart-svg" viewBox="0 0 500 200" preserveAspectRatio="none">
-                <!-- 背景网格线 -->
-                <line x1="0" y1="40" x2="500" y2="40" stroke="#e9ecef" stroke-width="1" />
-                <line x1="0" y1="80" x2="500" y2="80" stroke="#e9ecef" stroke-width="1" />
-                <line x1="0" y1="120" x2="500" y2="120" stroke="#e9ecef" stroke-width="1" />
-                <line x1="0" y1="160" x2="500" y2="160" stroke="#e9ecef" stroke-width="1" />
+          <div class="chart-container" @click="openChartModal('capacity')">
+            <div class="fixed-line-chart">
+              <svg class="line-chart-svg" viewBox="0 0 550 300" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#007bff"/>
+                    <stop offset="100%" stop-color="#66b3ff"/>
+                  </linearGradient>
+                </defs>
                 
-                <!-- 折线 -->
-                <polyline points="50,160 150,120 250,180 350,140 450,165" 
-                          fill="none" stroke="#007bff" stroke-width="2" />
+                <!-- Y轴和X轴线 -->
+                <line x1="50" y1="20" x2="50" y2="260" stroke="#aaa" stroke-width="1.5"/>
+                <line x1="50" y1="260" x2="530" y2="260" stroke="#aaa" stroke-width="1.5"/>
                 
-                <!-- 数据点 -->
-                <circle cx="50" cy="160" r="4" fill="#007bff" stroke="white" stroke-width="1" />
-                <circle cx="150" cy="120" r="4" fill="#007bff" stroke="white" stroke-width="1" />
-                <circle cx="250" cy="180" r="4" fill="#007bff" stroke="white" stroke-width="1" />
-                <circle cx="350" cy="140" r="4" fill="#007bff" stroke="white" stroke-width="1" />
-                <circle cx="450" cy="165" r="4" fill="#007bff" stroke="white" stroke-width="1" />
+                <!-- Y轴刻度文本和刻度线 -->
+                <text x="35" y="20" text-anchor="end" font-size="10" fill="#666">100%</text>
+                <line x1="45" y1="20" x2="50" y2="20" stroke="#aaa"/>
+                <text x="35" y="68" text-anchor="end" font-size="10" fill="#666">80%</text>
+                <line x1="45" y1="68" x2="50" y2="68" stroke="#aaa"/>
+                <text x="35" y="116" text-anchor="end" font-size="10" fill="#666">60%</text>
+                <line x1="45" y1="116" x2="50" y2="116" stroke="#aaa"/>
+                <text x="35" y="164" text-anchor="end" font-size="10" fill="#666">40%</text>
+                <line x1="45" y1="164" x2="50" y2="164" stroke="#aaa"/>
+                <text x="35" y="212" text-anchor="end" font-size="10" fill="#666">20%</text>
+                <line x1="45" y1="212" x2="50" y2="212" stroke="#aaa"/>
+                <text x="35" y="260" text-anchor="end" font-size="10" fill="#666">0%</text>
+                <line x1="45" y1="260" x2="50" y2="260" stroke="#aaa"/>
                 
-                <!-- 数据标签 -->
-                <text x="50" y="155" text-anchor="middle" font-size="10" fill="#007bff">80%</text>
-                <text x="150" y="115" text-anchor="middle" font-size="10" fill="#007bff">60%</text>
-                <text x="250" y="175" text-anchor="middle" font-size="10" fill="#007bff">90%</text>
-                <text x="350" y="135" text-anchor="middle" font-size="10" fill="#007bff">70%</text>
-                <text x="450" y="160" text-anchor="middle" font-size="10" fill="#007bff">85%</text>
+                <!-- 水平网格线（与刻度线对齐） -->
+                <line x1="50" y1="20" x2="530" y2="20" stroke="#e9ecef" stroke-dasharray="3 3"/>
+                <line x1="50" y1="68" x2="530" y2="68" stroke="#e9ecef" stroke-dasharray="3 3"/>
+                <line x1="50" y1="116" x2="530" y2="116" stroke="#e9ecef" stroke-dasharray="3 3"/>
+                <line x1="50" y1="164" x2="530" y2="164" stroke="#e9ecef" stroke-dasharray="3 3"/>
+                <line x1="50" y1="212" x2="530" y2="212" stroke="#e9ecef" stroke-dasharray="3 3"/>
+                <line x1="50" y1="260" x2="530" y2="260" stroke="#e9ecef" stroke-dasharray="3 3"/>
+                
+                <!-- 折线（数据点 y 坐标与网格线精确对齐） -->
+                <!-- 数据点: 80% -> y=68, 60% -> y=116, 90% -> y=44, 70% -> y=92, 85% -> y=56 -->
+                <polyline points="100,68 200,116 300,44 400,92 500,56" 
+                          fill="none" stroke="url(#lineGradient)" stroke-width="2.5" stroke-linecap="round"/>
+                
+                <!-- 数据点圆点 -->
+                <circle cx="100" cy="68" r="4" fill="#007bff" stroke="white"/>
+                <circle cx="200" cy="116" r="4" fill="#007bff" stroke="white"/>
+                <circle cx="300" cy="44" r="4" fill="#007bff" stroke="white"/>
+                <circle cx="400" cy="92" r="4" fill="#007bff" stroke="white"/>
+                <circle cx="500" cy="56" r="4" fill="#007bff" stroke="white"/>
+                
+                <!-- 数据标签（位置微调避免遮挡） -->
+                <text x="100" y="58" text-anchor="middle" font-size="11" fill="#007bff">80%</text>
+                <text x="200" y="106" text-anchor="middle" font-size="11" fill="#007bff">60%</text>
+                <text x="300" y="34" text-anchor="middle" font-size="11" fill="#007bff">90%</text>
+                <text x="400" y="82" text-anchor="middle" font-size="11" fill="#007bff">70%</text>
+                <text x="500" y="46" text-anchor="middle" font-size="11" fill="#007bff">85%</text>
               </svg>
-              <div class="x-axis-labels">
-                <span>0-20%</span>
-                <span>20-40%</span>
-                <span>40-60%</span>
-                <span>60-80%</span>
-                <span>80-100%</span>
-              </div>
             </div>
           </div>
         </div>
@@ -207,43 +227,9 @@
           <div class="chart-header">
             <h4>温度分布</h4>
           </div>
-          <div class="chart-container">
-            <div class="temperature-distribution">
-              <!-- 饼图：使用单一 conic-gradient -->
-              <div class="temperature-pie">
-                <div class="pie-segments" style="background: conic-gradient(
-                  #28a745 0% 40%,
-                  #ffc107 40% 70%,
-                  #fd7e14 70% 90%,
-                  #dc3545 90% 100%
-                );"></div>
-                <div class="pie-center">
-                  <span class="pie-value">25°C</span>
-                  <span class="pie-label">平均温度</span>
-                </div>
-              </div>
-              <div class="temperature-legend">
-                <div class="legend-item">
-                  <span class="legend-color" style="background: #28a745;"></span>
-                  <span class="legend-label">正常 (0-25°C)</span>
-                  <span class="legend-count">40%</span>
-                </div>
-                <div class="legend-item">
-                  <span class="legend-color" style="background: #ffc107;"></span>
-                  <span class="legend-label">偏高 (25-35°C)</span>
-                  <span class="legend-count">30%</span>
-                </div>
-                <div class="legend-item">
-                  <span class="legend-color" style="background: #fd7e14;"></span>
-                  <span class="legend-label">高温 (35-45°C)</span>
-                  <span class="legend-count">20%</span>
-                </div>
-                <div class="legend-item">
-                  <span class="legend-color" style="background: #dc3545;"></span>
-                  <span class="legend-label">危险 (>45°C)</span>
-                  <span class="legend-count">10%</span>
-                </div>
-              </div>
+          <div class="chart-container" @click="openChartModal('temperature')">
+            <div class="fixed-pie-container">
+              <canvas ref="tempPieCanvas" width="600" height="600" style="width: 100%; max-width: 400px; height: auto; aspect-ratio: 1/1;"></canvas>
             </div>
           </div>
         </div>
@@ -353,11 +339,77 @@
         </div>
       </div>
     </div>
+
+    <!-- 图表放大模态框 -->
+    <div v-if="showChartModal" class="chart-modal-overlay" @click="closeChartModal">
+      <div class="chart-modal-content" @click.stop>
+        <div class="chart-modal-header">
+          <h3>{{ getChartModalTitle() }}</h3>
+          <button class="chart-modal-close" @click="closeChartModal">×</button>
+        </div>
+        
+        <div class="chart-modal-body">
+          <!-- 电池容量分布图放大版 -->
+          <div v-if="currentChartType === 'capacity'" class="enlarged-chart">
+            <div class="chart-container-large">
+              <div class="fixed-line-chart-large">
+                <svg class="line-chart-svg-large" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+                  <defs>
+                    <linearGradient id="lineGradientLarge" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#007bff"/>
+                      <stop offset="100%" stop-color="#66b3ff"/>
+                    </linearGradient>
+                  </defs>
+                  
+                  <!-- 背景网格线 -->
+                  <line x1="0" y1="80" x2="800" y2="80" stroke="#e9ecef" stroke-width="1"/>
+                  <line x1="0" y1="160" x2="800" y2="160" stroke="#e9ecef" stroke-width="1"/>
+                  <line x1="0" y1="240" x2="800" y2="240" stroke="#e9ecef" stroke-width="1"/>
+                  <line x1="0" y1="320" x2="800" y2="320" stroke="#e9ecef" stroke-width="1"/>
+                  
+                  <!-- 折线 -->
+                  <!-- 数据点: 80% -> y=80, 60% -> y=160, 90% -> y=40, 70% -> y=120, 85% -> y=60 -->
+                  <polyline points="80,80 240,160 400,40 560,120 720,60" 
+                            fill="none" stroke="url(#lineGradientLarge)" stroke-width="3"/>
+                  
+                  <!-- 数据点 -->
+                  <circle cx="80" cy="80" r="6" fill="#007bff" stroke="white" stroke-width="2"/>
+                  <circle cx="240" cy="160" r="6" fill="#007bff" stroke="white" stroke-width="2"/>
+                  <circle cx="400" cy="40" r="6" fill="#007bff" stroke="white" stroke-width="2"/>
+                  <circle cx="560" cy="120" r="6" fill="#007bff" stroke="white" stroke-width="2"/>
+                  <circle cx="720" cy="60" r="6" fill="#007bff" stroke="white" stroke-width="2"/>
+                  
+                  <!-- 数据标签 -->
+                  <text x="80" y="70" text-anchor="middle" font-size="12" fill="#007bff">80%</text>
+                  <text x="240" y="150" text-anchor="middle" font-size="12" fill="#007bff">60%</text>
+                  <text x="400" y="30" text-anchor="middle" font-size="12" fill="#007bff">90%</text>
+                  <text x="560" y="110" text-anchor="middle" font-size="12" fill="#007bff">70%</text>
+                  <text x="720" y="50" text-anchor="middle" font-size="12" fill="#007bff">85%</text>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 温度分布图放大版 -->
+          <div v-if="currentChartType === 'temperature'" class="enlarged-chart">
+            <div class="chart-container-large">
+              <div class="fixed-pie-container-large">
+                <canvas ref="tempPieCanvasLarge" width="800" height="800" style="width: 100%; max-width: 600px; height: auto; aspect-ratio: 1/1;"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="chart-modal-footer">
+          <button class="btn btn-primary" @click="closeChartModal">关闭</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useBatteryStore } from '../store/modules/batteryStore'
 
 const batteryStore = useBatteryStore()
@@ -420,10 +472,42 @@ const formatTime = (timestamp) => {
 const showBatteryDetails = ref(false)
 const selectedBatteryDetails = ref(null)
 
+// 图表放大相关状态
+const showChartModal = ref(false)
+const currentChartType = ref('')
+
 const viewBatteryDetails = (battery) => {
   console.log('查看电池详情:', battery)
   selectedBatteryDetails.value = battery
   showBatteryDetails.value = true
+}
+
+// 打开图表模态框
+const openChartModal = (chartType) => {
+  currentChartType.value = chartType
+  showChartModal.value = true
+  
+  // 如果是温度饼图，需要重新绘制放大版的饼图
+  if (chartType === 'temperature') {
+    nextTick(() => {
+      drawTempPie(true)
+    })
+  }
+}
+
+// 关闭图表模态框
+const closeChartModal = () => {
+  showChartModal.value = false
+  currentChartType.value = ''
+}
+
+// 获取图表模态框标题
+const getChartModalTitle = () => {
+  const titles = {
+    capacity: '电池容量分布 - 放大视图',
+    temperature: '温度分布 - 放大视图'
+  }
+  return titles[currentChartType.value] || '图表详情'
 }
 
 const refreshBatteries = async () => {
@@ -434,9 +518,80 @@ const refreshBatteries = async () => {
   }
 }
 
+// 温度分布饼图绘制（支持普通和放大模式）
+const tempPieCanvas = ref(null)
+const tempPieCanvasLarge = ref(null)
+const drawTempPie = (isLarge = false) => {
+  const canvas = isLarge ? tempPieCanvasLarge.value : tempPieCanvas.value
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  const size = canvas.width   // 普通模式600，放大模式800
+  const centerX = size / 2
+  const centerY = size / 2
+  const radius = isLarge ? size * 0.35 : size * 0.30   // 放大模式半径更大
+  
+  const data = [
+    { label: '正常 (0-25°C)', percent: 40, color: '#28a745' },
+    { label: '偏高 (25-35°C)', percent: 30, color: '#ffc107' },
+    { label: '高温 (35-45°C)', percent: 20, color: '#fd7e14' },
+    { label: '危险 (>45°C)', percent: 10, color: '#dc3545' }
+  ]
+  
+  let startAngle = -Math.PI / 2
+  ctx.clearRect(0, 0, size, size)
+  
+  // 绘制扇形
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i]
+    const angle = (item.percent / 100) * Math.PI * 2
+    const endAngle = startAngle + angle
+    
+    ctx.beginPath()
+    ctx.moveTo(centerX, centerY)
+    ctx.arc(centerX, centerY, radius, startAngle, endAngle)
+    ctx.closePath()
+    ctx.fillStyle = item.color
+    ctx.fill()
+    
+    startAngle = endAngle
+  }
+  
+  // 绘制图例（放大模式下调整位置和字体大小）
+  const legendX = size - (isLarge ? 40 : 20)
+  const legendY = isLarge ? 60 : 40
+  const itemHeight = isLarge ? 28 : 24
+  const itemSpacing = isLarge ? 12 : 8
+  const fontSize = isLarge ? '16px' : '13px'
+  
+  ctx.font = `${fontSize} "Segoe UI", "PingFang SC"`
+  ctx.textAlign = 'right'
+  ctx.textBaseline = 'middle'
+  
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i]
+    const y = legendY + i * (itemHeight + itemSpacing)
+    
+    // 色块
+    ctx.fillStyle = item.color
+    ctx.fillRect(legendX - 20, y - 8, 14, 14)
+    
+    // 文字
+    ctx.fillStyle = '#333'
+    ctx.fillText(`${item.label} ${item.percent}%`, legendX - 28, y)
+  }
+}
+
 onMounted(async () => {
   await refreshBatteries()
   batteryStore.startRealTimeUpdates()
+  nextTick(() => {
+    drawTempPie()
+    window.addEventListener('resize', drawTempPie)
+  })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', drawTempPie)
 })
 </script>
 
@@ -865,106 +1020,41 @@ onMounted(async () => {
 }
 
 .chart-container {
-  height: 220px;
+  height: 260px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: visible;
 }
 
-/* 全新的折线图实现 - 使用正确的SVG坐标系 */
- .grid-line-chart {
-   height: 100%;
-   width: 100%;
-   display: flex;
-   flex-direction: column;
- }
- 
- .line-chart-svg {
-   flex: 1;
-   width: 100%;
-   height: calc(100% - 24px);
-   background: transparent;
- }
- 
- .x-axis-labels {
-   display: flex;
-   justify-content: space-between;
-   padding: 4px 0 0 0;
-   font-size: 10px;
-   color: #666;
- }
+/* 修复后的折线图容器 */
+.fixed-line-chart {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.line-chart-svg {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: visible;
+}
 
-/* 温度分布饼图样式 */
-.temperature-distribution {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  height: 100%;
-  width: 100%;
-  justify-content: center;
-}
-.temperature-pie {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-.pie-segments {
+/* 饼图容器 - 无额外框框 */
+.fixed-pie-container {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-}
-.pie-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60px;
-  height: 60px;
-  background: white;
-  border-radius: 50%;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-.pie-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-.pie-label {
-  font-size: 10px;
-  color: #666;
-  margin-top: 2px;
-}
-.temperature-legend {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.legend-item {
-  display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
 }
-.legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-}
-.legend-label {
-  flex: 1;
-  color: #666;
-}
-.legend-count {
-  font-weight: 600;
-  color: #1a1a1a;
+.fixed-pie-container canvas {
+  max-width: 100%;
+  height: auto;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 /* 响应式设计 */
@@ -1195,5 +1285,155 @@ onMounted(async () => {
   padding: 32px;
   color: #6c757d;
   font-style: italic;
+}
+
+/* 图表放大模态框样式 */
+.chart-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.chart-modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: chartModalSlideIn 0.4s ease;
+}
+
+@keyframes chartModalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.chart-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  border-bottom: 1px solid #e9ecef;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.chart-modal-header h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.chart-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #6c757d;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.chart-modal-close:hover {
+  background: #e9ecef;
+  color: #dc3545;
+  transform: rotate(90deg);
+}
+
+.chart-modal-body {
+  padding: 32px;
+  max-height: calc(85vh - 160px);
+  overflow-y: auto;
+}
+
+.chart-modal-footer {
+  padding: 24px 32px;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
+  background: #f8f9fa;
+}
+
+/* 放大版图表容器 */
+.chart-container-large {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
+}
+
+.fixed-line-chart-large {
+  width: 100%;
+  max-width: 800px;
+  height: 400px;
+}
+
+.line-chart-svg-large {
+  width: 100%;
+  height: 100%;
+}
+
+.fixed-pie-container-large {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* 图表容器点击效果 */
+.chart-container {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+}
+
+.chart-container:active {
+  transform: scale(0.98);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .chart-modal-content {
+    width: 95%;
+    max-width: none;
+    margin: 20px;
+  }
+  
+  .chart-modal-body {
+    padding: 20px;
+  }
+  
+  .chart-container-large {
+    min-height: 400px;
+  }
+  
+  .fixed-line-chart-large {
+    height: 300px;
+  }
 }
 </style>

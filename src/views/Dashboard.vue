@@ -183,51 +183,16 @@
               <button class="chart-btn">月</button>
             </div>
           </div>
-          <div class="chart-container">
-            <!-- 全新的柱状图实现 - 使用CSS Grid -->
-            <div class="grid-bar-chart">
-              <!-- 柱形区域 -->
-              <div class="chart-area">
-                <div class="bar-grid">
-                  <div class="bar-item" style="--height: 80%">
-                    <div class="bar-fill"></div>
-                    <span class="bar-value">80%</span>
-                  </div>
-                  <div class="bar-item" style="--height: 60%">
-                    <div class="bar-fill"></div>
-                    <span class="bar-value">60%</span>
-                  </div>
-                  <div class="bar-item" style="--height: 90%">
-                    <div class="bar-fill"></div>
-                    <span class="bar-value">90%</span>
-                  </div>
-                  <div class="bar-item" style="--height: 70%">
-                    <div class="bar-fill"></div>
-                    <span class="bar-value">70%</span>
-                  </div>
-                  <div class="bar-item" style="--height: 85%">
-                    <div class="bar-fill"></div>
-                    <span class="bar-value">85%</span>
-                  </div>
-                  <div class="bar-item" style="--height: 75%">
-                    <div class="bar-fill"></div>
-                    <span class="bar-value">75%</span>
-                  </div>
-                  <div class="bar-item" style="--height: 95%">
-                    <div class="bar-fill"></div>
-                    <span class="bar-value">95%</span>
-                  </div>
+          <div class="chart-container" @click="openChartModal('vehicleTrend')">
+            <div class="fixed-bar-chart">
+              <div class="bars-wrapper">
+                <div v-for="(item, index) in barData" :key="index" class="bar-item">
+                  <div class="bar-fill" :style="{ height: item.percent + '%' }"></div>
+                  <div class="bar-value">{{ item.value }}%</div>
                 </div>
               </div>
-              <!-- X轴标签 -->
               <div class="x-axis">
-                <span>一</span>
-                <span>二</span>
-                <span>三</span>
-                <span>四</span>
-                <span>五</span>
-                <span>六</span>
-                <span>日</span>
+                <span v-for="(label, idx) in weekDays" :key="idx">{{ label }}</span>
               </div>
             </div>
           </div>
@@ -240,38 +205,9 @@
           <div class="chart-header">
             <h3>电池状态分布</h3>
           </div>
-          <div class="chart-container">
-            <div class="pie-chart-container">
-              <!-- 多扇形饼图 + 引导线 -->
-              <div class="pie-chart">
-                <div class="pie-segment" style="--percentage: 60; --color: #28a745; --start: 0;">
-                  <div class="connector-line" style="--angle: 30;"></div>
-                </div>
-                <div class="pie-segment" style="--percentage: 25; --color: #ffc107; --start: 60;">
-                  <div class="connector-line" style="--angle: 120;"></div>
-                </div>
-                <div class="pie-segment" style="--percentage: 15; --color: #dc3545; --start: 85;">
-                  <div class="connector-line" style="--angle: 200;"></div>
-                </div>
-                <div class="pie-center">
-                  <span class="pie-value">状态</span>
-                  <span class="pie-label">分布</span>
-                </div>
-              </div>
-              <div class="pie-legend">
-                <div class="legend-item">
-                  <span class="legend-color" style="background: #28a745;"></span>
-                  <span class="legend-label">良好 (60%)</span>
-                </div>
-                <div class="legend-item">
-                  <span class="legend-color" style="background: #ffc107;"></span>
-                  <span class="legend-label">一般 (25%)</span>
-                </div>
-                <div class="legend-item">
-                  <span class="legend-color" style="background: #dc3545;"></span>
-                  <span class="legend-label">需维护 (15%)</span>
-                </div>
-              </div>
+          <div class="chart-container" @click="openChartModal('batteryStatus')">
+            <div class="fixed-pie-container">
+              <canvas ref="batteryPieCanvas" width="600" height="600" style="width: 100%; max-width: 400px; height: auto; aspect-ratio: 1/1;"></canvas>
             </div>
           </div>
         </div>
@@ -298,11 +234,53 @@
         </button>
       </div>
     </div>
+
+    <!-- 图表放大模态框 -->
+    <div v-if="showChartModal" class="chart-modal-overlay" @click="closeChartModal">
+      <div class="chart-modal-content" @click.stop>
+        <div class="chart-modal-header">
+          <h3>{{ getChartModalTitle() }}</h3>
+          <button class="chart-modal-close" @click="closeChartModal">×</button>
+        </div>
+        
+        <div class="chart-modal-body">
+          <!-- 车辆运营趋势图放大版 -->
+          <div v-if="currentChartType === 'vehicleTrend'" class="enlarged-chart">
+            <div class="chart-container-large">
+              <div class="fixed-bar-chart-large">
+                <div class="bars-wrapper-large">
+                  <div v-for="(item, index) in barData" :key="index" class="bar-item-large">
+                    <div class="bar-fill-large" :style="{ height: item.percent + '%' }"></div>
+                    <div class="bar-value-large">{{ item.value }}%</div>
+                  </div>
+                </div>
+                <div class="x-axis-large">
+                  <span v-for="(label, idx) in weekDays" :key="idx">{{ label }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 电池状态分布图放大版 -->
+          <div v-if="currentChartType === 'batteryStatus'" class="enlarged-chart">
+            <div class="chart-container-large">
+              <div class="fixed-pie-container-large">
+                <canvas ref="batteryPieCanvasLarge" width="800" height="800" style="width: 100%; max-width: 600px; height: auto; aspect-ratio: 1/1;"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="chart-modal-footer">
+          <button class="btn btn-primary" @click="closeChartModal">关闭</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
 import { useApiBatteryStore } from '../store/modules/apiBatteryStore'
 
@@ -348,6 +326,18 @@ export default {
       })
     })
     
+    // 柱状图数据
+    const barData = ref([
+      { value: 80, percent: 80 },
+      { value: 60, percent: 60 },
+      { value: 90, percent: 90 },
+      { value: 70, percent: 70 },
+      { value: 85, percent: 85 },
+      { value: 75, percent: 75 },
+      { value: 95, percent: 95 }
+    ])
+    const weekDays = ['一', '二', '三', '四', '五', '六', '日']
+    
     const loadData = () => {
       onlineVehiclesCount.value = mockData.onlineVehicles
       totalBatteriesCount.value = mockData.totalBatteries
@@ -367,17 +357,111 @@ export default {
       console.log('数据已刷新')
     }
     
+    // 饼图绘制（右上角图例，无引导线）
+    const batteryPieCanvas = ref(null)
+    const batteryPieCanvasLarge = ref(null)
+    
+    // 图表放大相关状态
+    const showChartModal = ref(false)
+    const currentChartType = ref('')
+    
+    // 打开图表模态框
+    const openChartModal = (chartType) => {
+      currentChartType.value = chartType
+      showChartModal.value = true
+      
+      // 如果是电池状态饼图，需要重新绘制放大版的饼图
+      if (chartType === 'batteryStatus') {
+        nextTick(() => {
+          drawBatteryPie(true)
+        })
+      }
+    }
+    
+    // 关闭图表模态框
+    const closeChartModal = () => {
+      showChartModal.value = false
+      currentChartType.value = ''
+    }
+    
+    // 获取图表模态框标题
+    const getChartModalTitle = () => {
+      const titles = {
+        vehicleTrend: '车辆运营趋势 - 放大视图',
+        batteryStatus: '电池状态分布 - 放大视图'
+      }
+      return titles[currentChartType.value] || '图表详情'
+    }
+    
+    const drawBatteryPie = (isLarge = false) => {
+      const canvas = isLarge ? batteryPieCanvasLarge.value : batteryPieCanvas.value
+      if (!canvas) return
+      const ctx = canvas.getContext('2d')
+      const size = canvas.width   // 普通模式600，放大模式800
+      const centerX = size / 2
+      const centerY = size / 2
+      const radius = isLarge ? size * 0.35 : size * 0.28   // 放大模式半径更大
+      
+      const data = [
+        { label: '良好', percent: 60, color: '#28a745' },
+        { label: '一般', percent: 25, color: '#ffc107' },
+        { label: '需维护', percent: 15, color: '#dc3545' }
+      ]
+      
+      let startAngle = -Math.PI / 2
+      ctx.clearRect(0, 0, size, size)
+      
+      // 绘制扇形
+      for (let i = 0; i < data.length; i++) {
+        const item = data[i]
+        const angle = (item.percent / 100) * Math.PI * 2
+        const endAngle = startAngle + angle
+        
+        ctx.beginPath()
+        ctx.moveTo(centerX, centerY)
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle)
+        ctx.closePath()
+        ctx.fillStyle = item.color
+        ctx.fill()
+        
+        startAngle = endAngle
+      }
+      
+      // 绘制图例（放大模式下调整位置和字体大小）
+      const legendX = size - (isLarge ? 40 : 20)
+      const legendY = isLarge ? 40 : 20
+      const itemHeight = isLarge ? 28 : 24
+      const itemSpacing = isLarge ? 12 : 8
+      const fontSize = isLarge ? '16px' : '14px'
+      
+      ctx.font = `${fontSize} "Segoe UI", "PingFang SC"`
+      ctx.textAlign = 'right'
+      ctx.textBaseline = 'middle'
+      
+      for (let i = 0; i < data.length; i++) {
+        const item = data[i]
+        const y = legendY + i * (itemHeight + itemSpacing)
+        
+        // 色块
+        ctx.fillStyle = item.color
+        ctx.fillRect(legendX - 20, y - 8, 14, 14)
+        
+        // 文字
+        ctx.fillStyle = '#333'
+        ctx.fillText(`${item.label} ${item.percent}%`, legendX - 28, y)
+      }
+    }
+    
     onMounted(() => {
       loadData()
-      // 暂时注释掉实时更新功能，避免错误
-      // vehicleStore.startRealTimeUpdates()
-      // batteryStore.startRealTimeUpdates()
+      nextTick(() => {
+        drawBatteryPie()
+        window.addEventListener('resize', drawBatteryPie)
+      })
     })
     
     onUnmounted(() => {
-      // 暂时注释掉WebSocket连接关闭，避免错误
-      // if (vehicleStore.wsConnection) vehicleStore.wsConnection.close()
-      // if (batteryStore.wsConnection) batteryStore.wsConnection.close()
+      window.removeEventListener('resize', drawBatteryPie)
     })
     
     return {
@@ -392,7 +476,16 @@ export default {
       activeStationsCount,
       maintenanceStationsCount,
       currentTime,
-      refreshData
+      refreshData,
+      barData,
+      weekDays,
+      batteryPieCanvas,
+      batteryPieCanvasLarge,
+      showChartModal,
+      currentChartType,
+      openChartModal,
+      closeChartModal,
+      getChartModalTitle
     }
   }
 }
@@ -452,9 +545,6 @@ export default {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
 }
 
-/* 移除外层card-section样式，避免重复 */
-
-/* 保持原有内部间距 */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -660,9 +750,6 @@ export default {
 }
 
 /* 系统功能导航区域 */
-.system-navigation-section {
-  /* 原有样式已被外层 card-section 覆盖，但保留内部样式 */
-}
 .navigation-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -734,9 +821,6 @@ export default {
 }
 
 /* 数据可视化区域 */
-.data-visualization-section {
-  /* 原有样式已被外层 card-section 覆盖 */
-}
 .visualization-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -809,160 +893,81 @@ export default {
   flex: 1;
   min-height: 250px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
-/* 全新的柱状图实现 - 使用CSS Grid */
- .grid-bar-chart {
-   height: 100%;
-   width: 100%;
-   display: flex;
-   flex-direction: column;
- }
- 
- .chart-area {
-   flex: 1;
-   position: relative;
-   display: flex;
-   align-items: end;
-   margin-bottom: 8px;
- }
- 
- .bar-grid {
-   display: grid;
-   grid-template-columns: repeat(7, 1fr);
-   gap: 8px;
-   width: 100%;
-   height: 100%;
-   align-items: end;
- }
- 
- .bar-item {
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   height: 100%;
-   position: relative;
- }
- 
- .bar-fill {
-   width: 100%;
-   height: calc(var(--height) * 0.9);
-   background: linear-gradient(to top, #007bff, #66b3ff);
-   border-radius: 4px 4px 0 0;
-   min-height: 20px;
-   margin-bottom: 4px;
- }
- 
- .bar-value {
-   font-size: 12px;
-   font-weight: 600;
-   color: #007bff;
-   background: white;
-   padding: 2px 6px;
-   border-radius: 4px;
-   border: 1px solid #e9ecef;
-   white-space: nowrap;
-   position: absolute;
-   top: -25px;
- }
- 
- .x-axis {
-   display: grid;
-   grid-template-columns: repeat(7, 1fr);
-   gap: 8px;
-   font-size: 14px;
-   color: #666;
-   text-align: center;
- }
-
-/* 饼图样式（多扇形 + 引导线） */
-.pie-chart-container {
-  display: flex;
-  align-items: center;
-  gap: 40px;
-  width: 100%;
-  justify-content: center;
-}
-.pie-chart {
-  position: relative;
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-.pie-segment {
-  position: absolute;
+/* 修复后的柱状图样式 - 底部对齐，数值在上方 */
+.fixed-bar-chart {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  background: conic-gradient(
-    from calc(var(--start) * 3.6deg),
-    var(--color) 0deg,
-    var(--color) calc(var(--percentage) * 3.6deg),
-    transparent calc(var(--percentage) * 3.6deg),
-    transparent 360deg
-  );
-  mask: radial-gradient(circle at center, transparent 50%, black 51%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
-.connector-line {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 70px;
-  height: 2px;
-  background: #1a1a1a;
-  transform-origin: left center;
-  transform: rotate(calc(var(--angle) * 1deg)) translateY(-50%);
-  z-index: 1;
-  pointer-events: none;
+.bars-wrapper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: calc(100% - 30px);
+  gap: 16px;
+  margin-bottom: 12px;
 }
-.pie-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  position: relative;
+}
+.bar-fill {
+  width: 100%;
+  background: linear-gradient(to top, #007bff, #66b3ff);
+  border-radius: 6px 6px 0 0;
+  transition: height 0.3s ease;
+  min-height: 4px;
+}
+.bar-value {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #007bff;
   background: white;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
+  padding: 2px 6px;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  white-space: nowrap;
+}
+.x-axis {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-content: space-around;
+  gap: 16px;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  border-top: 1px solid #e9ecef;
+  padding-top: 8px;
+}
+.x-axis span {
+  flex: 1;
+  text-align: center;
+}
+
+/* 饼图容器 - 无额外框框 */
+.fixed-pie-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
   justify-content: center;
-  box-shadow: 0 0 0 4px white;
-  z-index: 2;
-}
-.pie-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a1a1a;
-}
-.pie-label {
-  font-size: 14px;
-  color: #666;
-}
-.pie-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 120px;
-}
-.legend-item {
-  display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 14px;
 }
-.legend-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-}
-.legend-label {
-  color: #666;
-  font-weight: 500;
+.fixed-pie-container canvas {
+  max-width: 100%;
+  height: auto;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .chart-footer {
@@ -979,9 +984,6 @@ export default {
 }
 
 /* 快速操作面板 */
-.quick-actions {
-  /* 原有样式已被外层 card-section 覆盖 */
-}
 .quick-actions .section-header {
   margin-bottom: 24px;
 }
@@ -1084,6 +1086,262 @@ export default {
   .selector-buttons {
     width: 100%;
     justify-content: space-between;
+  }
+}
+
+/* 图表放大模态框样式 - 与Batteries.vue保持一致 */
+.chart-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.chart-modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: chartModalSlideIn 0.4s ease;
+}
+
+@keyframes chartModalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.chart-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  border-bottom: 1px solid #e9ecef;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.chart-modal-header h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.chart-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #6c757d;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.chart-modal-close:hover {
+  background: #e9ecef;
+  color: #dc3545;
+  transform: rotate(90deg);
+}
+
+.chart-modal-body {
+  padding: 32px;
+  max-height: calc(85vh - 160px);
+  overflow-y: auto;
+}
+
+.chart-modal-footer {
+  padding: 24px 32px;
+  border-top: 1px solid #e9ecef;
+  text-align: center;
+  background: #f8f9fa;
+}
+
+/* 放大版图表容器 */
+.chart-container-large {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
+}
+
+/* 柱状图放大版样式 */
+.fixed-bar-chart-large {
+  width: 100%;
+  max-width: 800px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.bars-wrapper-large {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 100%;
+  gap: 20px;
+}
+
+.bar-item-large {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  max-width: 80px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.bar-fill-large {
+  width: 60px;
+  background: linear-gradient(180deg, #007bff, #66b3ff);
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s ease;
+  min-height: 20px;
+  /* 高度由Vue动态设置 */
+}
+
+.bar-value-large {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #007bff;
+}
+
+.x-axis-large {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e9ecef;
+}
+
+.x-axis-large span {
+  font-size: 14px;
+  color: #666;
+  flex: 1;
+  text-align: center;
+}
+
+/* 饼图放大版样式 */
+.fixed-pie-container-large {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* 图表容器点击效果 */
+.chart-container {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+}
+
+.chart-container:active {
+  transform: scale(0.98);
+}
+
+/* 按钮样式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+/* 模态框按钮样式 */
+.chart-modal-btn {
+  padding: 12px 32px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.chart-modal-btn:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .chart-modal-content {
+    width: 95%;
+    max-width: none;
+    margin: 20px;
+  }
+  
+  .chart-modal-body {
+    padding: 20px;
+  }
+  
+  .chart-container-large {
+    min-height: 400px;
+  }
+  
+  .fixed-bar-chart-large {
+    height: 300px;
+  }
+  
+  .bars-wrapper-large {
+    gap: 10px;
+  }
+  
+  .bar-item-large {
+    max-width: 60px;
+  }
+  
+  .bar-fill-large {
+    width: 40px;
   }
 }
 </style>
