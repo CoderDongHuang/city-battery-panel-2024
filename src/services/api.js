@@ -43,9 +43,13 @@ export const vehicleAPI = {
   updateVehicleStatus: (vid, status) => 
     api.put(`/vehicles/${vid}/status`, status),
   
-  // 控制车辆灯光
+  // 控制车辆灯光状态
   controlLights: (vid, command) => 
-    api.post(`/vehicles/${vid}/control/lights`, { command }),
+    api.post(`/vehicles/${vid}/control/lights`, null, { params: command }),
+  
+  // 控制车辆灯光闪烁
+  flashLights: (vid, command) => 
+    api.post(`/vehicles/${vid}/control/flash`, null, { params: command }),
   
   // 控制车辆喇叭
   controlHorn: (vid, command) => 

@@ -54,15 +54,29 @@
     <div v-if="showControlPanel" class="control-panel">
       <div class="panel-header">
         <h3>车辆控制面板</h3>
-        <span class="selected-vehicle">
-          {{ selectedVehicle ? `已选择: ${selectedVehicle}` : '请选择车辆' }}
-        </span>
+        <div class="panel-header-actions">
+          <span class="selected-vehicle">
+            {{ selectedVehicle ? `已选择: ${selectedVehicle}` : '请选择车辆' }}
+          </span>
+          <button v-if="selectedVehicle" class="btn-clear-selection" @click="clearSelection">
+            清除选择
+          </button>
+        </div>
       </div>
+      
+      <!-- 完整的灯光控制组件 -->
+      <div v-if="selectedVehicle" class="light-control-section">
+        <VehicleLightControl :vehicle="getSelectedVehicleObject()" />
+      </div>
+      
+      <!-- 车辆选择提示 -->
+      <div v-else class="no-vehicle-selected">
+        <div class="no-vehicle-icon">🚗</div>
+        <div class="no-vehicle-text">请先选择要控制的车辆</div>
+      </div>
+      
+      <!-- 其他控制按钮 -->
       <div class="control-actions">
-        <button class="btn btn-warning" @click="controlLights(selectedVehicle)" :disabled="!selectedVehicle">
-          <span class="btn-icon">💡</span>
-          闪灯控制
-        </button>
         <button class="btn btn-danger" @click="controlHorn(selectedVehicle)" :disabled="!selectedVehicle">
           <span class="btn-icon">📢</span>
           鸣笛控制
@@ -106,7 +120,8 @@
                :class="{ 
                  online: vehicle.online, 
                  offline: !vehicle.online,
-                 'has-alerts': vehicle.alerts && vehicle.alerts.length > 0
+                 'has-alerts': vehicle.alerts && vehicle.alerts.length > 0,
+                 'selected': selectedVehicle === vehicle.vid
                }">
             
             <div class="col-id">
@@ -147,6 +162,10 @@
             <div class="col-actions">
               <button class="btn btn-small btn-primary" @click="viewVehicleDetails(vehicle)">
                 查看详情
+              </button>
+              <button class="btn btn-small btn-success" @click="selectVehicle(vehicle)" 
+                      :disabled="!vehicle.online">
+                选择控制
               </button>
             </div>
           </div>
@@ -213,6 +232,12 @@
               </div>
             </div>
 
+            <!-- 灯光控制 -->
+            <div class="details-section">
+              <h4>灯光控制</h4>
+              <VehicleLightControl :vehicle="selectedVehicleDetails" />
+            </div>
+
             <!-- 报警信息表格 -->
             <div v-if="selectedVehicleDetails.alerts && selectedVehicleDetails.alerts.length > 0" class="details-section">
               <h4>报警信息 ({{ selectedVehicleDetails.alerts.length }}条)</h4>
@@ -257,6 +282,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
 import { vehicleAPI, alertAPI, createWebSocket } from '../services/api'
+import VehicleLightControl from '../components/VehicleLightControl.vue'
 
 const vehicleStore = useApiVehicleStore()
 const showControlPanel = ref(false)
@@ -348,6 +374,12 @@ const formatAlertId = (id) => {
   return String(num % 10000).padStart(4, '0')
 }
 
+// 获取选中车辆的对象
+const getSelectedVehicleObject = () => {
+  if (!selectedVehicle.value) return null
+  return vehicles.value.find(v => v.vid === selectedVehicle.value)
+}
+
 const showVehicleDetails = ref(false)
 const selectedVehicleDetails = ref(null)
 
@@ -357,8 +389,17 @@ const viewVehicleDetails = (vehicle) => {
   showVehicleDetails.value = true
 }
 
-const selectVehicle = (vid) => {
-  selectedVehicle.value = vid
+const selectVehicle = (vehicle) => {
+  console.log('选择车辆:', vehicle.vid)
+  selectedVehicle.value = vehicle.vid
+  // 如果控制面板未显示，自动显示
+  if (!showControlPanel.value) {
+    showControlPanel.value = true
+  }
+}
+
+const clearSelection = () => {
+  selectedVehicle.value = null
 }
 
 const refreshVehicles = async () => {
@@ -558,6 +599,27 @@ onMounted(async () => {
   margin-bottom: 20px;
 }
 
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-clear-selection {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-clear-selection:hover {
+  background: #5a6268;
+}
+
 .panel-header h3 {
   font-size: 20px;
   font-weight: 600;
@@ -573,6 +635,54 @@ onMounted(async () => {
 .control-actions {
   display: flex;
   gap: 12px;
+}
+
+/* 灯光控制区域 */
+.light-control-section {
+  margin-bottom: 20px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.light-control-section .vehicle-light-control {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding: 16px;
+}
+
+.light-control-section .control-header {
+  padding-bottom: 0;
+  margin-bottom: 12px;
+  border-bottom: none;
+}
+
+.light-control-section .control-header h3 {
+  font-size: 16px;
+}
+
+/* 无车辆选择提示 */
+.no-vehicle-selected {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+}
+
+.no-vehicle-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.no-vehicle-text {
+  font-size: 16px;
+  font-weight: 500;
 }
 
 /* 车辆容器 */
@@ -664,6 +774,17 @@ onMounted(async () => {
 .table-row:hover {
   background: #f8f9fa;
   transform: translateY(-1px);
+}
+
+.table-row.selected {
+  background-color: #e8f4fd;
+  border-left: 4px solid #007bff;
+  box-shadow: 0 0 0 2px #007bff inset;
+}
+
+.table-row.selected:hover {
+  background-color: #d1ecf1;
+  box-shadow: 0 0 0 2px #007bff inset, 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .table-row.online {
