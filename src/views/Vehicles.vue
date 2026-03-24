@@ -69,18 +69,15 @@
         <VehicleLightControl :vehicle="getSelectedVehicleObject()" />
       </div>
       
+      <!-- 喇叭控制组件 -->
+      <div v-if="selectedVehicle" class="horn-control-section">
+        <VehicleHornControl :vehicle="getSelectedVehicleObject()" />
+      </div>
+      
       <!-- 车辆选择提示 -->
       <div v-else class="no-vehicle-selected">
         <div class="no-vehicle-icon">🚗</div>
         <div class="no-vehicle-text">请先选择要控制的车辆</div>
-      </div>
-      
-      <!-- 其他控制按钮 -->
-      <div class="control-actions">
-        <button class="btn btn-danger" @click="controlHorn(selectedVehicle)" :disabled="!selectedVehicle">
-          <span class="btn-icon">📢</span>
-          鸣笛控制
-        </button>
       </div>
     </div>
 
@@ -238,6 +235,12 @@
               <VehicleLightControl :vehicle="selectedVehicleDetails" />
             </div>
 
+            <!-- 喇叭控制 -->
+            <div class="details-section">
+              <h4>喇叭控制</h4>
+              <VehicleHornControl :vehicle="selectedVehicleDetails" />
+            </div>
+
             <!-- 报警信息表格 -->
             <div v-if="selectedVehicleDetails.alerts && selectedVehicleDetails.alerts.length > 0" class="details-section">
               <h4>报警信息 ({{ selectedVehicleDetails.alerts.length }}条)</h4>
@@ -283,6 +286,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
 import { vehicleAPI, alertAPI, createWebSocket } from '../services/api'
 import VehicleLightControl from '../components/VehicleLightControl.vue'
+import VehicleHornControl from '../components/VehicleHornControl.vue'
 
 const vehicleStore = useApiVehicleStore()
 const showControlPanel = ref(false)
@@ -433,16 +437,7 @@ const controlLights = async (vid) => {
   }
 }
 
-const controlHorn = async (vid) => {
-  if (vid) {
-    try {
-      await vehicleStore.controlVehicleHorn(vid, 'beep')
-      alert('鸣笛指令发送成功')
-    } catch (error) {
-      alert('指令发送失败: ' + error.message)
-    }
-  }
-}
+// 喇叭控制功能已集成到VehicleHornControl组件中
 
 onMounted(async () => {
   await refreshVehicles()
@@ -660,6 +655,32 @@ onMounted(async () => {
 }
 
 .light-control-section .control-header h3 {
+  font-size: 16px;
+}
+
+/* 喇叭控制区域 */
+.horn-control-section {
+  margin-bottom: 20px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.horn-control-section .vehicle-horn-control {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding: 16px;
+}
+
+.horn-control-section .control-header {
+  padding-bottom: 0;
+  margin-bottom: 12px;
+  border-bottom: none;
+}
+
+.horn-control-section .control-header h3 {
   font-size: 16px;
 }
 
