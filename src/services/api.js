@@ -53,7 +53,11 @@ export const vehicleAPI = {
   
   // 控制车辆喇叭
   controlHorn: (vid, command) => 
-    api.post(`/vehicles/${vid}/control/horn`, null, { params: command })
+    api.post(`/vehicles/${vid}/control/horn`, null, { params: command }),
+  
+  // 设置车辆位置
+  setPosition: (vid, command) => 
+    api.post(`/vehicles/${vid}/control/position`, null, { params: command })
 }
 
 // 电池管理API

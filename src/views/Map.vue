@@ -26,11 +26,14 @@
           </div>
           <div class="control-body">
             <select v-model="selectedVehicleId" @change="onVehicleSelect" class="vehicle-select">
-              <option value="">全部车辆</option>
-              <option v-for="vehicle in onlineVehicles" :key="vehicle.vid" :value="vehicle.vid">
+              <option value="">请选择车辆</option>
+              <option v-for="vehicle in vehicleStore.vehicles" :key="vehicle.vid" :value="vehicle.vid" :disabled="!vehicle.online">
                 {{ vehicle.vid }} - {{ vehicle.online ? '在线' : '离线' }}
               </option>
             </select>
+            <div v-if="vehicleStore.vehicles.length === 0" class="no-vehicles">
+              暂无车辆数据
+            </div>
           </div>
         </div>
         
@@ -43,15 +46,12 @@
             </div>
           </div>
           <div class="control-body">
-            <div class="position-actions">
-              <button class="action-btn primary" @click="setRandomPosition" :disabled="!selectedVehicleId">
-                <span class="action-icon">🎯</span>
-                随机位置
-              </button>
-              <button class="action-btn secondary" @click="clearSelection">
-                <span class="action-icon">🗑️</span>
-                清除选择
-              </button>
+            <!-- 完整的位置控制组件 -->
+            <div v-if="selectedVehicleId" class="position-control-container">
+              <VehiclePositionControl :vehicle="getSelectedVehicle()" />
+            </div>
+            <div v-else class="no-vehicle-selected">
+              <p>请先选择车辆</p>
             </div>
           </div>
         </div>
@@ -211,10 +211,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useMapStore } from '../store/modules/mapStore'
-import { useVehicleStore } from '../store/modules/vehicleStore'
+import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
+import VehiclePositionControl from '../components/VehiclePositionControl.vue'
 
 const mapStore = useMapStore()
-const vehicleStore = useVehicleStore()
+const vehicleStore = useApiVehicleStore()
 
 const selectedVehicleId = ref('')
 const mapGrid = ref(null)
@@ -258,6 +259,11 @@ const currentTime = computed(() => {
 const clearSelection = () => {
   selectedVehicleId.value = ''
   recommendedRoute.value = null
+}
+
+const getSelectedVehicle = () => {
+  if (!selectedVehicleId.value) return null
+  return vehicleStore.getVehicleById(selectedVehicleId.value)
 }
 
 const getCellClass = (cell, x, y) => {
@@ -394,8 +400,26 @@ const onVehicleSelect = () => {
   }
 }
 
-onMounted(() => {
-  loadMapData()
+onMounted(async () => {
+  await loadMapData()
+  
+  // 加载车辆数据
+  console.log('开始加载车辆数据...')
+  console.log('当前车辆数量:', vehicleStore.vehicles.length)
+  
+  if (vehicleStore.vehicles.length === 0) {
+    try {
+      console.log('调用 refreshVehicles()...')
+      await vehicleStore.refreshVehicles()
+      console.log('车辆数据加载完成，数量:', vehicleStore.vehicles.length)
+      console.log('车辆列表:', vehicleStore.vehicles)
+    } catch (error) {
+      console.error('车辆数据加载失败:', error)
+      console.error('错误详情:', error.message)
+    }
+  } else {
+    console.log('已有车辆数据，无需重新加载')
+  }
 })
 </script>
 
@@ -444,6 +468,96 @@ onMounted(() => {
 }
 
 /* 移除外层card-section样式，避免重复 */
+
+/* 位置控制组件样式 */
+.position-control-container {
+  margin-top: 12px;
+}
+
+.position-control-container .vehicle-position-control {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.position-control-container .control-header {
+  display: none;
+}
+
+.position-control-container .vehicle-info {
+  display: none;
+}
+
+.position-control-container .current-position-info {
+  display: none;
+}
+
+.position-control-container .coordinate-inputs {
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.position-control-container .coordinate-input label {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.position-control-container .coordinate-input input {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.position-control-container .map-section {
+  margin: 12px 0;
+}
+
+.position-control-container .map-section label {
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.position-control-container .map-container {
+  height: 100px;
+}
+
+.position-control-container .btn-set-position {
+  padding: 8px 16px;
+  font-size: 12px;
+  min-width: 140px;
+}
+
+.position-control-container .offline-notice {
+  font-size: 11px;
+  padding: 6px 10px;
+  margin-top: 8px;
+}
+
+.position-control-container .message {
+  font-size: 11px;
+  padding: 6px 10px;
+  margin-top: 8px;
+}
+
+.no-vehicle-selected {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  padding: 20px;
+}
+
+.no-vehicles {
+  text-align: center;
+  color: #999;
+  font-size: 12px;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  margin-top: 8px;
+}
 
 /* 头部样式（已移除，保留原有内部样式） */
 .section-header {

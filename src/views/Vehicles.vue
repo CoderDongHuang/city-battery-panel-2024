@@ -74,6 +74,11 @@
         <VehicleHornControl :vehicle="getSelectedVehicleObject()" />
       </div>
       
+      <!-- 位置控制组件 -->
+      <div v-if="selectedVehicle" class="position-control-section">
+        <VehiclePositionControl :vehicle="getSelectedVehicleObject()" />
+      </div>
+      
       <!-- 车辆选择提示 -->
       <div v-else class="no-vehicle-selected">
         <div class="no-vehicle-icon">🚗</div>
@@ -241,6 +246,12 @@
               <VehicleHornControl :vehicle="selectedVehicleDetails" />
             </div>
 
+            <!-- 位置控制 -->
+            <div class="details-section">
+              <h4>位置控制</h4>
+              <VehiclePositionControl :vehicle="selectedVehicleDetails" />
+            </div>
+
             <!-- 报警信息表格 -->
             <div v-if="selectedVehicleDetails.alerts && selectedVehicleDetails.alerts.length > 0" class="details-section">
               <h4>报警信息 ({{ selectedVehicleDetails.alerts.length }}条)</h4>
@@ -287,6 +298,7 @@ import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
 import { vehicleAPI, alertAPI, createWebSocket } from '../services/api'
 import VehicleLightControl from '../components/VehicleLightControl.vue'
 import VehicleHornControl from '../components/VehicleHornControl.vue'
+import VehiclePositionControl from '../components/VehiclePositionControl.vue'
 
 const vehicleStore = useApiVehicleStore()
 const showControlPanel = ref(false)
@@ -681,6 +693,32 @@ onMounted(async () => {
 }
 
 .horn-control-section .control-header h3 {
+  font-size: 16px;
+}
+
+/* 位置控制区域 */
+.position-control-section {
+  margin-bottom: 20px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.position-control-section .vehicle-position-control {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 0;
+  padding: 16px;
+}
+
+.position-control-section .control-header {
+  padding-bottom: 0;
+  margin-bottom: 12px;
+  border-bottom: none;
+}
+
+.position-control-section .control-header h3 {
   font-size: 16px;
 }
 
