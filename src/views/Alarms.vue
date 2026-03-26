@@ -43,6 +43,16 @@
     
     <!-- 报警列表 -->
     <div class="alarm-content">
+      <!-- 报警功能提示 -->
+      <div v-if="alarmStore.error" class="feature-notice">
+        <div class="notice-icon">🚧</div>
+        <div class="notice-content">
+          <h3>功能开发中</h3>
+          <p>{{ alarmStore.error }}</p>
+          <p class="notice-detail">报警功能正在积极开发中，预计很快就能与大家见面！</p>
+        </div>
+      </div>
+      
       <AlarmList @view-detail="showAlarmDetail" />
     </div>
     
@@ -181,6 +191,40 @@ onMounted(() => {
   overflow: hidden;
 }
 
+.feature-notice {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border: 1px solid #ffc107;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.notice-icon {
+  font-size: 48px;
+  flex-shrink: 0;
+}
+
+.notice-content h3 {
+  margin: 0 0 8px 0;
+  color: #856404;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.notice-content p {
+  margin: 0 0 8px 0;
+  color: #856404;
+  font-size: 14px;
+}
+
+.notice-detail {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
 @media (max-width: 768px) {
   .alarms-view {
     padding: 16px;
@@ -203,6 +247,16 @@ onMounted(() => {
   
   .stat-value {
     font-size: 24px;
+  }
+  
+  .feature-notice {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+  }
+  
+  .notice-icon {
+    font-size: 36px;
   }
 }
 </style>

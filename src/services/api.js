@@ -65,9 +65,18 @@ export const batteryAPI = {
   // 获取电池列表
   getBatteries: (params) => api.get('/batteries', { params }),
   
+  // 获取单个电池信息
+  getBattery: (pid) => api.get(`/batteries/${pid}`),
+  
   // 获取电池历史记录
   getBatteryHistory: (pid, params) => 
-    api.get(`/batteries/${pid}/history`, { params })
+    api.get(`/batteries/${pid}/history`, { params }),
+  
+  // 根据车辆获取电池列表
+  getBatteriesByVehicle: (vid) => api.get(`/batteries/vehicle/${vid}`),
+  
+  // 获取电池统计信息
+  getBatteryStatistics: () => api.get('/batteries/statistics')
 }
 
 // 报警管理API

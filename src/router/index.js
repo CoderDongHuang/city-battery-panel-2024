@@ -49,12 +49,7 @@ const routes = [
         component: () => import('../views/Settings.vue'),
         meta: { title: '系统设置' }
       },
-      {
-        path: 'light-control-test',
-        name: 'LightControlTest',
-        component: () => import('../views/LightControlTest.vue'),
-        meta: { title: '灯光控制测试' }
-      }
+
     ]
   }
 ]

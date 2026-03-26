@@ -14,34 +14,47 @@
       </div>
     </div>
 
+    <!-- 错误提示 -->
+    <div v-if="batteryStore.error" class="error-message">
+      <div class="error-icon">⚠️</div>
+      <div class="error-text">{{ batteryStore.error }}</div>
+    </div>
+
     <!-- 统计卡片 -->
     <div class="stats-cards">
       <div class="stat-card">
         <div class="stat-icon">🔋</div>
         <div class="stat-content">
-          <div class="stat-value">{{ totalBatteries }}</div>
+          <div class="stat-value">{{ batteryStatistics?.totalBatteries ?? batteryStore.totalBatteries }}</div>
           <div class="stat-label">电池总数</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon">🚗</div>
         <div class="stat-content">
-          <div class="stat-value">{{ inUseBatteries }}</div>
+          <div class="stat-value">{{ batteryStore.inUseBatteries }}</div>
           <div class="stat-label">使用中</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon">✅</div>
         <div class="stat-content">
-          <div class="stat-value">{{ availableBatteries }}</div>
+          <div class="stat-value">{{ batteryStore.availableBatteries }}</div>
           <div class="stat-label">可用电池</div>
         </div>
       </div>
       <div class="stat-card">
         <div class="stat-icon">🔧</div>
         <div class="stat-content">
-          <div class="stat-value">{{ maintenanceBatteries }}</div>
+          <div class="stat-value">{{ batteryStore.maintenanceBatteries }}</div>
           <div class="stat-label">维护中</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ batteryStatistics?.lowVoltageBatteries ?? batteryStore.lowVoltageBatteries }}</div>
+          <div class="stat-label">低电压</div>
         </div>
       </div>
     </div>
@@ -53,16 +66,16 @@
           <label class="filter-label">筛选状态:</label>
           <div class="filter-buttons">
             <button class="filter-btn" :class="{ active: filterStatus === 'all' }" @click="filterStatus = 'all'">
-              全部 ({{ totalBatteries }})
+              全部 ({{ batteryStore.totalBatteries }})
             </button>
             <button class="filter-btn" :class="{ active: filterStatus === 'inUse' }" @click="filterStatus = 'inUse'">
-              使用中 ({{ inUseBatteries }})
+              使用中 ({{ batteryStore.inUseBatteries }})
             </button>
             <button class="filter-btn" :class="{ active: filterStatus === 'available' }" @click="filterStatus = 'available'">
-              可用 ({{ availableBatteries }})
+              可用 ({{ batteryStore.availableBatteries }})
             </button>
             <button class="filter-btn" :class="{ active: filterStatus === 'maintenance' }" @click="filterStatus = 'maintenance'">
-              维护中 ({{ maintenanceBatteries }})
+              维护中 ({{ batteryStore.maintenanceBatteries }})
             </button>
           </div>
         </div>
@@ -87,8 +100,7 @@
           <div class="col-voltage">电压</div>
           <div class="col-temperature">温度</div>
           <div class="col-capacity">剩余电量</div>
-          <div class="col-health">健康状态</div>
-          <div class="col-cycles">循环次数</div>
+          <div class="col-update">最后更新</div>
           <div class="col-actions">操作</div>
         </div>
 
@@ -108,7 +120,7 @@
             </div>
             
             <div class="col-vehicle">
-              <span class="vehicle-value">{{ battery.currentVehicle || '未使用' }}</span>
+              <span class="vehicle-value">{{ battery.vid || '未使用' }}</span>
             </div>
             
             <div class="col-voltage">
@@ -120,22 +132,13 @@
             </div>
             
             <div class="col-capacity">
-              <span class="battery-level" :class="getBatteryLevelClass(battery.remainingCapacity)">
-                {{ battery.remainingCapacity ? battery.remainingCapacity + '%' : '--' }}
+              <span class="battery-level" :class="getBatteryLevelClass(battery.batteryLevel)">
+                {{ battery.batteryLevel !== null && battery.batteryLevel !== undefined ? battery.batteryLevel + '%' : '--' }}
               </span>
             </div>
             
-            <div class="col-health">
-              <span class="health-level" :class="getHealthLevelClass(battery.health)">
-                {{ battery.health ? battery.health + '%' : '--' }}
-              </span>
-              <span v-if="battery.health < 80" class="health-warning">
-                ⚠️
-              </span>
-            </div>
-            
-            <div class="col-cycles">
-              <span class="cycles-value">{{ battery.cycleCount || '--' }}</span>
+            <div class="col-update">
+              <span class="update-time">{{ battery.lastUpdate ? formatTime(battery.lastUpdate) : '--' }}</span>
             </div>
             
             <div class="col-actions">
@@ -264,7 +267,7 @@
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">当前车辆</div>
-                  <div class="detail-value">{{ selectedBatteryDetails.currentVehicle || '未使用' }}</div>
+                  <div class="detail-value">{{ selectedBatteryDetails.vid || '未使用' }}</div>
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">电压</div>
@@ -277,31 +280,22 @@
                 <div class="detail-row">
                   <div class="detail-label">剩余电量</div>
                   <div class="detail-value">
-                    <span class="battery-level" :class="getBatteryLevelClass(selectedBatteryDetails.remainingCapacity)">
-                      {{ selectedBatteryDetails.remainingCapacity ? selectedBatteryDetails.remainingCapacity + '%' : '--' }}
+                    <span class="battery-level" :class="getBatteryLevelClass(selectedBatteryDetails.batteryLevel)">
+                      {{ selectedBatteryDetails.batteryLevel ? selectedBatteryDetails.batteryLevel + '%' : '--' }}
                     </span>
                   </div>
                 </div>
                 <div class="detail-row">
-                  <div class="detail-label">健康状态</div>
-                  <div class="detail-value">
-                    <span class="health-level" :class="getHealthLevelClass(selectedBatteryDetails.health)">
-                      {{ selectedBatteryDetails.health ? selectedBatteryDetails.health + '%' : '--' }}
-                    </span>
-                    <span v-if="selectedBatteryDetails.health < 80" class="health-warning">⚠️ 健康度低</span>
-                  </div>
+                  <div class="detail-label">最后更新时间</div>
+                  <div class="detail-value">{{ selectedBatteryDetails.lastUpdate || '--' }}</div>
                 </div>
                 <div class="detail-row">
-                  <div class="detail-label">循环次数</div>
-                  <div class="detail-value">{{ selectedBatteryDetails.cycleCount || '--' }}</div>
+                  <div class="detail-label">创建时间</div>
+                  <div class="detail-value">{{ selectedBatteryDetails.createdTime || '--' }}</div>
                 </div>
                 <div class="detail-row">
-                  <div class="detail-label">生产日期</div>
-                  <div class="detail-value">{{ selectedBatteryDetails.productionDate || '--' }}</div>
-                </div>
-                <div class="detail-row">
-                  <div class="detail-label">最后维护时间</div>
-                  <div class="detail-value">{{ selectedBatteryDetails.lastMaintenance || '--' }}</div>
+                  <div class="detail-label">电池ID</div>
+                  <div class="detail-value">{{ selectedBatteryDetails.id || '--' }}</div>
                 </div>
               </div>
             </div>
@@ -414,6 +408,8 @@ import { useBatteryStore } from '../store/modules/batteryStore'
 
 const batteryStore = useBatteryStore()
 const filterStatus = ref('all')
+const batteryStatistics = ref(null)
+const statisticsLoading = ref(false)
 
 // 计算属性
 const totalBatteries = computed(() => batteryStore.batteries.length)
@@ -432,9 +428,30 @@ const getStatusText = (status) => {
   const statusMap = {
     inUse: '使用中',
     available: '可用',
-    maintenance: '维护中'
+    maintenance: '维护中',
+    normal: '正常',
+    low: '低电量',
+    overheat: '过热',
+    low_voltage: '低电压'
   }
-  return statusMap[status] || '未知'
+  return statusMap[status] || status || '未知'
+}
+
+// 格式化时间显示
+const formatTime = (timeString) => {
+  if (!timeString) return '--'
+  try {
+    const date = new Date(timeString)
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch (error) {
+    return timeString
+  }
 }
 
 const getBatteryStatusClass = (battery) => {
@@ -458,15 +475,6 @@ const getHealthLevelClass = (health) => {
   if (health > 70) return 'good'
   if (health > 50) return 'fair'
   return 'poor'
-}
-
-const formatTime = (timestamp) => {
-  if (!timestamp) return '--'
-  const date = new Date(timestamp)
-  return date.toLocaleTimeString('zh-CN', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  })
 }
 
 const showBatteryDetails = ref(false)
@@ -509,7 +517,7 @@ const getChartModalTitle = () => {
   }
   return titles[currentChartType.value] || '图表详情'
 }
-
+// 刷新电池数据
 const refreshBatteries = async () => {
   try {
     await batteryStore.fetchBatteries()
@@ -518,7 +526,21 @@ const refreshBatteries = async () => {
   }
 }
 
-// 温度分布饼图绘制（支持普通和放大模式）
+// 获取电池统计信息
+ const fetchBatteryStatistics = async () => {
+   statisticsLoading.value = true
+   try {
+     const stats = await batteryStore.fetchBatteryStatistics()
+     batteryStatistics.value = stats
+     console.log('电池统计信息加载成功:', stats)
+   } catch (error) {
+     console.error('获取电池统计信息失败:', error)
+   } finally {
+     statisticsLoading.value = false
+   }
+ }
+
+ // 温度分布饼图绘制（支持普通和放大模式）
 const tempPieCanvas = ref(null)
 const tempPieCanvasLarge = ref(null)
 const drawTempPie = (isLarge = false) => {
@@ -582,7 +604,12 @@ const drawTempPie = (isLarge = false) => {
 }
 
 onMounted(async () => {
+  // 先尝试加载统计信息（如果可用）
+  await fetchBatteryStatistics()
+  
+  // 然后加载电池列表
   await refreshBatteries()
+  
   batteryStore.startRealTimeUpdates()
   nextTick(() => {
     drawTempPie()
@@ -654,6 +681,28 @@ onUnmounted(() => {
 .btn-primary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+}
+
+/* 错误提示 */
+.error-message {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  color: #856404;
+}
+
+.error-icon {
+  font-size: 20px;
+  margin-right: 12px;
+}
+
+.error-text {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 /* 统计卡片 */
