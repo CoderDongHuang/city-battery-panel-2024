@@ -409,8 +409,8 @@ onMounted(async () => {
   
   if (vehicleStore.vehicles.length === 0) {
     try {
-      console.log('调用 refreshVehicles()...')
-      await vehicleStore.refreshVehicles()
+      console.log('调用 fetchVehicles()...')
+      await vehicleStore.fetchVehicles()
       console.log('车辆数据加载完成，数量:', vehicleStore.vehicles.length)
       console.log('车辆列表:', vehicleStore.vehicles)
     } catch (error) {

@@ -142,25 +142,8 @@ const beepHorn = async () => {
     // 调用API
     const response = await vehicleAPI.controlHorn(props.vehicle.vid, command)
     
-    // 处理响应
-    // 检查响应是否为字符串（可能后端直接返回'success'字符串）
-    if (typeof response === 'string') {
-      if (response.toLowerCase().includes('success')) {
-        message.value = '鸣笛控制指令发送成功'
-        messageType.value = 'success'
-        console.log('鸣笛控制成功')
-      } else {
-        message.value = response || '鸣笛控制失败'
-        messageType.value = 'error'
-        console.error('鸣笛控制失败:', response)
-      }
-    } else if (response && (response.success === true || response.success === 'true')) {
-      // 处理布尔值或字符串'true'
-      message.value = response.message || '鸣笛控制指令发送成功'
-      messageType.value = 'success'
-      console.log('鸣笛控制成功:', response.message)
-    } else if (response && response.code === 200) {
-      // 检查code字段
+    // 处理后端API响应格式: { code: 200, message: "喇叭控制指令发送成功", data: null }
+    if (response && response.code === 200) {
       message.value = response.message || '鸣笛控制指令发送成功'
       messageType.value = 'success'
       console.log('鸣笛控制成功:', response.message)

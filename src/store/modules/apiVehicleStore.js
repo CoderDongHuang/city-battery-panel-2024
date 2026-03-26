@@ -36,11 +36,34 @@ export const useApiVehicleStore = defineStore('apiVehicle', {
       this.error = null
       try {
         const response = await vehicleAPI.getVehicles()
-        if (response.code === 200) {
-          this.vehicles = response.data
-          this.onlineVehicles = response.data.filter(v => v.online).map(v => v.vid)
+        
+        // 处理不同的响应格式
+        if (typeof response === 'string') {
+          // 如果后端直接返回字符串（如"success"），说明没有数据
+          console.warn('后端返回字符串响应，可能没有车辆数据')
+          this.vehicles = []
+          this.onlineVehicles = []
+        } else if (Array.isArray(response)) {
+          // 如果后端直接返回数组
+          this.vehicles = response
+          this.onlineVehicles = response.filter(v => v.online || v.onlineStatus).map(v => v.vid)
+          console.log('车辆数据加载成功（数组格式），数量:', response.length)
+        } else if (response && response.code === 200 && response.data) {
+          // 标准格式: { code: 200, message: "成功", data: { content: [...], totalElements: N } }
+          if (Array.isArray(response.data.content)) {
+            this.vehicles = response.data.content
+            this.onlineVehicles = response.data.content.filter(v => v.online || v.onlineStatus).map(v => v.vid)
+            console.log('车辆数据加载成功（标准格式），数量:', response.data.content.length)
+          } else if (Array.isArray(response.data)) {
+            // 如果data直接是数组
+            this.vehicles = response.data
+            this.onlineVehicles = response.data.filter(v => v.online || v.onlineStatus).map(v => v.vid)
+            console.log('车辆数据加载成功（data数组格式），数量:', response.data.length)
+          } else {
+            throw new Error('API返回的数据格式错误: data字段不是数组')
+          }
         } else {
-          throw new Error(response.message || '获取车辆数据失败')
+          throw new Error(response?.message || 'API返回的数据格式错误')
         }
       } catch (error) {
         this.error = error.message

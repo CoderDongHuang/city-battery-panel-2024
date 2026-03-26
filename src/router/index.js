@@ -38,6 +38,12 @@ const routes = [
         meta: { title: '报警管理' }
       },
       {
+        path: 'alarms',
+        name: 'Alarms',
+        component: () => import('../views/Alarms.vue'),
+        meta: { title: '电池报警' }
+      },
+      {
         path: 'settings',
         name: 'Settings',
         component: () => import('../views/Settings.vue'),

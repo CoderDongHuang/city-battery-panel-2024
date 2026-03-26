@@ -125,15 +125,20 @@ const setLightStatus = async (status) => {
   if (!isOnline.value) return
   
   try {
-    await vehicleAPI.controlLights(props.vehicle.vid, {
+    const response = await vehicleAPI.controlLights(props.vehicle.vid, {
       status: status
     })
     
-    currentStatus.value = status
-    showFeedback(`灯光状态设置为: ${getStatusText(status)}`, 'success')
+    // 处理后端API响应格式: { code: 200, message: "灯光控制指令发送成功", data: null }
+    if (response && response.code === 200) {
+      currentStatus.value = status
+      showFeedback(response.message || `灯光状态设置为: ${getStatusText(status)}`, 'success')
+    } else {
+      throw new Error(response?.message || '灯光控制失败')
+    }
   } catch (error) {
     console.error('灯光控制失败:', error)
-    showFeedback('灯光控制失败: ' + (error.response?.data?.message || error.message), 'error')
+    showFeedback('灯光控制失败: ' + error.message, 'error')
   }
 }
 
@@ -141,15 +146,20 @@ const flashLights = async () => {
   if (!isOnline.value) return
   
   try {
-    await vehicleAPI.flashLights(props.vehicle.vid, {
+    const response = await vehicleAPI.flashLights(props.vehicle.vid, {
       pattern: flashPattern.value,
       duration: flashDuration.value
     })
     
-    showFeedback(`闪烁指令发送成功 (模式: ${flashPattern.value}, 时长: ${flashDuration.value}ms)`, 'success')
+    // 处理后端API响应格式: { code: 200, message: "灯光闪烁指令发送成功", data: null }
+    if (response && response.code === 200) {
+      showFeedback(response.message || `闪烁指令发送成功 (模式: ${flashPattern.value}, 时长: ${flashDuration.value}ms)`, 'success')
+    } else {
+      throw new Error(response?.message || '闪烁控制失败')
+    }
   } catch (error) {
     console.error('闪烁控制失败:', error)
-    showFeedback('闪烁控制失败: ' + (error.response?.data?.message || error.message), 'error')
+    showFeedback('闪烁控制失败: ' + error.message, 'error')
   }
 }
 

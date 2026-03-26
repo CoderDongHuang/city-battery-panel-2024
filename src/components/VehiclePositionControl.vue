@@ -214,22 +214,8 @@ const setPosition = async () => {
     // 调用API
     const response = await vehicleAPI.setPosition(props.vehicle.vid, command)
     
-    // 处理响应
-    if (typeof response === 'string') {
-      if (response.toLowerCase().includes('success')) {
-        message.value = '位置设置指令发送成功'
-        messageType.value = 'success'
-        console.log('位置设置成功')
-      } else {
-        message.value = response || '位置设置失败'
-        messageType.value = 'error'
-        console.error('位置设置失败:', response)
-      }
-    } else if (response && (response.success === true || response.success === 'true')) {
-      message.value = response.message || '位置设置指令发送成功'
-      messageType.value = 'success'
-      console.log('位置设置成功:', response.message)
-    } else if (response && response.code === 200) {
+    // 处理后端API响应格式: { code: 200, message: "位置设置指令发送成功", data: null }
+    if (response && response.code === 200) {
       message.value = response.message || '位置设置指令发送成功'
       messageType.value = 'success'
       console.log('位置设置成功:', response.message)

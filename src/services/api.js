@@ -82,6 +82,21 @@ export const alertAPI = {
   resolveAlert: (id) => api.put(`/alerts/${id}/resolve`)
 }
 
+// 电池报警API（根据设计文档新增）
+export const alarmAPI = {
+  // 获取报警历史
+  getAlarms: (params) => api.get('/alarms', { params }),
+  
+  // 获取报警统计
+  getAlarmStatistics: (params) => api.get('/alarms/statistics', { params }),
+  
+  // 标记报警为已处理
+  handleAlarm: (alarmId) => api.put(`/alarms/${alarmId}/handle`),
+  
+  // 获取未处理报警数量
+  getUnhandledCount: () => api.get('/alarms/unhandled/count')
+}
+
 // 系统统计API
 export const dashboardAPI = {
   // 获取系统概览
