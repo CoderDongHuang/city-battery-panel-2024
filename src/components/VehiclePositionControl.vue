@@ -117,10 +117,16 @@ const isSetting = ref(false)
 const message = ref('')
 const messageType = ref('')
 
-// 模拟当前位置数据（实际应该从后端获取）
-const currentPosition = ref({
-  x: 116.40,
-  y: 39.90
+// 从vehicle对象获取实际位置数据
+const currentPosition = computed(() => {
+  if (props.vehicle && props.vehicle.location) {
+    return {
+      x: props.vehicle.location.lng || 116.40,
+      y: props.vehicle.location.lat || 39.90
+    }
+  }
+  // 如果没有位置数据，使用默认值
+  return { x: 116.40, y: 39.90 }
 })
 
 // 计算属性

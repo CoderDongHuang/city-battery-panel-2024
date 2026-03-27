@@ -296,27 +296,13 @@ export default {
     const activeAlertsCount = ref(0)
     const chargingStationsCount = ref(0)
     
-    // 模拟数据
-    const mockData = {
-      onlineVehicles: 8,
-      totalBatteries: 15,
-      activeAlerts: 3,
-      chargingStations: 5,
-      availableBatteries: 10,
-      inUseBatteries: 5,
-      urgentAlerts: 1,
-      resolvedAlerts: 2,
-      activeStations: 4,
-      maintenanceStations: 1
-    }
-    
-    // 计算属性
-    const availableBatteriesCount = computed(() => mockData.availableBatteries)
-    const inUseBatteriesCount = computed(() => mockData.inUseBatteries)
-    const urgentAlertsCount = computed(() => mockData.urgentAlerts)
-    const resolvedAlertsCount = computed(() => mockData.resolvedAlerts)
-    const activeStationsCount = computed(() => mockData.activeStations)
-    const maintenanceStationsCount = computed(() => mockData.maintenanceStations)
+    // 计算属性 - 使用实际store数据
+    const availableBatteriesCount = computed(() => batteryStore.availableBatteries)
+    const inUseBatteriesCount = computed(() => batteryStore.inUseBatteries)
+    const urgentAlertsCount = computed(() => 0) // 暂时设为0，后续可从报警store获取
+    const resolvedAlertsCount = computed(() => 0) // 暂时设为0，后续可从报警store获取
+    const activeStationsCount = computed(() => 0) // 暂时设为0，后续可从充电站API获取
+    const maintenanceStationsCount = computed(() => 0) // 暂时设为0，后续可从充电站API获取
     
     const currentTime = computed(() => {
       return new Date().toLocaleTimeString('zh-CN', {
@@ -339,17 +325,17 @@ export default {
     const weekDays = ['一', '二', '三', '四', '五', '六', '日']
     
     const loadData = () => {
-      onlineVehiclesCount.value = mockData.onlineVehicles
-      totalBatteriesCount.value = mockData.totalBatteries
-      activeAlertsCount.value = mockData.activeAlerts
-      chargingStationsCount.value = mockData.chargingStations
-      
+      // 使用实际store数据
       if (vehicleStore.vehicles.length > 0) {
         onlineVehiclesCount.value = vehicleStore.vehicles.filter(v => v.status === 'online').length
       }
       if (batteryStore.batteries.length > 0) {
         totalBatteriesCount.value = batteryStore.batteries.length
       }
+      
+      // 报警和充电站数据暂时设为0，后续可从相应API获取
+      activeAlertsCount.value = 0
+      chargingStationsCount.value = 0
     }
     
     const refreshData = () => {

@@ -321,13 +321,26 @@ const getCellTitle = (cell, x, y) => {
 }
 
 const loadMapData = async () => {
-  // 模拟地图数据（实际应从文件读取）
-  const mockMapData = Array(10).fill().map(() => 
-    Array(10).fill().map(() => Math.floor(Math.random() * 3))
-  ).map(row => row.join(' ')).join('\n')
-  
-  mapStore.mapData = mockMapData
-  mapGrid.value = mapStore.getMapGrid
+  try {
+    // 从实际文件加载地图数据
+    await mapStore.loadMapData('/data/map.txt')
+    mapGrid.value = mapStore.getMapGrid
+  } catch (error) {
+    console.warn('地图文件加载失败，使用默认地图数据')
+    // 如果文件加载失败，使用默认地图数据
+    const defaultMapData = `0 0 0 0 1 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0
+0 0 1 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0`
+    mapStore.mapData = defaultMapData
+    mapGrid.value = mapStore.getMapGrid
+  }
 }
 
 const setVehiclePosition = (x, y) => {
