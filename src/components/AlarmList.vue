@@ -50,7 +50,32 @@
         />
       </div>
       
-      <button class="clear-filters" @click="clearFilters">清除筛选</button>
+      <div class="filter-group">
+        <label>车辆编号:</label>
+        <input 
+          type="text" 
+          v-model="filters.vid" 
+          @input="handleFilterChange"
+          placeholder="输入车辆编号"
+          style="width: 120px;"
+        />
+      </div>
+      
+      <div class="filter-group">
+        <label>电池编号:</label>
+        <input 
+          type="text" 
+          v-model="filters.pid" 
+          @input="handleFilterChange"
+          placeholder="输入电池编号"
+          style="width: 120px;"
+        />
+      </div>
+      
+      <button class="clear-filters" @click="clearFilters">
+        <span class="btn-icon">🗑️</span>
+        清除筛选
+      </button>
     </div>
     
     <!-- 报警列表 -->
@@ -144,13 +169,15 @@ import { useAlarmStore } from '../store/modules/alarmStore'
 
 const alarmStore = useAlarmStore()
 
-// 响应式数据
+// 筛选条件
 const filters = ref({
   type: '',
   level: '',
   resolved: false,
   startTime: '',
-  endTime: ''
+  endTime: '',
+  vid: '',      // 车辆编号
+  pid: ''       // 电池编号
 })
 
 const selectedAlarms = ref([])
@@ -162,7 +189,7 @@ const pagination = ref({
 
 // 计算属性
 const filteredAlarms = computed(() => {
-  let alarms = alarmStore.historyAlarms.data
+  let alarms = alarmStore.alarms.data || []
   
   // 应用筛选条件
   if (filters.value.type) {
@@ -231,7 +258,7 @@ const loadAlarms = async () => {
     ...filters.value
   })
   
-  pagination.value.total = alarmStore.historyAlarms.pagination.total
+  pagination.value.total = alarmStore.alarms.pagination.total
 }
 
 const changePage = (page) => {

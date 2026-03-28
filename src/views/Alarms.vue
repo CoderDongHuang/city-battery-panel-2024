@@ -2,8 +2,20 @@
   <div class="alarms-view">
     <!-- 页面头部 -->
     <div class="page-header">
-      <h1>🚨 电池报警管理</h1>
-      <p>实时监控和管理电池系统的报警信息</p>
+      <div class="header-content">
+        <h1>🚨 电池报警管理</h1>
+        <p>查看和管理所有电池系统的报警信息</p>
+      </div>
+      <div class="header-actions">
+        <button class="action-btn export-btn" @click="exportAlarms">
+          <span class="btn-icon">📊</span>
+          导出报表
+        </button>
+        <button class="action-btn refresh-btn" @click="refreshAlarms">
+          <span class="btn-icon">🔄</span>
+          刷新数据
+        </button>
+      </div>
     </div>
     
     <!-- 报警统计卡片 -->
@@ -35,7 +47,7 @@
       <div class="stat-card">
         <div class="stat-icon" style="background: #f0f8ff; color: #1890ff;">⚠️</div>
         <div class="stat-content">
-          <div class="stat-value">{{ alarmStore.unreadCount }}</div>
+          <div class="stat-value">{{ alarmStore.statistics.unresolved }}</div>
           <div class="stat-label">未处理</div>
         </div>
       </div>
@@ -44,7 +56,7 @@
     <!-- 报警列表 -->
     <div class="alarm-content">
       <!-- 加载状态 -->
-      <div v-if="alarmStore.historyAlarms.loading" class="loading-state">
+      <div v-if="alarmStore.alarms.loading" class="loading-state">
         <div class="loading-icon">⏳</div>
         <div class="loading-text">正在加载报警数据...</div>
       </div>
@@ -72,11 +84,6 @@
       @close="hideAlarmDetail"
       @alarm-handled="handleAlarmHandled"
     />
-    
-    <!-- 实时报警监控（固定在右上角） -->
-    <AlarmMonitor 
-      @view-detail="showAlarmDetail"
-    />
   </div>
 </template>
 
@@ -85,7 +92,6 @@ import { ref, onMounted } from 'vue'
 import { useAlarmStore } from '../store/modules/alarmStore'
 import AlarmList from '../components/AlarmList.vue'
 import AlarmDetail from '../components/AlarmDetail.vue'
-import AlarmMonitor from '../components/AlarmMonitor.vue'
 
 const alarmStore = useAlarmStore()
 
@@ -120,6 +126,41 @@ const refreshAlarms = async () => {
   }
 }
 
+// 导出报警数据
+const exportAlarms = () => {
+  const alarms = alarmStore.alarms.data
+  if (alarms.length === 0) {
+    alert('暂无报警数据可导出')
+    return
+  }
+  
+  // 创建CSV格式数据
+  const headers = ['报警ID', '车辆编号', '电池编号', '报警类型', '级别', '触发值', '阈值', '时间', '状态']
+  const csvData = alarms.map(alarm => [
+    alarm.id,
+    alarm.vid || '未知',
+    alarm.pid || '未知',
+    alarmStore.getAlarmTypeText(alarm.alarmType),
+    alarmStore.getLevelText(alarm.level),
+    alarm.triggerValue,
+    alarm.thresholdValue,
+    new Date(alarm.timestamp).toLocaleString('zh-CN'),
+    alarm.resolved ? '已处理' : '未处理'
+  ])
+  
+  // 创建CSV内容
+  const csvContent = [headers, ...csvData].map(row => row.join(',')).join('\n')
+  
+  // 创建下载链接
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `电池报警数据_${new Date().toISOString().split('T')[0]}.csv`
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
 // 生命周期
 onMounted(() => {
   // 初始化报警数据
@@ -136,7 +177,14 @@ onMounted(() => {
 }
 
 .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 32px;
+}
+
+.header-content {
+  flex: 1;
 }
 
 .page-header h1 {
@@ -150,6 +198,52 @@ onMounted(() => {
   margin: 0;
   font-size: 16px;
   color: #666;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+}
+
+.export-btn:hover {
+  background: linear-gradient(135deg, #ff5252 0%, #e74c3c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.refresh-btn {
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  color: white;
+}
+
+.refresh-btn:hover {
+  background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+}
+
+.btn-icon {
+  font-size: 16px;
 }
 
 .stats-cards {
