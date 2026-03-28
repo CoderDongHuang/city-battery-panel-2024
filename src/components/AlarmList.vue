@@ -248,15 +248,34 @@ const handleAlarm = async (alarmId) => {
   try {
     await alarmStore.handleAlarm(alarmId)
     console.log('报警处理成功')
+    // 刷新列表
+    await loadAlarms()
   } catch (error) {
     console.error('处理报警失败:', error)
+    if (error.response?.status === 404) {
+      alert('报警API尚未实现，请稍后再试')
+    } else {
+      alert('处理报警失败: ' + error.message)
+    }
   }
 }
 
-const deleteAlarm = (alarmId) => {
+const deleteAlarm = async (alarmId) => {
   if (confirm('确定要删除这条报警记录吗？')) {
-    // 这里调用删除API
-    console.log('删除报警:', alarmId)
+    try {
+      // 调用删除API
+      await alarmStore.deleteAlarm(alarmId)
+      console.log('报警删除成功')
+      // 刷新列表
+      await loadAlarms()
+    } catch (error) {
+      console.error('删除报警失败:', error)
+      if (error.response?.status === 404) {
+        alert('报警API尚未实现，请稍后再试')
+      } else {
+        alert('删除报警失败: ' + error.message)
+      }
+    }
   }
 }
 
@@ -285,10 +304,19 @@ onMounted(() => {
   loadAlarms()
 })
 
-// 监听筛选条件变化
-watch(filters, () => {
-  handleFilterChange()
-}, { deep: true })
+// 监听筛选条件变化 - 只在用户主动改变时触发
+watch(() => ({
+  type: filters.value.type,
+  level: filters.value.level,
+  resolved: filters.value.resolved,
+  startTime: filters.value.startTime,
+  endTime: filters.value.endTime
+}), () => {
+  // 延迟执行，避免频繁触发
+  setTimeout(() => {
+    handleFilterChange()
+  }, 300)
+})
 </script>
 
 <style scoped>

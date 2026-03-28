@@ -102,74 +102,137 @@ export const useAlarmStore = defineStore('alarm', {
   actions: {
     // 初始化WebSocket连接
     initWebSocket() {
+      // 如果已经有连接，先关闭
+      if (this.wsConnection && this.wsConnection.readyState !== WebSocket.CLOSED) {
+        this.wsConnection.close(1000, '重新初始化连接')
+      }
+      
       try {
         const wsUrl = 'ws://localhost:8080/websocket'
         
         this.wsConnection = new WebSocket(wsUrl)
         
         this.wsConnection.onopen = () => {
-          console.log('WebSocket连接成功')
-          // 发送认证信息
-          this.wsConnection.send(JSON.stringify({
-            type: 'auth',
-            token: 'user-token'
-          }))
+          console.log('报警WebSocket连接成功')
+          this.error = null
         }
         
         this.wsConnection.onmessage = (event) => {
-          const data = JSON.parse(event.data)
-          if (data.type === 'battery_alarm') {
-            this.handleNewAlarm(data)
+          try {
+            const data = JSON.parse(event.data)
+            console.log('收到WebSocket消息:', data)
+            
+            // 根据消息类型处理
+            switch (data.type) {
+              case 'new_alarm':
+                this.handleNewAlarm(data.data)
+                break
+              case 'alarm_handled':
+                this.handleAlarmHandled(data.data)
+                break
+              case 'ping':
+                // 响应心跳包
+                this.wsConnection.send(JSON.stringify({ type: 'pong' }))
+                break
+              default:
+                console.warn('未知的WebSocket消息类型:', data.type)
+            }
+          } catch (error) {
+            console.error('WebSocket消息解析错误:', error)
           }
         }
         
         this.wsConnection.onerror = (error) => {
-          console.error('WebSocket错误:', error)
-          this.error = 'WebSocket连接失败'
+          console.error('报警WebSocket连接错误:', error)
+          this.error = '实时报警推送连接失败'
         }
         
-        this.wsConnection.onclose = () => {
-          console.log('WebSocket连接关闭')
-          // 5秒后重连
+        this.wsConnection.onclose = (event) => {
+          console.log('报警WebSocket连接关闭，代码:', event.code, '原因:', event.reason)
+          
+          // 正常关闭不重连
+          if (event.code === 1000) {
+            console.log('WebSocket正常关闭，停止重连')
+            return
+          }
+          
+          // 非正常关闭，10秒后重连
+          console.log('10秒后尝试重连WebSocket')
           setTimeout(() => {
-            this.initWebSocket()
-          }, 5000)
+            if (!this.wsConnection || this.wsConnection.readyState === WebSocket.CLOSED) {
+              this.initWebSocket()
+            }
+          }, 10000)
         }
         
       } catch (error) {
-        console.error('WebSocket初始化失败:', error)
-        this.error = error.message
+        console.error('报警WebSocket初始化失败:', error)
+        this.error = 'WebSocket初始化失败'
       }
     },
     
     // 处理新报警
     handleNewAlarm(alarmData) {
-      // 添加到实时列表开头
-      this.realtimeAlarms.unshift({
-        ...alarmData,
-        id: Date.now(), // 临时ID
-        timestamp: new Date().toISOString(),
-        resolved: false
-      })
+      // 检查是否已存在相同报警
+      const existingAlarm = this.realtimeAlarms.find(a => 
+        a.vid === alarmData.vid && 
+        a.pid === alarmData.pid && 
+        a.alarmType === alarmData.alarmType &&
+        !a.resolved
+      )
       
-      // 限制实时报警数量
-      if (this.realtimeAlarms.length > 100) {
-        this.realtimeAlarms = this.realtimeAlarms.slice(0, 100)
+      if (!existingAlarm) {
+        // 添加到实时列表开头
+        this.realtimeAlarms.unshift({
+          ...alarmData,
+          id: alarmData.id || Date.now(), // 使用后端ID或临时ID
+          timestamp: alarmData.timestamp || new Date().toISOString(),
+          resolved: false
+        })
+        
+        // 限制实时报警数量
+        if (this.realtimeAlarms.length > 100) {
+          this.realtimeAlarms = this.realtimeAlarms.slice(0, 100)
+        }
+        
+        // 更新未读数量
+        this.unreadCount += 1
+        
+        // 更新统计信息
+        this.updateStatistics(alarmData)
+        
+        // 播放报警音效（如果是高优先级）
+        if (alarmData.level === 'high') {
+          this.playAlarmSound()
+        }
+        
+        // 显示通知
+        this.showNotification(alarmData)
+      }
+    },
+    
+    // 处理报警已处理消息
+    handleAlarmHandled(alarmData) {
+      // 更新实时报警状态
+      const alarm = this.realtimeAlarms.find(a => a.id === alarmData.id)
+      if (alarm) {
+        alarm.resolved = true
+        alarm.handledBy = alarmData.handledBy
+        alarm.handledAt = alarmData.handledAt
       }
       
-      // 更新未读数量
-      this.unreadCount += 1
-      
-      // 更新统计信息
-      this.updateStatistics(alarmData)
-      
-      // 播放报警音效（如果是高优先级）
-      if (alarmData.level === 'high') {
-        this.playAlarmSound()
+      // 更新历史报警状态
+      const historyAlarm = this.historyAlarms.data.find(a => a.id === alarmData.id)
+      if (historyAlarm) {
+        historyAlarm.resolved = true
+        historyAlarm.handledBy = alarmData.handledBy
+        historyAlarm.handledAt = alarmData.handledAt
       }
       
-      // 显示通知
-      this.showNotification(alarmData)
+      // 减少未读数量
+      if (this.unreadCount > 0) {
+        this.unreadCount -= 1
+      }
     },
     
     // 播放报警音效
@@ -326,24 +389,47 @@ export const useAlarmStore = defineStore('alarm', {
       } catch (error) {
         // 如果API返回404，说明报警功能尚未实现
         if (error.response && error.response.status === 404) {
-          console.warn('报警处理API尚未实现，模拟处理成功')
-          // 模拟处理成功
-          const alarm = this.realtimeAlarms.find(a => a.id === alarmId)
-          if (alarm) {
-            alarm.resolved = true
-          }
-          
-          const historyAlarm = this.historyAlarms.data.find(a => a.id === alarmId)
-          if (historyAlarm) {
-            historyAlarm.resolved = true
-          }
-          
-          if (this.unreadCount > 0) {
-            this.unreadCount -= 1
-          }
+          console.warn('报警处理API尚未实现')
+          throw new Error('报警处理功能正在开发中，请稍后再试')
         } else {
           this.error = error.message
           console.error('处理报警失败:', error)
+          throw error
+        }
+      }
+    },
+    
+    // 删除报警
+    async deleteAlarm(alarmId) {
+      try {
+        const response = await alarmAPI.deleteAlarm(alarmId)
+        
+        // 后端返回格式: { code: 200, message: "报警删除成功", data: null }
+        if (response && response.code === 200) {
+          // 从实时报警列表中移除
+          this.realtimeAlarms = this.realtimeAlarms.filter(a => a.id !== alarmId)
+          
+          // 从历史报警列表中移除
+          this.historyAlarms.data = this.historyAlarms.data.filter(a => a.id !== alarmId)
+          this.historyAlarms.pagination.total -= 1
+          
+          // 如果删除的是未读报警，减少未读数量
+          const deletedAlarm = this.realtimeAlarms.find(a => a.id === alarmId)
+          if (deletedAlarm && !deletedAlarm.resolved && this.unreadCount > 0) {
+            this.unreadCount -= 1
+          }
+        } else {
+          throw new Error(response?.message || '删除报警失败')
+        }
+        
+      } catch (error) {
+        // 如果API返回404，说明报警功能尚未实现
+        if (error.response && error.response.status === 404) {
+          console.warn('报警删除API尚未实现')
+          throw new Error('报警删除功能正在开发中，请稍后再试')
+        } else {
+          this.error = error.message
+          console.error('删除报警失败:', error)
           throw error
         }
       }

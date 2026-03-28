@@ -43,17 +43,26 @@
     
     <!-- 报警列表 -->
     <div class="alarm-content">
-      <!-- 报警功能提示 -->
-      <div v-if="alarmStore.error" class="feature-notice">
-        <div class="notice-icon">🚧</div>
-        <div class="notice-content">
-          <h3>功能开发中</h3>
+      <!-- 加载状态 -->
+      <div v-if="alarmStore.historyAlarms.loading" class="loading-state">
+        <div class="loading-icon">⏳</div>
+        <div class="loading-text">正在加载报警数据...</div>
+      </div>
+      
+      <!-- 错误状态 -->
+      <div v-else-if="alarmStore.error" class="error-state">
+        <div class="error-icon">⚠️</div>
+        <div class="error-content">
+          <h3>数据加载失败</h3>
           <p>{{ alarmStore.error }}</p>
-          <p class="notice-detail">报警功能正在积极开发中，预计很快就能与大家见面！</p>
+          <button class="retry-btn" @click="refreshAlarms">重试</button>
         </div>
       </div>
       
-      <AlarmList @view-detail="showAlarmDetail" />
+      <!-- 正常状态 -->
+      <div v-else>
+        <AlarmList @view-detail="showAlarmDetail" />
+      </div>
     </div>
     
     <!-- 报警详情模态框 -->
@@ -97,14 +106,24 @@ const hideAlarmDetail = () => {
 
 const handleAlarmHandled = (alarmId) => {
   console.log('报警已处理:', alarmId)
-  // 可以在这里添加处理后的逻辑，比如刷新列表等
+  // 刷新报警列表和统计
+  refreshAlarms()
+}
+
+// 刷新报警数据
+const refreshAlarms = async () => {
+  try {
+    await alarmStore.fetchStatistics('today')
+    await alarmStore.fetchHistoryAlarms()
+  } catch (error) {
+    console.error('刷新报警数据失败:', error)
+  }
 }
 
 // 生命周期
 onMounted(() => {
   // 初始化报警数据
-  alarmStore.fetchStatistics('today')
-  alarmStore.fetchHistoryAlarms()
+  refreshAlarms()
 })
 </script>
 
