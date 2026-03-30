@@ -128,11 +128,11 @@ export const useAlarmStore = defineStore('alarm', {
     
     // 获取历史报警
     async fetchHistoryAlarms(params = {}) {
-      this.historyAlarms.loading = true
+      this.alarms.loading = true
       this.error = null
       
       try {
-        const response = await alarmAPI.getAlarms({
+        const response = await alarmAPI.getHistoryAlarms({
           page: this.alarms.pagination.current - 1, // 后端从0开始
           size: this.alarms.pagination.pageSize,
           ...this.filters,

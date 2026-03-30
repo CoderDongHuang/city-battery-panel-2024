@@ -53,6 +53,54 @@
       </div>
     </div>
     
+    <!-- 筛选工具栏 -->
+    <div class="filter-toolbar">
+      <div class="filter-group">
+        <label>报警类型：</label>
+        <select v-model="alarmStore.filters.type" @change="applyFilters">
+          <option value="">全部类型</option>
+          <option value="temperature">温度异常</option>
+          <option value="voltage">电压异常</option>
+          <option value="current">电流异常</option>
+          <option value="soc">电量异常</option>
+          <option value="connection">连接异常</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>报警级别：</label>
+        <select v-model="alarmStore.filters.level" @change="applyFilters">
+          <option value="">全部级别</option>
+          <option value="high">高</option>
+          <option value="medium">中</option>
+          <option value="low">低</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>处理状态：</label>
+        <select v-model="alarmStore.filters.resolved" @change="applyFilters">
+          <option :value="null">全部状态</option>
+          <option :value="false">未处理</option>
+          <option :value="true">已处理</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>开始时间：</label>
+        <input type="date" v-model="alarmStore.filters.startTime" @change="applyFilters">
+      </div>
+      
+      <div class="filter-group">
+        <label>结束时间：</label>
+        <input type="date" v-model="alarmStore.filters.endTime" @change="applyFilters">
+      </div>
+      
+      <div class="filter-actions">
+        <button class="clear-btn" @click="clearFilters">清除筛选</button>
+      </div>
+    </div>
+
     <!-- 报警列表 -->
     <div class="alarm-content">
       <!-- 加载状态 -->
@@ -161,6 +209,38 @@ const exportAlarms = () => {
   URL.revokeObjectURL(url)
 }
 
+// 防抖函数
+const debounce = (func, delay) => {
+  let timeoutId
+  return (...args) => {
+    clearTimeout(timeoutId)
+    timeoutId = setTimeout(() => func.apply(this, args), delay)
+  }
+}
+
+// 防抖后的刷新函数
+const debouncedRefreshAlarms = debounce(refreshAlarms, 500)
+
+// 应用筛选（防抖）
+const applyFilters = () => {
+  debouncedRefreshAlarms()
+}
+
+// 清除筛选（立即执行）
+const clearFilters = () => {
+  alarmStore.filters = {
+    type: null,
+    level: null,
+    startTime: null,
+    endTime: null,
+    resolved: null,
+    vid: null,
+    pid: null
+  }
+  // 清除筛选后立即刷新，不需要防抖
+  refreshAlarms()
+}
+
 // 生命周期
 onMounted(() => {
   // 初始化报警数据
@@ -244,6 +324,68 @@ onMounted(() => {
 
 .btn-icon {
   font-size: 16px;
+}
+
+/* 筛选工具栏 */
+.filter-toolbar {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 120px;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.filter-actions {
+  margin-left: auto;
+}
+
+.clear-btn {
+  padding: 8px 16px;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  color: #666;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clear-btn:hover {
+  background: #e9ecef;
+  color: #333;
 }
 
 .stats-cards {

@@ -1,82 +1,5 @@
 <template>
   <div class="alarm-list">
-    <!-- 筛选工具栏 -->
-    <div class="filter-toolbar">
-      <div class="filter-group">
-        <label>报警类型:</label>
-        <select v-model="filters.type" @change="handleFilterChange">
-          <option value="">全部类型</option>
-          <option value="temperature">温度异常</option>
-          <option value="voltage">电压异常</option>
-          <option value="current">电流异常</option>
-          <option value="soc">电量异常</option>
-          <option value="connection">连接异常</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <label>报警级别:</label>
-        <select v-model="filters.level" @change="handleFilterChange">
-          <option value="">全部级别</option>
-          <option value="high">高</option>
-          <option value="medium">中</option>
-          <option value="low">低</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <label>处理状态:</label>
-        <select v-model="filters.resolved" @change="handleFilterChange">
-          <option :value="false">未处理</option>
-          <option :value="true">已处理</option>
-          <option value="">全部</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <label>时间范围:</label>
-        <input 
-          type="date" 
-          v-model="filters.startTime" 
-          @change="handleFilterChange"
-          placeholder="开始时间"
-        />
-        <span>至</span>
-        <input 
-          type="date" 
-          v-model="filters.endTime" 
-          @change="handleFilterChange"
-          placeholder="结束时间"
-        />
-      </div>
-      
-      <div class="filter-group">
-        <label>车辆编号:</label>
-        <input 
-          type="text" 
-          v-model="filters.vid" 
-          @input="handleFilterChange"
-          placeholder="输入车辆编号"
-          style="width: 120px;"
-        />
-      </div>
-      
-      <div class="filter-group">
-        <label>电池编号:</label>
-        <input 
-          type="text" 
-          v-model="filters.pid" 
-          @input="handleFilterChange"
-          placeholder="输入电池编号"
-          style="width: 120px;"
-        />
-      </div>
-      
-      <button class="clear-filters" @click="clearFilters">
-        <span class="btn-icon">🗑️</span>
-        清除筛选
-      </button>
-    </div>
     
     <!-- 报警列表 -->
     <div class="alarm-table">
@@ -164,21 +87,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAlarmStore } from '../store/modules/alarmStore'
 
 const alarmStore = useAlarmStore()
-
-// 筛选条件
-const filters = ref({
-  type: '',
-  level: '',
-  resolved: false,
-  startTime: '',
-  endTime: '',
-  vid: '',      // 车辆编号
-  pid: ''       // 电池编号
-})
 
 const selectedAlarms = ref([])
 const pagination = ref({
@@ -187,36 +99,9 @@ const pagination = ref({
   total: 0
 })
 
-// 计算属性
+// 计算属性 - 直接使用store中的数据
 const filteredAlarms = computed(() => {
-  let alarms = alarmStore.alarms.data || []
-  
-  // 应用筛选条件
-  if (filters.value.type) {
-    alarms = alarms.filter(alarm => alarm.alarmType === filters.value.type)
-  }
-  
-  if (filters.value.level) {
-    alarms = alarms.filter(alarm => alarm.level === filters.value.level)
-  }
-  
-  if (filters.value.resolved !== '') {
-    alarms = alarms.filter(alarm => alarm.resolved === filters.value.resolved)
-  }
-  
-  if (filters.value.startTime) {
-    alarms = alarms.filter(alarm => 
-      new Date(alarm.timestamp) >= new Date(filters.value.startTime)
-    )
-  }
-  
-  if (filters.value.endTime) {
-    alarms = alarms.filter(alarm => 
-      new Date(alarm.timestamp) <= new Date(filters.value.endTime + 'T23:59:59')
-    )
-  }
-  
-  return alarms
+  return alarmStore.alarms.data || []
 })
 
 // 方法
@@ -234,28 +119,11 @@ const formatTime = (timestamp) => {
   })
 }
 
-const handleFilterChange = () => {
-  pagination.value.current = 1
-  loadAlarms()
-}
-
-const clearFilters = () => {
-  filters.value = {
-    type: '',
-    level: '',
-    resolved: false,
-    startTime: '',
-    endTime: ''
-  }
-  pagination.value.current = 1
-  loadAlarms()
-}
-
 const loadAlarms = async () => {
+  // 使用主页面传递的筛选条件
   await alarmStore.fetchHistoryAlarms({
     page: pagination.value.current,
-    size: pagination.value.pageSize,
-    ...filters.value
+    size: pagination.value.pageSize
   })
   
   pagination.value.total = alarmStore.alarms.pagination.total
@@ -329,20 +197,6 @@ const emit = defineEmits(['view-detail'])
 // 生命周期
 onMounted(() => {
   loadAlarms()
-})
-
-// 监听筛选条件变化 - 只在用户主动改变时触发
-watch(() => ({
-  type: filters.value.type,
-  level: filters.value.level,
-  resolved: filters.value.resolved,
-  startTime: filters.value.startTime,
-  endTime: filters.value.endTime
-}), () => {
-  // 延迟执行，避免频繁触发
-  setTimeout(() => {
-    handleFilterChange()
-  }, 300)
 })
 </script>
 

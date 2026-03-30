@@ -81,20 +81,29 @@ export const batteryAPI = {
 
 // 报警管理API
 export const alertAPI = {
-  // 获取报警列表
+  // 获取报警列表（支持分页和筛选）
   getAlerts: (params) => api.get('/alerts', { params }),
   
-  // 添加报警
-  addAlert: (alert) => api.post('/alerts', alert),
+  // 获取报警详情
+  getAlertDetail: (id) => api.get(`/alerts/${id}`),
+  
+  // 获取报警统计
+  getAlertStatistics: () => api.get('/alerts/statistics'),
   
   // 解决报警
-  resolveAlert: (id) => api.put(`/alerts/${id}/resolve`)
+  resolveAlert: (id, data) => api.put(`/alerts/${id}/resolve`, data),
+  
+  // 批量处理报警
+  batchResolveAlerts: (ids, data) => api.put('/alerts/batch-resolve', { ids, ...data }),
+  
+  // 添加报警
+  addAlert: (alert) => api.post('/alerts', alert)
 }
 
 // 电池报警API（根据设计文档新增）
 export const alarmAPI = {
-  // 获取报警历史
-  getAlarms: (params) => api.get('/alarms', { params }),
+  // 获取历史报警（已处理+未处理）
+  getHistoryAlarms: (params) => api.get('/alarms/history', { params }),
   
   // 获取报警统计
   getAlarmStatistics: (params) => api.get('/alarms/statistics', { params }),
