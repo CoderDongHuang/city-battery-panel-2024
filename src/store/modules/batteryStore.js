@@ -26,13 +26,10 @@ export const useBatteryStore = defineStore('battery', {
     // 根据文档中的统计字段
     totalBatteries: (state) => state.batteries.length,
     
-    // 使用中电池数量（后端返回的inUse状态）
-    inUseBatteries: (state) => state.batteries.filter(b => b.status === 'inUse').length,
+    inUseBatteries: (state) => state.batteries.filter(b => b.vid && b.vid.trim() !== '').length,
     
-    // 可用电池数量（后端返回的available状态）
-    availableBatteries: (state) => state.batteries.filter(b => b.status === 'available').length,
+    availableBatteries: (state) => state.batteries.filter(b => !b.vid || b.vid.trim() === '').length,
     
-    // 维护中电池数量（后端返回的maintenance状态）
     maintenanceBatteries: (state) => state.batteries.filter(b => b.status === 'maintenance').length,
     
     // 兼容API文档的状态字段（如果后端实现了健康状态统计）

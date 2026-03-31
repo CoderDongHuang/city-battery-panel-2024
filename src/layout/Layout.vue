@@ -24,17 +24,35 @@
           <div class="top-row">
             <!-- 项目相关链接 -->
             <div class="project-links">
-              <a href="https://github.com" target="_blank" class="link-item" title="项目源码">
-                <span class="link-icon">💻</span>
-                <span class="link-text">项目源码(GitHub)</span>
-              </a>
-              <a href="https://docs.example.com" target="_blank" class="link-item" title="项目文档">
+              <!-- 项目源码下拉菜单 -->
+              <div class="link-dropdown" @click="toggleProjectDropdown">
+                <div class="link-item dropdown-trigger" :class="{ active: showProjectDropdown }">
+                  <span class="link-icon">💻</span>
+                  <span class="link-text">项目源码</span>
+                  <span class="link-arrow" :class="{ rotated: showProjectDropdown }">▼</span>
+                </div>
+                <div v-if="showProjectDropdown" class="dropdown-menu-links" @click.stop>
+                  <a href="https://gitee.com/donghuang-C/city-battery-panel-2024" target="_blank" class="dropdown-link">
+                    <span class="link-icon">📦</span>
+                    <span class="link-text">Gitee 前端</span>
+                  </a>
+                  <a href="https://gitee.com/donghuang-C/citycharge-service-2024" target="_blank" class="dropdown-link">
+                    <span class="link-icon">⚙️</span>
+                    <span class="link-text">Gitee 后端</span>
+                  </a>
+                  <a href="https://github.com/CoderDongHuang/city-battery-panel-2024" target="_blank" class="dropdown-link">
+                    <span class="link-icon">📦</span>
+                    <span class="link-text">GitHub 前端</span>
+                  </a>
+                  <a href="https://github.com/CoderDongHuang/citycharge-service-2024" target="_blank" class="dropdown-link">
+                    <span class="link-icon">⚙️</span>
+                    <span class="link-text">GitHub 后端</span>
+                  </a>
+                </div>
+              </div>
+              <a href="https://blog.csdn.net/CoderDongHuang" target="_blank" class="link-item" title="CSDN博客">
                 <span class="link-icon">📚</span>
-                <span class="link-text">项目文档(CSDN)</span>
-              </a>
-              <a href="https://status.example.com" target="_blank" class="link-item" title="系统状态">
-                <span class="link-icon">📊</span>
-                <span class="link-text">状态</span>
+                <span class="link-text">CSDN博客</span>
               </a>
             </div>
             
@@ -158,27 +176,34 @@ const router = useRouter()
 const currentTime = ref('')
 const onlineVehiclesCount = ref(0)
 const showAlarmDropdown = ref(false)
+const showProjectDropdown = ref(false)
 
-// 判断当前路由是否为报警管理相关路由
 const isAlarmRoute = computed(() => {
   return ['Alarms', 'Alerts'].includes(route.name)
 })
 
-// 切换下拉菜单显示状态
 const toggleAlarmDropdown = () => {
   showAlarmDropdown.value = !showAlarmDropdown.value
+  showProjectDropdown.value = false
 }
 
-// 关闭下拉菜单
 const closeAlarmDropdown = () => {
   showAlarmDropdown.value = false
 }
 
-// 点击外部关闭下拉菜单
+const toggleProjectDropdown = () => {
+  showProjectDropdown.value = !showProjectDropdown.value
+  showAlarmDropdown.value = false
+}
+
 const handleClickOutside = (event) => {
   const dropdown = event.target.closest('.dropdown')
+  const linkDropdown = event.target.closest('.link-dropdown')
   if (!dropdown) {
     closeAlarmDropdown()
+  }
+  if (!linkDropdown) {
+    showProjectDropdown.value = false
   }
 }
 
@@ -327,6 +352,64 @@ onMounted(() => {
 
 .link-text {
   font-weight: 500;
+}
+
+.link-dropdown {
+  position: relative;
+}
+
+.link-item.dropdown-trigger {
+  cursor: pointer;
+}
+
+.link-item.dropdown-trigger.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 1);
+}
+
+.link-arrow {
+  font-size: 10px;
+  transition: transform 0.3s ease;
+  margin-left: 4px;
+}
+
+.link-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu-links {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  background: rgba(20, 30, 50, 0.98);
+  border-radius: 8px;
+  padding: 8px 0;
+  min-width: 160px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.dropdown-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 1);
+}
+
+.dropdown-link .link-icon {
+  font-size: 16px;
 }
 
 .header-center {

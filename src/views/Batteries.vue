@@ -177,11 +177,9 @@
                   </linearGradient>
                 </defs>
                 
-                <!-- Y轴和X轴线 -->
                 <line x1="50" y1="20" x2="50" y2="260" stroke="#aaa" stroke-width="1.5"/>
                 <line x1="50" y1="260" x2="530" y2="260" stroke="#aaa" stroke-width="1.5"/>
                 
-                <!-- Y轴刻度文本和刻度线 -->
                 <text x="35" y="20" text-anchor="end" font-size="10" fill="#666">100%</text>
                 <line x1="45" y1="20" x2="50" y2="20" stroke="#aaa"/>
                 <text x="35" y="68" text-anchor="end" font-size="10" fill="#666">80%</text>
@@ -195,7 +193,6 @@
                 <text x="35" y="260" text-anchor="end" font-size="10" fill="#666">0%</text>
                 <line x1="45" y1="260" x2="50" y2="260" stroke="#aaa"/>
                 
-                <!-- 水平网格线（与刻度线对齐） -->
                 <line x1="50" y1="20" x2="530" y2="20" stroke="#e9ecef" stroke-dasharray="3 3"/>
                 <line x1="50" y1="68" x2="530" y2="68" stroke="#e9ecef" stroke-dasharray="3 3"/>
                 <line x1="50" y1="116" x2="530" y2="116" stroke="#e9ecef" stroke-dasharray="3 3"/>
@@ -203,24 +200,22 @@
                 <line x1="50" y1="212" x2="530" y2="212" stroke="#e9ecef" stroke-dasharray="3 3"/>
                 <line x1="50" y1="260" x2="530" y2="260" stroke="#e9ecef" stroke-dasharray="3 3"/>
                 
-                <!-- 折线（数据点 y 坐标与网格线精确对齐） -->
-                <!-- 数据点: 80% -> y=68, 60% -> y=116, 90% -> y=44, 70% -> y=92, 85% -> y=56 -->
-                <polyline points="100,68 200,116 300,44 400,92 500,56" 
-                          fill="none" stroke="url(#lineGradient)" stroke-width="2.5" stroke-linecap="round"/>
+                <template v-if="capacityChartData.length > 0">
+                  <polyline :points="capacityChartPoints" 
+                            fill="none" stroke="url(#lineGradient)" stroke-width="2.5" stroke-linecap="round"/>
+                  
+                  <circle v-for="(point, index) in capacityChartPointsArray" :key="index"
+                          :cx="point.x" :cy="point.y" r="4" fill="#007bff" stroke="white"/>
+                  
+                  <text v-for="(point, index) in capacityChartPointsArray" :key="'label-' + index"
+                        :x="point.x" :y="point.y - 12" text-anchor="middle" font-size="11" fill="#007bff">
+                    {{ point.level }}%
+                  </text>
+                </template>
                 
-                <!-- 数据点圆点 -->
-                <circle cx="100" cy="68" r="4" fill="#007bff" stroke="white"/>
-                <circle cx="200" cy="116" r="4" fill="#007bff" stroke="white"/>
-                <circle cx="300" cy="44" r="4" fill="#007bff" stroke="white"/>
-                <circle cx="400" cy="92" r="4" fill="#007bff" stroke="white"/>
-                <circle cx="500" cy="56" r="4" fill="#007bff" stroke="white"/>
-                
-                <!-- 数据标签（位置微调避免遮挡） -->
-                <text x="100" y="58" text-anchor="middle" font-size="11" fill="#007bff">80%</text>
-                <text x="200" y="106" text-anchor="middle" font-size="11" fill="#007bff">60%</text>
-                <text x="300" y="34" text-anchor="middle" font-size="11" fill="#007bff">90%</text>
-                <text x="400" y="82" text-anchor="middle" font-size="11" fill="#007bff">70%</text>
-                <text x="500" y="46" text-anchor="middle" font-size="11" fill="#007bff">85%</text>
+                <text v-else x="290" y="140" text-anchor="middle" font-size="14" fill="#999">
+                  暂无电量数据
+                </text>
               </svg>
             </div>
           </div>
@@ -403,7 +398,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useBatteryStore } from '../store/modules/batteryStore'
 
 const batteryStore = useBatteryStore()
@@ -413,15 +408,87 @@ const statisticsLoading = ref(false)
 
 // 计算属性
 const totalBatteries = computed(() => batteryStore.batteries.length)
-const inUseBatteries = computed(() => batteryStore.batteries.filter(b => b.status === 'inUse').length)
-const availableBatteries = computed(() => batteryStore.batteries.filter(b => b.status === 'available').length)
+const inUseBatteries = computed(() => batteryStore.batteries.filter(b => b.vid && b.vid.trim() !== '').length)
+const availableBatteries = computed(() => batteryStore.batteries.filter(b => !b.vid || b.vid.trim() === '').length)
 const maintenanceBatteries = computed(() => batteryStore.batteries.filter(b => b.status === 'maintenance').length)
 
 const filteredBatteries = computed(() => {
   if (filterStatus.value === 'all') {
     return batteryStore.batteries
   }
+  if (filterStatus.value === 'inUse') {
+    return batteryStore.batteries.filter(battery => battery.vid && battery.vid.trim() !== '')
+  }
+  if (filterStatus.value === 'available') {
+    return batteryStore.batteries.filter(battery => !battery.vid || battery.vid.trim() === '')
+  }
   return batteryStore.batteries.filter(battery => battery.status === filterStatus.value)
+})
+
+const capacityChartData = computed(() => {
+  const batteries = batteryStore.batteries
+  if (batteries.length === 0) return []
+  
+  const sortedBatteries = [...batteries]
+    .filter(b => b.batteryLevel !== null && b.batteryLevel !== undefined)
+    .sort((a, b) => a.batteryLevel - b.batteryLevel)
+  
+  const step = Math.max(1, Math.floor(sortedBatteries.length / 10))
+  const sampledBatteries = []
+  for (let i = 0; i < sortedBatteries.length; i += step) {
+    sampledBatteries.push(sortedBatteries[i])
+  }
+  
+  return sampledBatteries.slice(0, 10).map(b => ({
+    pid: b.pid,
+    level: b.batteryLevel
+  }))
+})
+
+const temperatureChartData = computed(() => {
+  const batteries = batteryStore.batteries
+  if (batteries.length === 0) {
+    return [
+      { label: '正常 (0-25°C)', count: 0, color: '#28a745' },
+      { label: '偏高 (25-35°C)', count: 0, color: '#ffc107' },
+      { label: '高温 (35-45°C)', count: 0, color: '#fd7e14' },
+      { label: '危险 (>45°C)', count: 0, color: '#dc3545' }
+    ]
+  }
+  
+  const normal = batteries.filter(b => b.temperature !== null && b.temperature !== undefined && b.temperature >= 0 && b.temperature < 25).length
+  const warm = batteries.filter(b => b.temperature !== null && b.temperature !== undefined && b.temperature >= 25 && b.temperature < 35).length
+  const hot = batteries.filter(b => b.temperature !== null && b.temperature !== undefined && b.temperature >= 35 && b.temperature < 45).length
+  const danger = batteries.filter(b => b.temperature !== null && b.temperature !== undefined && b.temperature >= 45).length
+  
+  const total = normal + warm + hot + danger || 1
+  
+  return [
+    { label: '正常 (0-25°C)', count: normal, percent: Math.round(normal / total * 100), color: '#28a745' },
+    { label: '偏高 (25-35°C)', count: warm, percent: Math.round(warm / total * 100), color: '#ffc107' },
+    { label: '高温 (35-45°C)', count: hot, percent: Math.round(hot / total * 100), color: '#fd7e14' },
+    { label: '危险 (>45°C)', count: danger, percent: Math.round(danger / total * 100), color: '#dc3545' }
+  ]
+})
+
+const capacityChartPointsArray = computed(() => {
+  const data = capacityChartData.value
+  if (data.length === 0) return []
+  
+  const chartWidth = 480
+  const chartHeight = 240
+  const startX = 70
+  const startY = 20
+  
+  return data.map((item, index) => {
+    const x = startX + (index / Math.max(data.length - 1, 1)) * chartWidth
+    const y = startY + (1 - item.level / 100) * chartHeight
+    return { x: Math.round(x), y: Math.round(y), level: item.level }
+  })
+})
+
+const capacityChartPoints = computed(() => {
+  return capacityChartPointsArray.value.map(p => `${p.x},${p.y}`).join(' ')
 })
 
 const getStatusText = (status) => {
@@ -547,25 +614,31 @@ const drawTempPie = (isLarge = false) => {
   const canvas = isLarge ? tempPieCanvasLarge.value : tempPieCanvas.value
   if (!canvas) return
   const ctx = canvas.getContext('2d')
-  const size = canvas.width   // 普通模式600，放大模式800
+  const size = canvas.width
   const centerX = size / 2
   const centerY = size / 2
-  const radius = isLarge ? size * 0.35 : size * 0.30   // 放大模式半径更大
+  const radius = isLarge ? size * 0.35 : size * 0.30
   
-  const data = [
-    { label: '正常 (0-25°C)', percent: 40, color: '#28a745' },
-    { label: '偏高 (25-35°C)', percent: 30, color: '#ffc107' },
-    { label: '高温 (35-45°C)', percent: 20, color: '#fd7e14' },
-    { label: '危险 (>45°C)', percent: 10, color: '#dc3545' }
-  ]
+  const data = temperatureChartData.value
   
   let startAngle = -Math.PI / 2
   ctx.clearRect(0, 0, size, size)
   
-  // 绘制扇形
+  const total = data.reduce((sum, item) => sum + item.count, 0)
+  if (total === 0) {
+    ctx.font = `${isLarge ? '18px' : '14px'} "Segoe UI", "PingFang SC"`
+    ctx.fillStyle = '#999'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText('暂无温度数据', centerX, centerY)
+    return
+  }
+  
   for (let i = 0; i < data.length; i++) {
     const item = data[i]
-    const angle = (item.percent / 100) * Math.PI * 2
+    const angle = (item.count / total) * Math.PI * 2
+    if (angle === 0) continue
+    
     const endAngle = startAngle + angle
     
     ctx.beginPath()
@@ -578,7 +651,6 @@ const drawTempPie = (isLarge = false) => {
     startAngle = endAngle
   }
   
-  // 绘制图例（放大模式下调整位置和字体大小）
   const legendX = size - (isLarge ? 40 : 20)
   const legendY = isLarge ? 60 : 40
   const itemHeight = isLarge ? 28 : 24
@@ -593,29 +665,29 @@ const drawTempPie = (isLarge = false) => {
     const item = data[i]
     const y = legendY + i * (itemHeight + itemSpacing)
     
-    // 色块
     ctx.fillStyle = item.color
     ctx.fillRect(legendX - 20, y - 8, 14, 14)
     
-    // 文字
     ctx.fillStyle = '#333'
     ctx.fillText(`${item.label} ${item.percent}%`, legendX - 28, y)
   }
 }
 
 onMounted(async () => {
-  // 先尝试加载统计信息（如果可用）
   await fetchBatteryStatistics()
-  
-  // 然后加载电池列表
   await refreshBatteries()
-  
   batteryStore.startRealTimeUpdates()
   nextTick(() => {
     drawTempPie()
     window.addEventListener('resize', drawTempPie)
   })
 })
+
+watch(() => batteryStore.batteries, () => {
+  nextTick(() => {
+    drawTempPie()
+  })
+}, { deep: true })
 
 onUnmounted(() => {
   window.removeEventListener('resize', drawTempPie)

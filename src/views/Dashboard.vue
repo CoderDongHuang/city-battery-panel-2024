@@ -235,6 +235,43 @@
       </div>
     </div>
 
+    <!-- 项目链接 -->
+    <div class="project-links-section">
+      <div class="section-header">
+        <h2>项目链接</h2>
+      </div>
+      <div class="links-grid">
+        <a href="https://gitee.com/donghuang-C/city-battery-panel-2024" target="_blank" class="link-card">
+          <div class="link-icon">📦</div>
+          <div class="link-content">
+            <h4>Gitee 前端代码</h4>
+            <p>city-battery-panel-2024</p>
+          </div>
+        </a>
+        <a href="https://gitee.com/donghuang-C/citycharge-service-2024" target="_blank" class="link-card">
+          <div class="link-icon">⚙️</div>
+          <div class="link-content">
+            <h4>Gitee 后端代码</h4>
+            <p>citycharge-service-2024</p>
+          </div>
+        </a>
+        <a href="https://github.com/CoderDongHuang/city-battery-panel-2024" target="_blank" class="link-card">
+          <div class="link-icon">📦</div>
+          <div class="link-content">
+            <h4>GitHub 前端代码</h4>
+            <p>city-battery-panel-2024</p>
+          </div>
+        </a>
+        <a href="https://github.com/CoderDongHuang/citycharge-service-2024" target="_blank" class="link-card">
+          <div class="link-icon">⚙️</div>
+          <div class="link-content">
+            <h4>GitHub 后端代码</h4>
+            <p>citycharge-service-2024</p>
+          </div>
+        </a>
+      </div>
+    </div>
+
     <!-- 图表放大模态框 -->
     <div v-if="showChartModal" class="chart-modal-overlay" @click="closeChartModal">
       <div class="chart-modal-content" @click.stop>
@@ -1021,6 +1058,77 @@ export default {
   font-size: 16px;
   font-weight: 600;
   line-height: 1.3;
+}
+
+/* 项目链接 */
+.project-links-section {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.project-links-section:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+.project-links-section .section-header {
+  margin-bottom: 24px;
+}
+
+.project-links-section .section-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+  line-height: 1.2;
+}
+
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.link-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  padding: 20px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.link-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #007bff;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+.link-icon {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.link-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 4px 0;
+}
+
+.link-content p {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
 }
 
 /* 响应式设计 */
