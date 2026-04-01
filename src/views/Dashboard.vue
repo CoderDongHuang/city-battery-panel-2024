@@ -74,7 +74,7 @@
           <div class="metric-icon">🏢</div>
           <div class="metric-content">
             <h3 class="metric-title">换电站</h3>
-            <div class="metric-value">{{ chargingStationsCount }}</div>
+            <div class="metric-value">{{ swapStationsCount }}</div>
             <div class="metric-detail">
               <span>运营中: {{ activeStationsCount }}</span>
               <span>维护中: {{ maintenanceStationsCount }}</span>
@@ -320,6 +320,7 @@
 import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
 import { useApiBatteryStore } from '../store/modules/apiBatteryStore'
+import { stationAPI } from '../services/api'
 
 export default {
   name: 'Dashboard',
@@ -331,15 +332,14 @@ export default {
     const onlineVehiclesCount = ref(0)
     const totalBatteriesCount = ref(0)
     const activeAlertsCount = ref(0)
-    const chargingStationsCount = ref(0)
+    const swapStationsCount = ref(0)
+    const activeStationsCount = ref(0)
+    const maintenanceStationsCount = ref(0)
     
-    // 计算属性 - 使用实际store数据
     const availableBatteriesCount = computed(() => batteryStore.availableBatteries)
     const inUseBatteriesCount = computed(() => batteryStore.inUseBatteries)
-    const urgentAlertsCount = computed(() => 0) // 暂时设为0，后续可从报警store获取
-    const resolvedAlertsCount = computed(() => 0) // 暂时设为0，后续可从报警store获取
-    const activeStationsCount = computed(() => 0) // 暂时设为0，后续可从充电站API获取
-    const maintenanceStationsCount = computed(() => 0) // 暂时设为0，后续可从充电站API获取
+    const urgentAlertsCount = computed(() => 0)
+    const resolvedAlertsCount = computed(() => 0)
     
     const currentTime = computed(() => {
       return new Date().toLocaleTimeString('zh-CN', {
@@ -361,8 +361,7 @@ export default {
     ])
     const weekDays = ['一', '二', '三', '四', '五', '六', '日']
     
-    const loadData = () => {
-      // 使用实际store数据
+    const loadData = async () => {
       if (vehicleStore.vehicles.length > 0) {
         onlineVehiclesCount.value = vehicleStore.vehicles.filter(v => v.status === 'online').length
       }
@@ -370,9 +369,18 @@ export default {
         totalBatteriesCount.value = batteryStore.batteries.length
       }
       
-      // 报警和充电站数据暂时设为0，后续可从相应API获取
       activeAlertsCount.value = 0
-      chargingStationsCount.value = 0
+      
+      try {
+        const response = await stationAPI.getStationStatistics()
+        if (response.code === 200 && response.data) {
+          swapStationsCount.value = response.data.total || 0
+          activeStationsCount.value = response.data.active || 0
+          maintenanceStationsCount.value = response.data.maintenance || 0
+        }
+      } catch (error) {
+        console.error('获取换电站统计失败:', error)
+      }
     }
     
     const refreshData = () => {
@@ -491,7 +499,7 @@ export default {
       onlineVehiclesCount,
       totalBatteriesCount,
       activeAlertsCount,
-      chargingStationsCount,
+      swapStationsCount,
       availableBatteriesCount,
       inUseBatteriesCount,
       urgentAlertsCount,

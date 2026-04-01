@@ -4,7 +4,7 @@ export const useMapStore = defineStore('map', {
   state: () => ({
     mapData: null,
     vehiclePositions: {},
-    chargingStations: [],
+    swapStations: [],
     selectedVehicle: null,
     recommendedRoute: null
   }),
@@ -15,14 +15,14 @@ export const useMapStore = defineStore('map', {
       return state.mapData.split('\n').map(row => row.split(' ').map(Number))
     },
     
-    getChargingStations: (state) => {
+    getSwapStations: (state) => {
       if (!state.mapData) return []
       const grid = this.getMapGrid
       const stations = []
       
       for (let y = 0; y < grid.length; y++) {
         for (let x = 0; x < grid[y].length; x++) {
-          if (grid[y][x] === 1) { // 1 表示换电站
+          if (grid[y][x] === 1) {
             stations.push({ x: x + 1, y: y + 1 })
           }
         }
@@ -41,7 +41,7 @@ export const useMapStore = defineStore('map', {
         const response = await fetch(filePath)
         const text = await response.text()
         this.mapData = text
-        this.chargingStations = this.getChargingStations
+        this.swapStations = this.getSwapStations
       } catch (error) {
         console.error('加载地图数据失败:', error)
       }
@@ -52,16 +52,14 @@ export const useMapStore = defineStore('map', {
     },
     
     calculateShortestPath(start, end) {
-      // 实现A*算法计算最短路径
-      // 这里简化实现，实际需要根据地图障碍物计算
       return {
         path: [],
         distance: Math.abs(start.x - end.x) + Math.abs(start.y - end.y)
       }
     },
     
-    findNearestChargingStation(position) {
-      const stations = this.chargingStations
+    findNearestSwapStation(position) {
+      const stations = this.swapStations
       if (stations.length === 0) return null
       
       let nearest = stations[0]

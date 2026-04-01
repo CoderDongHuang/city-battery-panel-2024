@@ -72,7 +72,7 @@
           </div>
           <div class="stat-item">
             <span class="stat-label">换电站</span>
-            <span class="stat-value">{{ chargingStationsCount }}</span>
+            <span class="stat-value">{{ swapStationsCount }}</span>
           </div>
         </div>
       </div>
@@ -212,6 +212,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useMapStore } from '../store/modules/mapStore'
 import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
+import { stationAPI } from '../services/api'
 import VehiclePositionControl from '../components/VehiclePositionControl.vue'
 
 const mapStore = useMapStore()
@@ -220,8 +221,8 @@ const vehicleStore = useApiVehicleStore()
 const selectedVehicleId = ref('')
 const mapGrid = ref(null)
 const recommendedRoute = ref(null)
+const swapStationsCount = ref(0)
 
-// 计算属性
 const onlineVehicles = computed(() => {
   return vehicleStore.vehicles.filter(v => v.online)
 })
@@ -232,17 +233,6 @@ const offlineVehicles = computed(() => {
 
 const alertVehicles = computed(() => {
   return vehicleStore.vehicles.filter(v => v.alerts && v.alerts.length > 0)
-})
-
-const chargingStationsCount = computed(() => {
-  if (!mapGrid.value) return 0
-  let count = 0
-  for (let y = 0; y < mapGrid.value.length; y++) {
-    for (let x = 0; x < mapGrid.value[y].length; x++) {
-      if (mapGrid.value[y][x] === 1) count++
-    }
-  }
-  return count
 })
 
 const currentTime = computed(() => {
@@ -322,12 +312,10 @@ const getCellTitle = (cell, x, y) => {
 
 const loadMapData = async () => {
   try {
-    // 从实际文件加载地图数据
     await mapStore.loadMapData('/data/map.txt')
     mapGrid.value = mapStore.getMapGrid
   } catch (error) {
     console.warn('地图文件加载失败，使用默认地图数据')
-    // 如果文件加载失败，使用默认地图数据
     const defaultMapData = `0 0 0 0 1 0 0 0 0 0
 0 0 0 0 0 0 0 0 0 0
 0 0 1 0 0 0 0 0 0 0
@@ -341,6 +329,15 @@ const loadMapData = async () => {
     mapStore.mapData = defaultMapData
     mapGrid.value = mapStore.getMapGrid
   }
+  
+  try {
+    const response = await stationAPI.getStationStatistics()
+    if (response.code === 200 && response.data) {
+      swapStationsCount.value = response.data.total || 0
+    }
+  } catch (error) {
+    console.error('获取换电站统计失败:', error)
+  }
 }
 
 const setVehiclePosition = (x, y) => {
@@ -348,7 +345,7 @@ const setVehiclePosition = (x, y) => {
     const position = { x: x + 1, y: y + 1 }
     mapStore.setVehiclePosition(selectedVehicleId.value, position)
     
-    const nearest = mapStore.findNearestChargingStation(position)
+    const nearest = mapStore.findNearestSwapStation(position)
     if (nearest) {
       const vehicle = vehicleStore.getVehicleById(selectedVehicleId.value)
       const batteryLevel = vehicle?.batteryLevel || 0
@@ -377,7 +374,7 @@ const setRandomPosition = () => {
       const randomPos = roads[Math.floor(Math.random() * roads.length)]
       mapStore.setVehiclePosition(selectedVehicleId.value, randomPos)
       
-      const nearest = mapStore.findNearestChargingStation(randomPos)
+      const nearest = mapStore.findNearestSwapStation(randomPos)
       if (nearest) {
         const vehicle = vehicleStore.getVehicleById(selectedVehicleId.value)
         const batteryLevel = vehicle?.batteryLevel || 0
@@ -396,7 +393,7 @@ const onVehicleSelect = () => {
   if (selectedVehicleId.value) {
     const position = mapStore.getVehiclePosition(selectedVehicleId.value)
     if (position) {
-      const nearest = mapStore.findNearestChargingStation(position)
+      const nearest = mapStore.findNearestSwapStation(position)
       if (nearest) {
         const vehicle = vehicleStore.getVehicleById(selectedVehicleId.value)
         const batteryLevel = vehicle?.batteryLevel || 0

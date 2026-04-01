@@ -115,6 +115,25 @@ export const alarmAPI = {
   getUnhandledCount: () => api.get('/alarms/unhandled/count')
 }
 
+// 换电站管理API
+export const stationAPI = {
+  // 获取换电站列表
+  getStations: (params) => api.get('/stations', { params }),
+  
+  // 获取单个换电站信息
+  getStation: (stationId) => api.get(`/stations/${stationId}`),
+  
+  // 获取换电站统计信息
+  getStationStatistics: () => api.get('/stations/statistics'),
+  
+  // 更新换电站状态
+  updateStationStatus: (stationId, status) => 
+    api.put(`/stations/${stationId}/status`, { status }),
+  
+  // 获取换电站的电池库存
+  getStationBatteries: (stationId) => api.get(`/stations/${stationId}/batteries`)
+}
+
 // 系统统计API
 export const dashboardAPI = {
   // 获取系统概览
