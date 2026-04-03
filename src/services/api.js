@@ -134,6 +134,21 @@ export const stationAPI = {
   getStationBatteries: (stationId) => api.get(`/stations/${stationId}/batteries`)
 }
 
+// 认证API
+export const authAPI = {
+  // 用户登录
+  login: (credentials) => api.post('/auth/login', credentials),
+  
+  // 用户登出
+  logout: () => api.post('/auth/logout'),
+  
+  // 获取当前用户信息
+  getCurrentUser: () => api.get('/auth/user'),
+  
+  // 刷新token
+  refreshToken: () => api.post('/auth/refresh')
+}
+
 // 系统统计API
 export const dashboardAPI = {
   // 获取系统概览
