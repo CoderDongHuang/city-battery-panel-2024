@@ -4,7 +4,7 @@
       <!-- 左侧视觉区域（柱子群）- 黑色背景 -->
       <div class="visual-side">
         <!-- 紫色柱子（背景） -->
-        <div class="character purple" :class="{ 'peeking': focusState === 'email' }">
+        <div class="character purple animate-in" :class="{ 'peeking': focusState === 'email' }" style="animation-delay: 0.1s;">
           <div class="pillar-foot"></div>
           <div class="pillar-body">
             <div class="pillar-neck"></div>
@@ -17,7 +17,7 @@
           </div>
         </div>
         <!-- 黑色柱子（中间） -->
-        <div class="character black" :class="{ 'peeking': focusState === 'email' }">
+        <div class="character black animate-in" :class="{ 'peeking': focusState === 'email' }" style="animation-delay: 0.2s;">
           <div class="pillar-foot"></div>
           <div class="pillar-body">
             <div class="pillar-neck"></div>
@@ -30,7 +30,7 @@
           </div>
         </div>
         <!-- 黄色柱子（背景右侧） -->
-        <div class="character yellow" :class="{ 'peeking': focusState === 'email' }">
+        <div class="character yellow animate-in" :class="{ 'peeking': focusState === 'email' }" style="animation-delay: 0.3s;">
           <div class="pillar-foot"></div>
           <div class="pillar-body">
             <div class="pillar-neck"></div>
@@ -43,7 +43,7 @@
           </div>
         </div>
         <!-- 橙色半圆（最前面） -->
-        <div class="character orange" :class="{ 'peeking': focusState === 'email' }">
+        <div class="character orange animate-in" :class="{ 'peeking': focusState === 'email' }" style="animation-delay: 0.4s;">
           <div class="pillar-foot"></div>
           <div class="pillar-body orange-body">
             <div class="pillar-neck orange-neck"></div>
@@ -61,7 +61,7 @@
       <div class="form-side">
         <div class="form-wrapper">
           <!-- 小车 Logo -->
-          <div class="car-logo">
+          <div class="car-logo animate-from-top">
             <svg width="48" height="48" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M52 36H12C10.9 36 10 35.1 10 34V26C10 24.9 10.9 24 12 24H52C53.1 24 54 24.9 54 26V34C54 35.1 53.1 36 52 36Z" fill="#3b82f6" stroke="#2563eb" stroke-width="2"/>
               <rect x="16" y="28" width="8" height="6" fill="#1e293b" rx="1"/>
@@ -74,12 +74,12 @@
               <path d="M10 34L6 34" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
             </svg>
           </div>
-          <div class="header-text">
+          <div class="header-text animate-from-top" style="animation-delay: 0.2s;">
             <h1>Welcome back!</h1>
             <p>Please enter your details</p>
           </div>
 
-          <form @submit.prevent="handleLogin">
+          <form @submit.prevent="handleLogin" class="animate-from-left" style="animation-delay: 0.3s;">
             <div class="input-group">
               <label for="email">Email</label>
               <input 
@@ -118,19 +118,19 @@
               </div>
             </div>
 
-            <div class="options">
-              <label style="display:flex; align-items:center; cursor:pointer;">
-                <input type="checkbox" v-model="rememberMe" style="width:auto; margin-right:8px;"> Remember for 30 days
+            <div class="options animate-from-right" style="animation-delay: 0.4s;">
+              <label class="remember-label">
+                <input type="checkbox" v-model="rememberMe"> Remember for 30 days
               </label>
-              <a href="#">Forgot password?</a>
+              <a href="#" class="forgot-link">Forgot password?</a>
             </div>
 
-            <button type="submit" class="btn btn-primary" :disabled="loading">
+            <button type="submit" class="btn btn-primary animate-from-bottom" style="animation-delay: 0.5s;" :disabled="loading">
               <span v-if="loading" class="spinner"></span>
               <span v-else>Log In</span>
             </button>
             
-            <button type="button" class="btn btn-secondary">
+            <button type="button" class="btn btn-secondary animate-from-bottom" style="animation-delay: 0.6s;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
               </svg>
@@ -138,7 +138,7 @@
             </button>
           </form>
 
-          <div class="signup-link">
+          <div class="signup-link animate-from-bottom" style="animation-delay: 0.7s;">
             Don't have an account? <a href="#">Sign Up</a>
           </div>
           
@@ -245,7 +245,7 @@ const handleLogin = async () => {
 }
 
 .login-container {
-  background-color: #3b4867;
+  background-color: #6178ad;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -263,10 +263,107 @@ const handleLogin = async () => {
   overflow: hidden;
 }
 
+/* 入场动画 - 使用包裹元素 */
+.animate-in {
+  position: absolute;
+  bottom: 0;
+  opacity: 0;
+  animation: slideInFromBottom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-from-top {
+  opacity: 0;
+  animation: slideInFromTop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-from-left {
+  opacity: 0;
+  animation: slideInFromLeft 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-from-right {
+  opacity: 0;
+  animation: slideInFromRight 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.animate-from-bottom {
+  opacity: 0;
+  animation: slideInFromBottom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-80px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-80px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(80px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(80px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 柱子位置样式 - 不使用 transform */
+.purple {
+  left: 50%;
+  margin-left: -70px;
+  z-index: 1;
+}
+
+.black {
+  left: 50%;
+  margin-left: 10px;
+  z-index: 2;
+}
+
+.yellow {
+  left: 50%;
+  margin-left: 75px;
+  z-index: 1;
+}
+
+.orange {
+  left: 50%;
+  margin-left: -150px;
+  z-index: 10;
+}
+
 /* 左侧浅黑色背景 */
 .visual-side {
   flex: 1;
-  background-color: #c2ccd5 !important;
+  background-color: #8591ad !important;
   position: relative;
   display: flex;
   justify-content: center;
@@ -349,11 +446,6 @@ const handleLogin = async () => {
 .purple .pillar-body {
   height: 260px;
 }
-.purple {
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1;
-}
 
 .black .pillar-body,
 .black .pillar-neck,
@@ -363,11 +455,6 @@ const handleLogin = async () => {
 .black .pillar-body {
   height: 180px;
 }
-.black {
-  left: 50%;
-  transform: translateX(-50%) translateX(40px);
-  z-index: 2;
-}
 
 .yellow .pillar-body,
 .yellow .pillar-neck,
@@ -376,11 +463,6 @@ const handleLogin = async () => {
 }
 .yellow .pillar-body {
   height: 160px;
-}
-.yellow {
-  left: 50%;
-  transform: translateX(-50%) translateX(80px);
-  z-index: 1;
 }
 
 /* 橙色半圆特殊处理 */
@@ -402,11 +484,6 @@ const handleLogin = async () => {
 .orange .pillar-neck,
 .orange .pillar-head {
   background-color: #f97316;
-}
-.orange {
-  left: 50%;
-  transform: translateX(-50%) translateX(-60px);
-  z-index: 10;
 }
 
 /* 橙色半圆聚焦时 */
@@ -530,14 +607,34 @@ input:focus {
 .options {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 13px;
   margin-bottom: 24px;
-  align-items: center;
 }
 
-.options a {
+.remember-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #666;
+}
+
+.remember-label input {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+}
+
+.forgot-link {
   color: #666;
   text-decoration: none;
+  font-size: 13px;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
 }
 
 .btn {
@@ -553,7 +650,7 @@ input:focus {
 .btn-primary {
   background: #111;
   color: white;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -573,6 +670,7 @@ input:focus {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  margin-bottom: 12px;
 }
 
 .btn-secondary:hover {
