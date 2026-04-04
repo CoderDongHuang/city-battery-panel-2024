@@ -191,6 +191,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { authAPI } from '../services/api'
 
 const router = useRouter()
 const username = ref('')
@@ -287,14 +288,26 @@ const handleRegister = async () => {
   isLoading.value = true
   
   try {
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    // 调用注册 API
+    const response = await authAPI.register({
+      username: username.value,
+      email: email.value,
+      password: password.value
+    })
     
-    localStorage.setItem('token', 'mock-token-' + Date.now())
-    localStorage.setItem('username', username.value)
-    
-    router.push('/dashboard')
+    // 注册成功，保存 token 和用户信息
+    if (response.code === 200 || response.code === 0) {
+      localStorage.setItem('token', response.data.token)
+      localStorage.setItem('username', response.data.user.username)
+      
+      // 跳转到首页
+      router.push('/dashboard')
+    } else {
+      error.value = response.message || t('registerFailed')
+    }
   } catch (err) {
-    error.value = t('registerFailed')
+    console.error('注册错误:', err)
+    error.value = err.response?.data?.message || t('registerFailed')
   } finally {
     isLoading.value = false
   }

@@ -134,10 +134,13 @@ export const stationAPI = {
   getStationBatteries: (stationId) => api.get(`/stations/${stationId}/batteries`)
 }
 
-// 认证API
+// 认证 API
 export const authAPI = {
   // 用户登录
   login: (credentials) => api.post('/auth/login', credentials),
+  
+  // 用户注册
+  register: (userData) => api.post('/auth/register', userData),
   
   // 用户登出
   logout: () => api.post('/auth/logout'),
@@ -145,7 +148,7 @@ export const authAPI = {
   // 获取当前用户信息
   getCurrentUser: () => api.get('/auth/user'),
   
-  // 刷新token
+  // 刷新 token
   refreshToken: () => api.post('/auth/refresh')
 }
 
