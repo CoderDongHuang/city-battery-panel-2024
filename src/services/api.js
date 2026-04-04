@@ -12,7 +12,10 @@ const api = axios.create({
 // 请求拦截器
 api.interceptors.request.use(
   (config) => {
-    console.log(`发送请求: ${config.method?.toUpperCase()} ${config.url}`)
+    // 生产环境不打印日志
+    if (import.meta.env.DEV) {
+      console.log(`[API 请求] ${config.method?.toUpperCase()} ${config.url}`)
+    }
     return config
   },
   (error) => {

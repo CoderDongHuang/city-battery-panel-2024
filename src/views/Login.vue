@@ -272,8 +272,9 @@ const handleLogin = async () => {
   loading.value = true
   
   try {
+    // 后端可能期望 username 而不是 email
     const response = await authAPI.login({
-      email: email.value,
+      username: email.value,  // 使用 username 字段
       password: password.value
     })
     
