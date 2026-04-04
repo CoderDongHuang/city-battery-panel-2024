@@ -1,6 +1,11 @@
 <template>
   <div class="login-container" @mousemove="handleMouseMove">
     <div class="login-card">
+      <!-- 语言切换按钮 -->
+      <button class="lang-switch" @click="toggleLanguage">
+        {{ isChinese ? 'EN' : '中文' }}
+      </button>
+      
       <!-- 左侧视觉区域（柱子群）- 黑色背景 -->
       <div class="visual-side">
         <!-- 紫色柱子（背景） -->
@@ -75,32 +80,32 @@
             </svg>
           </div>
           <div class="header-text animate-from-top" style="animation-delay: 0.2s;">
-            <h1>Welcome back!</h1>
-            <p>Please enter your details</p>
+            <h1>{{ t('welcomeBack') }}</h1>
+            <p>{{ t('enterDetails') }}</p>
           </div>
 
           <form @submit.prevent="handleLogin" class="animate-from-left" style="animation-delay: 0.3s;">
             <div class="input-group">
-              <label for="email">Email</label>
+              <label for="email">{{ t('usernameOrEmail') }}</label>
               <input 
-                type="email" 
+                type="text" 
                 id="email" 
                 v-model="email" 
-                placeholder="Enter your email"
-                autocomplete="email"
+                :placeholder="t('enterUsername')"
+                autocomplete="username"
                 @focus="focusState = 'email'"
                 @blur="focusState = 'idle'"
               />
             </div>
 
             <div class="input-group">
-              <label for="password">Password</label>
+              <label for="password">{{ t('password') }}</label>
               <div class="password-wrapper">
                 <input 
                   :type="showPassword ? 'text' : 'password'" 
                   id="password" 
                   v-model="password" 
-                  placeholder="••••••••"
+                  :placeholder="t('enterPassword')"
                   autocomplete="current-password"
                   @focus="focusState = 'password'"
                   @blur="focusState = 'idle'"
@@ -120,26 +125,26 @@
 
             <div class="options animate-from-right" style="animation-delay: 0.4s;">
               <label class="remember-label">
-                <input type="checkbox" v-model="rememberMe"> Remember for 30 days
+                <input type="checkbox" v-model="rememberMe"> {{ t('rememberMe') }}
               </label>
-              <a href="#" class="forgot-link">Forgot password?</a>
+              <a href="#" class="forgot-link">{{ t('forgotPassword') }}</a>
             </div>
 
             <button type="submit" class="btn btn-primary animate-from-bottom" style="animation-delay: 0.5s;" :disabled="loading">
               <span v-if="loading" class="spinner"></span>
-              <span v-else>Log In</span>
+              <span v-else>{{ t('login') }}</span>
             </button>
             
             <button type="button" class="btn btn-secondary animate-from-bottom" style="animation-delay: 0.6s;">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
               </svg>
-              Log in with GitHub
+              {{ t('loginWithGithub') }}
             </button>
           </form>
 
           <div class="signup-link animate-from-bottom" style="animation-delay: 0.7s;">
-            Don't have an account? <a href="#">Sign Up</a>
+            {{ t('noAccount') }} <router-link to="/register">{{ t('signUp') }}</router-link>
           </div>
           
           <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
@@ -163,6 +168,57 @@ const rememberMe = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 const focusState = ref('idle')
+const isChinese = ref(true)
+
+// 语言包
+const lang = {
+  zh: {
+    welcomeBack: '欢迎回来',
+    enterDetails: '请输入您的账号信息',
+    usernameOrEmail: '用户名或邮箱',
+    enterUsername: '请输入用户名或邮箱',
+    password: '密码',
+    enterPassword: '请输入密码',
+    rememberMe: '记住我',
+    forgotPassword: '忘记密码？',
+    login: '登录',
+    loggingIn: '登录中...',
+    or: '或者',
+    loginWithGithub: '使用 GitHub 登录',
+    noAccount: '没有账号？',
+    signUp: '注册',
+    pleaseFillLoginInfo: '请填写完整的登录信息',
+    loginFailed: '登录失败，请重试',
+    wrongCredentials: '邮箱或密码错误'
+  },
+  en: {
+    welcomeBack: 'Welcome back',
+    enterDetails: 'Please enter your details',
+    usernameOrEmail: 'Username or Email',
+    enterUsername: 'Enter username or email',
+    password: 'Password',
+    enterPassword: 'Enter your password',
+    rememberMe: 'Remember me',
+    forgotPassword: 'Forgot password?',
+    login: 'Log In',
+    loggingIn: 'Logging in...',
+    or: 'OR',
+    loginWithGithub: 'Log in with GitHub',
+    noAccount: "Don't have an account?",
+    signUp: 'Sign Up',
+    pleaseFillLoginInfo: 'Please fill in login information',
+    loginFailed: 'Login failed, please try again',
+    wrongCredentials: 'Wrong email or password'
+  }
+}
+
+const t = (key) => {
+  return lang[isChinese.value ? 'zh' : 'en'][key] || key
+}
+
+const toggleLanguage = () => {
+  isChinese.value = !isChinese.value
+}
 
 const getPupilStyle = (index) => {
   let moveX = 0
@@ -209,7 +265,7 @@ onUnmounted(() => {
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
-    errorMessage.value = '请填写完整的登录信息'
+    errorMessage.value = t('pleaseFillLoginInfo')
     return
   }
   loading.value = true
@@ -221,7 +277,7 @@ const handleLogin = async () => {
       localStorage.setItem('username', email.value)
       router.push('/dashboard')
     } else {
-      errorMessage.value = response.message || '登录失败，请重试'
+      errorMessage.value = response.message || t('loginFailed')
     }
   } catch (error) {
     if (email.value === 'admin' && password.value === '123456') {
@@ -229,7 +285,7 @@ const handleLogin = async () => {
       localStorage.setItem('username', email.value)
       router.push('/dashboard')
     } else {
-      errorMessage.value = '邮箱或密码错误'
+      errorMessage.value = t('wrongCredentials')
     }
   } finally {
     loading.value = false
@@ -245,7 +301,10 @@ const handleLogin = async () => {
 }
 
 .login-container {
-  background-color: #6178ad;
+  background-image: url('/images/623.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -261,6 +320,41 @@ const handleLogin = async () => {
   border-radius: 24px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.3);
   overflow: hidden;
+  position: relative;
+}
+
+/* 语言切换按钮 */
+.lang-switch {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 100;
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.lang-switch:hover {
+  color: #667eea;
+  transform: translateY(-1px);
+}
+
+.lang-arrow {
+  font-size: 10px;
+  line-height: 1;
+  transition: transform 0.3s ease;
+}
+
+.lang-switch:hover .lang-arrow {
+  transform: translateY(1px);
 }
 
 /* 入场动画 - 使用包裹元素 */

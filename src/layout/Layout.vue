@@ -141,6 +141,25 @@
                 <span class="nav-icon">⚙️</span>
                 <span class="nav-text">系统设置</span>
               </router-link>
+              
+              <!-- 我的（带下拉菜单） -->
+              <div class="nav-item dropdown" :class="{ active: isProfileRoute }" @click="toggleProfileDropdown">
+                <div class="dropdown-trigger">
+                  <span class="nav-icon">👤</span>
+                  <span class="nav-text">我的</span>
+                  <span class="nav-arrow" :class="{ rotated: showProfileDropdown }">▼</span>
+                </div>
+                <div v-if="showProfileDropdown" class="dropdown-menu" @click.stop>
+                  <div class="dropdown-item" @click="goToProfile">
+                    <span class="nav-icon">👨‍💼</span>
+                    <span class="nav-text">个人中心</span>
+                  </div>
+                  <div class="dropdown-item" @click="handleLogout">
+                    <span class="nav-icon">🚪</span>
+                    <span class="nav-text">退出登录</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </nav>
         </div>
@@ -177,14 +196,20 @@ const currentTime = ref('')
 const onlineVehiclesCount = ref(0)
 const showAlarmDropdown = ref(false)
 const showProjectDropdown = ref(false)
+const showProfileDropdown = ref(false)
 
 const isAlarmRoute = computed(() => {
   return ['Alarms', 'Alerts'].includes(route.name)
 })
 
+const isProfileRoute = computed(() => {
+  return ['Profile'].includes(route.name)
+})
+
 const toggleAlarmDropdown = () => {
   showAlarmDropdown.value = !showAlarmDropdown.value
   showProjectDropdown.value = false
+  showProfileDropdown.value = false
 }
 
 const closeAlarmDropdown = () => {
@@ -194,6 +219,25 @@ const closeAlarmDropdown = () => {
 const toggleProjectDropdown = () => {
   showProjectDropdown.value = !showProjectDropdown.value
   showAlarmDropdown.value = false
+  showProfileDropdown.value = false
+}
+
+const toggleProfileDropdown = () => {
+  showProfileDropdown.value = !showProfileDropdown.value
+  showAlarmDropdown.value = false
+  showProjectDropdown.value = false
+}
+
+const goToProfile = () => {
+  showProfileDropdown.value = false
+  router.push({ name: 'Profile' })
+}
+
+const handleLogout = () => {
+  showProfileDropdown.value = false
+  localStorage.removeItem('token')
+  localStorage.removeItem('username')
+  router.push('/login')
 }
 
 const handleClickOutside = (event) => {
@@ -201,6 +245,7 @@ const handleClickOutside = (event) => {
   const linkDropdown = event.target.closest('.link-dropdown')
   if (!dropdown) {
     closeAlarmDropdown()
+    showProfileDropdown.value = false
   }
   if (!linkDropdown) {
     showProjectDropdown.value = false

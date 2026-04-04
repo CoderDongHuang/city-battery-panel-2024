@@ -9,6 +9,12 @@ const routes = [
     meta: { title: '登录' }
   },
   {
+    path: '/register',
+    name: 'Register',
+    component: () => import('../views/Register.vue'),
+    meta: { title: '注册' }
+  },
+  {
     path: '/',
     component: Layout,
     redirect: '/dashboard',
@@ -55,6 +61,12 @@ const routes = [
         component: () => import('../views/Settings.vue'),
         meta: { title: '系统设置' }
       },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('../views/Profile.vue'),
+        meta: { title: '个人中心' }
+      },
 
     ]
   }
@@ -68,10 +80,19 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   
-  if (to.path !== '/login' && !token) {
+  // 允许访问登录和注册页面
+  if (to.path === '/login' || to.path === '/register') {
+    if (token) {
+      next('/dashboard')
+    } else {
+      next()
+    }
+    return
+  }
+  
+  // 其他页面需要登录
+  if (!token) {
     next('/login')
-  } else if (to.path === '/login' && token) {
-    next('/dashboard')
   } else {
     next()
   }
