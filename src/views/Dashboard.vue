@@ -322,13 +322,43 @@ import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue'
 import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
 import { useBatteryStore } from '../store/modules/batteryStore'
 import { stationAPI, alertAPI, vehicleAPI } from '../services/api'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'Dashboard',
   
   setup() {
+    const router = useRouter()
     const vehicleStore = useApiVehicleStore()
     const batteryStore = useBatteryStore()
+    
+    // 处理 GitHub 登录回调
+    const handleGithubCallback = () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const token = urlParams.get('token')
+      const refreshToken = urlParams.get('refreshToken')
+      const username = urlParams.get('username')
+      const id = urlParams.get('id')
+      const avatar = urlParams.get('avatar')
+      const email = urlParams.get('email')
+      const role = urlParams.get('role')
+      
+      if (token) {
+        // 保存 token 和用户信息
+        localStorage.setItem('token', token)
+        localStorage.setItem('refreshToken', refreshToken || '')
+        localStorage.setItem('username', username || '')
+        localStorage.setItem('userId', id || '')
+        localStorage.setItem('userAvatar', avatar || '')
+        localStorage.setItem('userEmail', email || '')
+        localStorage.setItem('userRole', role || 'user')
+        
+        // 清除 URL 参数，避免刷新后重复处理
+        router.replace('/dashboard')
+        
+        console.log('GitHub 登录成功，用户:', username)
+      }
+    }
     
     const onlineVehiclesCount = ref(0)
     const totalVehiclesCount = ref(0)
@@ -553,6 +583,9 @@ export default {
     }
     
     onMounted(async () => {
+      // 处理 GitHub 登录回调
+      handleGithubCallback()
+      
       await loadData()
       nextTick(() => {
         drawBatteryPie()

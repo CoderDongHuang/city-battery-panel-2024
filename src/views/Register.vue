@@ -171,7 +171,7 @@
             <span>{{ t('or') }}</span>
           </div>
 
-          <button class="github-btn animate-from-right" style="animation-delay: 0.6s;">
+          <button class="github-btn animate-from-right" style="animation-delay: 0.6s;" @click="handleGithubLogin">
             <svg class="github-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-6.27 0-1.38.48-2.535 1.26-3.435-.405-1.26-.09-3.885 1.095-3.885 0 0 1.095-.015 3.375 1.245.96-.27 2.01-.405 3.045-.405 1.035 0 2.085.135 3.045.405 2.28-1.275 3.375-1.245 3.375-1.245 1.2 3.885 1.515 6.63 1.11 7.89.795.9 1.26 2.055 1.26 3.435 0 4.95-2.805 5.97-5.475 6.27.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
             </svg>
@@ -260,6 +260,27 @@ const t = (key) => {
 
 const toggleLanguage = () => {
   isChinese.value = !isChinese.value
+}
+
+// GitHub 登录
+const handleGithubLogin = () => {
+  // 从环境变量获取 Client ID（优先使用 .env.local 中的配置）
+  const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID || 'Iv23liBrOUx33Pvn52dS'
+  const redirectUri = 'http://localhost:8080/auth/github/callback'  // 后端回调地址
+  const state = Math.random().toString(36).substring(2)
+  
+  // 保存 state 用于验证
+  localStorage.setItem('github_oauth_state', state)
+  
+  // 构建 GitHub 授权 URL
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?` +
+    `client_id=${clientId}&` +
+    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+    `scope=user:email&` +
+    `state=${state}`
+  
+  // 跳转到 GitHub 授权页面
+  window.location.href = githubAuthUrl
 }
 
 const handleRegister = async () => {

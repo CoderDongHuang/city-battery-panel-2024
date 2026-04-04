@@ -80,9 +80,33 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   
+  // 检查 URL 中是否有 token 参数（GitHub 登录回调）
+  const urlParams = new URLSearchParams(window.location.search)
+  const urlToken = urlParams.get('token')
+  
+  // 如果是 GitHub 登录回调，先保存 token
+  if (to.path === '/dashboard' && urlToken && !token) {
+    localStorage.setItem('token', urlToken)
+    const refreshToken = urlParams.get('refreshToken')
+    const username = urlParams.get('username')
+    const id = urlParams.get('id')
+    const avatar = urlParams.get('avatar')
+    const email = urlParams.get('email')
+    const role = urlParams.get('role')
+    
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken)
+    if (username) localStorage.setItem('username', username)
+    if (id) localStorage.setItem('userId', id)
+    if (avatar) localStorage.setItem('userAvatar', avatar)
+    if (email) localStorage.setItem('userEmail', email)
+    if (role) localStorage.setItem('userRole', role)
+  }
+  
+  const currentToken = localStorage.getItem('token')
+  
   // 允许访问登录和注册页面
   if (to.path === '/login' || to.path === '/register') {
-    if (token) {
+    if (currentToken) {
       next('/dashboard')
     } else {
       next()
@@ -91,7 +115,7 @@ router.beforeEach((to, from, next) => {
   }
   
   // 其他页面需要登录
-  if (!token) {
+  if (!currentToken) {
     next('/login')
   } else {
     next()
