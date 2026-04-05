@@ -9,53 +9,61 @@
       <!-- 左侧视觉区域（柱子群）- 黑色背景 -->
       <div class="visual-side">
         <!-- 紫色柱子（背景） -->
-        <div class="character purple animate-in" :class="{ 'peeking': focusState === 'email' }" style="animation-delay: 0.1s;">
-          <div class="pillar-foot"></div>
-          <div class="pillar-body">
-            <div class="pillar-neck"></div>
-            <div class="pillar-head">
-              <div class="eyes">
-                <div class="eye"><div class="pupil" :style="getPupilStyle(0)"></div></div>
-                <div class="eye"><div class="pupil" :style="getPupilStyle(0)"></div></div>
+        <div class="character purple animate-in" :class="{ 'peeking': focusState === 'email', 'surprised': isSurprised, 'singing': isSinging, 'password-focus': isPasswordFocus }" style="animation-delay: 0.1s;">
+          <div class="character-inner">
+            <div class="pillar-foot"></div>
+            <div class="pillar-body">
+              <div class="pillar-head">
+                <div class="eyes">
+                  <div class="eye"><div class="pupil" :style="getPupilStyle(0)"></div></div>
+                  <div class="eye"><div class="pupil" :style="getPupilStyle(0)"></div></div>
+                </div>
+                <div class="mouth"></div>
               </div>
             </div>
           </div>
         </div>
         <!-- 黑色柱子（中间） -->
-        <div class="character black animate-in" :class="{ 'peeking': focusState === 'email' }" style="animation-delay: 0.2s;">
-          <div class="pillar-foot"></div>
-          <div class="pillar-body">
-            <div class="pillar-neck"></div>
-            <div class="pillar-head">
-              <div class="eyes">
-                <div class="eye"><div class="pupil" :style="getPupilStyle(1)"></div></div>
-                <div class="eye"><div class="pupil" :style="getPupilStyle(1)"></div></div>
+        <div class="character black animate-in" :class="{ 'peeking': focusState === 'email', 'surprised': isSurprised, 'singing': isSinging, 'password-focus': isPasswordFocus }" style="animation-delay: 0.2s;">
+          <div class="character-inner">
+            <div class="pillar-foot"></div>
+            <div class="pillar-body">
+              <div class="pillar-head">
+                <div class="eyes">
+                  <div class="eye"><div class="pupil" :style="getPupilStyle(1)"></div></div>
+                  <div class="eye"><div class="pupil" :style="getPupilStyle(1)"></div></div>
+                </div>
+                <div class="mouth"></div>
               </div>
             </div>
           </div>
         </div>
         <!-- 黄色柱子（背景右侧） -->
-        <div class="character yellow animate-in" :class="{ 'peeking': focusState === 'email' }" style="animation-delay: 0.3s;">
-          <div class="pillar-foot"></div>
-          <div class="pillar-body">
-            <div class="pillar-neck"></div>
-            <div class="pillar-head">
-              <div class="eyes">
-                <div class="eye"><div class="pupil" :style="getPupilStyle(2)"></div></div>
-                <div class="eye"><div class="pupil" :style="getPupilStyle(2)"></div></div>
+        <div class="character yellow animate-in" :class="{ 'peeking': focusState === 'email', 'surprised': isSurprised, 'singing': isSinging, 'password-focus': isPasswordFocus }" style="animation-delay: 0.3s;">
+          <div class="character-inner">
+            <div class="pillar-foot"></div>
+            <div class="pillar-body">
+              <div class="pillar-head">
+                <div class="eyes">
+                  <div class="eye"><div class="pupil" :style="getPupilStyle(2)"></div></div>
+                  <div class="eye"><div class="pupil" :style="getPupilStyle(2)"></div></div>
+                </div>
+                <div class="mouth"></div>
               </div>
             </div>
           </div>
         </div>
         <!-- 橙色半圆（最前面） -->
-        <div class="character orange animate-in" :class="{ 'peeking': focusState === 'email' }" style="animation-delay: 0.4s;">
-          <div class="pillar-foot"></div>
-          <div class="pillar-body orange-body">
-            <div class="pillar-neck orange-neck"></div>
-            <div class="pillar-head orange-head">
-              <div class="eyes">
-                <div class="eye"><div class="pupil" :style="getPupilStyle(3)"></div></div>
-                <div class="eye"><div class="pupil" :style="getPupilStyle(3)"></div></div>
+        <div class="character orange animate-in" :class="{ 'peeking': focusState === 'email', 'surprised': isSurprised, 'singing': isSinging, 'password-focus': isPasswordFocus }" style="animation-delay: 0.4s;">
+          <div class="character-inner">
+            <div class="pillar-foot"></div>
+            <div class="pillar-body">
+              <div class="pillar-head">
+                <div class="eyes">
+                  <div class="eye"><div class="pupil" :style="getPupilStyle(3)"></div></div>
+                  <div class="eye"><div class="pupil" :style="getPupilStyle(3)"></div></div>
+                </div>
+                <div class="mouth"></div>
               </div>
             </div>
           </div>
@@ -94,7 +102,7 @@
                 :placeholder="t('enterUsername')"
                 autocomplete="username"
                 @focus="focusState = 'email'"
-                @blur="focusState = 'idle'"
+                @blur="email ? null : focusState = 'idle'"
               />
             </div>
 
@@ -155,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { authAPI } from '../services/api'
 
@@ -167,8 +175,21 @@ const showPassword = ref(false)
 const rememberMe = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
-const focusState = ref('idle')
+const focusState = ref('idle') // 'idle' | 'email' | 'password' | 'submit'
 const isChinese = ref(true)
+
+// 计算表情状态
+const isSurprised = computed(() => {
+  return email.value && password.value && !loading.value && focusState.value !== 'email' && focusState.value !== 'password'
+})
+
+const isSinging = computed(() => {
+  return loading.value // 登录时：唱歌表情（眯眼）
+})
+
+const isPasswordFocus = computed(() => {
+  return focusState.value === 'password' && !loading.value // 输入密码时：不同表情
+})
 
 // 语言包
 const lang = {
@@ -224,6 +245,14 @@ const getPupilStyle = (index) => {
   let moveX = 0
   let moveY = 0
   
+  // 惊讶或唱歌时，眼睛看向前方
+  if (isSurprised.value || isSinging.value) {
+    return { 
+      transform: 'translate(-50%, -50%)',
+      transition: 'transform 0.2s ease-out'
+    }
+  }
+  
   if (focusState.value === 'email') {
     moveX = 5
     moveY = -2
@@ -241,17 +270,20 @@ const getPupilStyle = (index) => {
 const handleMouseMove = (e) => {
   if (focusState.value !== 'idle') return
   
-  const pupils = document.querySelectorAll('.pupil')
-  pupils.forEach(pupil => {
-    const rect = pupil.getBoundingClientRect()
-    const pupilX = rect.left + rect.width / 2
-    const pupilY = rect.top + rect.height / 2
-    const radX = (e.clientX - pupilX) / 20
-    const radY = (e.clientY - pupilY) / 20
-    const limit = 3
-    const moveX = Math.max(-limit, Math.min(limit, radX))
-    const moveY = Math.max(-limit, Math.min(limit, radY))
-    pupil.style.transform = `translate(-50%, -50%) translate(${moveX}px, ${moveY}px)`
+  // 使用 requestAnimationFrame 优化渲染
+  requestAnimationFrame(() => {
+    const pupils = document.querySelectorAll('.pupil')
+    pupils.forEach(pupil => {
+      const rect = pupil.getBoundingClientRect()
+      const pupilX = rect.left + rect.width / 2
+      const pupilY = rect.top + rect.height / 2
+      const radX = (e.clientX - pupilX) / 20
+      const radY = (e.clientY - pupilY) / 20
+      const limit = 3
+      const moveX = Math.max(-limit, Math.min(limit, radX))
+      const moveY = Math.max(-limit, Math.min(limit, radY))
+      pupil.style.transform = `translate(-50%, -50%) translate(${moveX}px, ${moveY}px)`
+    })
   })
 }
 
@@ -488,6 +520,29 @@ const handleGithubLogin = () => {
   overflow: visible;
 }
 
+/* CitySwap Logo */
+.cityswap-logo {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  width: 300px;
+  height: auto;
+  /* 去除原色，转为灰度 */
+  filter: grayscale(100%) brightness(0.8) sepia(100%) hue-rotate(180deg) saturate(150%);
+  animation: logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-5px);
+  }
+}
+
 /* 柱子容器 */
 .character {
   position: absolute;
@@ -497,7 +552,166 @@ const handleGithubLogin = () => {
   align-items: center;
 }
 
-/* 脚部（固定不动，保持宽度一致） */
+/* 柱子内部容器（负责倾斜） */
+.character-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+  transform-origin: bottom center;
+  position: relative;
+  bottom: -15px;
+}
+
+/* 输入邮箱时：所有柱子向后倾斜，高度越高倾斜越大 */
+.character.purple.peeking .character-inner {
+  transform: rotate(-15deg);
+}
+
+.character.black.peeking .character-inner {
+  transform: rotate(-10deg);
+}
+
+.character.yellow.peeking .character-inner {
+  transform: rotate(-8deg);
+}
+
+.character.orange.peeking .character-inner {
+  transform: rotate(-5deg);
+}
+
+/* 惊讶表情：所有柱子眼睛变大，嘴巴成 O 型 */
+.character.surprised .eye {
+  width: 18px;
+  height: 18px;
+}
+
+.character.surprised .mouth {
+  width: 12px;
+  height: 14px;
+  background: #1f2937;
+  border-radius: 50%;
+  animation: mouthOpen 0.3s ease-out;
+}
+
+/* 不同柱子的惊讶嘴巴位置 */
+.character.surprised.purple .mouth {
+  bottom: 4px;
+}
+.character.surprised.black .mouth {
+  bottom: 2px;
+}
+.character.surprised.yellow .mouth {
+  bottom: 2px;
+}
+.character.surprised.orange .mouth {
+  bottom: 0;
+}
+
+@keyframes mouthOpen {
+  from {
+    height: 0;
+  }
+  to {
+    height: 14px;
+  }
+}
+
+/* 唱歌表情：眯眼 + O 型嘴 + 音符（登录时） */
+.character.singing .eye {
+  height: 4px;
+  border-radius: 2px;
+}
+
+.character.singing .mouth {
+  width: 14px;
+  height: 16px;
+  background: #1f2937;
+  border-radius: 50%;
+}
+
+/* 不同柱子的唱歌嘴巴位置 */
+.character.singing.purple .mouth {
+  bottom: 2px;
+}
+.character.singing.black .mouth {
+  bottom: 0;
+}
+.character.singing.yellow .mouth {
+  bottom: 0;
+}
+.character.singing.orange .mouth {
+  bottom: -2px;
+}
+
+/* 输入密码表情：眼睛看右 + 小嘴 + 音符 */
+.character.password-focus .eye {
+  width: 12px;
+  height: 12px;
+}
+
+.character.password-focus .mouth {
+  width: 8px;
+  height: 8px;
+  background: #1f2937;
+  border-radius: 50%;
+}
+
+/* 不同柱子的密码嘴巴位置 */
+.character.password-focus.purple .mouth {
+  bottom: 8px;
+}
+.character.password-focus.black .mouth {
+  bottom: 6px;
+}
+.character.password-focus.yellow .mouth {
+  bottom: 6px;
+}
+.character.password-focus.orange .mouth {
+  bottom: 4px;
+}
+
+/* 音符动画 - 输入密码时 */
+.character.password-focus .pillar-head::before {
+  content: '♪';
+  position: absolute;
+  top: -25px;
+  right: -15px;
+  font-size: 24px;
+  color: white;
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
+  animation: floatNote 1s ease-in-out infinite;
+  z-index: 100;
+}
+
+/* 音符动画 - 登录时（更大） */
+.character.singing .pillar-head::before {
+  content: '♪';
+  position: absolute;
+  top: -25px;
+  right: -15px;
+  font-size: 28px;
+  color: white;
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
+  animation: floatNote 1s ease-in-out infinite;
+  z-index: 100;
+}
+
+@keyframes floatNote {
+  0%, 100% {
+    transform: translateY(0) rotate(-15deg) scale(0.8);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-20px) rotate(-15deg) scale(1);
+  }
+  70% {
+    opacity: 1;
+  }
+}
 .pillar-foot {
   width: 100%;
   height: 8px;
@@ -515,16 +729,29 @@ const handleGithubLogin = () => {
   overflow: visible;
 }
 
-/* 脖子（负责拉伸和弯曲，底部固定） */
+/* 脖子外层（负责拉伸） */
 .pillar-neck {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
   height: 70%;
-  border-radius: 15px 15px 0 0;
-  transition: all 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
   transform-origin: bottom center;
+  will-change: height;
+  backface-visibility: hidden;
+}
+
+/* 脖子内层（负责弯曲） */
+.pillar-neck-inner {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 15px 15px 0 0;
+  transform-origin: bottom center;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 /* 头部 */
@@ -533,90 +760,71 @@ const handleGithubLogin = () => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 35%;
   display: flex;
   justify-content: center;
   align-items: center;
   padding-top: 12px;
-  transition: all 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
   transform-origin: bottom center;
   border-radius: 15px 15px 0 0;
+  will-change: transform;
+  backface-visibility: hidden;
+  position: relative;
+  overflow: visible;
 }
 
-/* 邮箱聚焦时：脖子拉长并向右侧弯曲 */
-.character.peeking .pillar-neck {
-  transform: scaleY(1.6) translateY(-6px) skewX(-14deg);
-}
-
-/* 头部跟随脖子，并额外向右偏转 */
-.character.peeking .pillar-head {
-  transform: translateY(-32px) translateX(10px) rotate(8deg);
-}
-
-/* 颜色配置 */
-.purple .pillar-body,
-.purple .pillar-neck,
+/* 紫色柱子头部（最高 260px） */
 .purple .pillar-head {
-  background-color: #8b5cf6;
+  height: 40%;
 }
-.purple .pillar-body {
-  height: 260px;
+.purple .eyes {
+  top: 35px;
+}
+.purple .mouth {
+  bottom: 15px;
 }
 
-.black .pillar-body,
-.black .pillar-neck,
+/* 黑色柱子头部（180px） */
 .black .pillar-head {
-  background-color: #1f2937;
+  height: 40%;
 }
-.black .pillar-body {
-  height: 180px;
+.black .eyes {
+  top: 30px;
+}
+.black .mouth {
+  bottom: 12px;
 }
 
-.yellow .pillar-body,
-.yellow .pillar-neck,
+/* 黄色柱子头部（160px） */
 .yellow .pillar-head {
-  background-color: #fbbf24;
+  height: 40%;
 }
-.yellow .pillar-body {
-  height: 160px;
+.yellow .eyes {
+  top: 28px;
+}
+.yellow .mouth {
+  bottom: 10px;
 }
 
-/* 橙色半圆特殊处理 */
-.orange .pillar-body {
-  width: 110px;
-  height: 100px;
-  border-radius: 100px 100px 0 0;
-}
-.orange .pillar-neck {
-  height: 60%;
-  border-radius: 100px 100px 0 0;
-}
+/* 橙色柱子头部（最矮 100px） */
 .orange .pillar-head {
   height: 40%;
-  border-radius: 100px 100px 0 0;
-  padding-top: 18px;
 }
-.orange .pillar-body,
-.orange .pillar-neck,
-.orange .pillar-head {
-  background-color: #f97316;
+.orange .eyes {
+  top: 22px;
 }
-
-/* 橙色半圆聚焦时 */
-.character.orange.peeking .pillar-neck {
-  transform: scaleY(1.5) translateY(-5px) skewX(-12deg);
-}
-.character.orange.peeking .pillar-head {
-  transform: translateY(-25px) translateX(8px) rotate(6deg);
+.orange .mouth {
+  bottom: 8px;
 }
 
-/* 眼睛样式 */
+/* 眼睛容器 */
 .eyes {
   display: flex;
   gap: 15px;
   z-index: 20;
+  position: absolute;
 }
 
+/* 眼睛样式 */
 .eye {
   width: 14px;
   height: 14px;
@@ -637,6 +845,53 @@ const handleGithubLogin = () => {
   left: 50%;
   transform: translate(-50%, -50%);
   transition: transform 0.15s ease-out;
+}
+
+/* 嘴巴基础样式 */
+.mouth {
+  width: 8px;
+  height: 4px;
+  background: rgba(31, 41, 55, 0.3);
+  border-radius: 2px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: all 0.3s ease;
+}
+
+/* 颜色配置 */
+.purple .pillar-body,
+.purple .pillar-head {
+  background-color: #8b5cf6;
+}
+.purple .pillar-body {
+  height: 260px;
+}
+
+.black .pillar-body,
+.black .pillar-head {
+  background-color: #1f2937;
+}
+.black .pillar-body {
+  height: 180px;
+}
+
+.yellow .pillar-body,
+.yellow .pillar-head {
+  background-color: #fbbf24;
+}
+.yellow .pillar-body {
+  height: 160px;
+}
+
+/* 橙色柱子 */
+.orange .pillar-body,
+.orange .pillar-head {
+  background-color: #f97316;
+}
+.orange .pillar-body {
+  height: 100px;
+  border-radius: 15px 15px 0 0;
 }
 
 /* 右侧表单白色背景 */
