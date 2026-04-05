@@ -318,7 +318,7 @@ const handleLogin = async () => {
       if (response.data.user.role === 'admin') {
         router.push('/admin/dashboard')
       } else {
-        router.push('/user/dashboard')
+        router.push('/dashboard')
       }
     } else {
       errorMessage.value = response.message || t('loginFailed')

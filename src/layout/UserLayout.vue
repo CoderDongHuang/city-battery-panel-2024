@@ -81,6 +81,9 @@
       </div>
     </header>
 
+    <!-- 导航栏占位符，防止内容被遮挡 -->
+    <div class="navbar-placeholder"></div>
+
     <!-- 用户下拉菜单 -->
     <div v-if="showProfileDropdown" class="profile-dropdown-overlay" @click="closeDropdown"></div>
     <div v-if="showProfileDropdown" class="profile-dropdown-menu">
@@ -156,9 +159,17 @@ onUnmounted(() => {
 .user-header {
   background: #F5F5F5;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
+}
+
+/* 导航栏占位符，防止内容被导航栏遮挡 */
+.navbar-placeholder {
+  height: 80px;
+  width: 100%;
 }
 
 .header-main {
@@ -249,8 +260,6 @@ onUnmounted(() => {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 102, 204, 0.4);
 }
-
-
 
 .logo-section {
   display: flex;

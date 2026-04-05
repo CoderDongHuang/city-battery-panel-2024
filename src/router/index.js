@@ -19,12 +19,19 @@ const routes = [
     path: '/',
     component: UserLayout,
     redirect: '/home',
+    meta: { requiresAuth: true },
     children: [
       {
         path: 'home',
         name: 'Home',
         component: () => import('../views/Home.vue'),
         meta: { title: '首页' }
+      },
+      {
+        path: 'dashboard',
+        name: 'UserDashboard',
+        component: () => import('../views/UserDashboard.vue'),
+        meta: { title: '控制台' }
       },
       {
         path: 'orders',
@@ -50,55 +57,35 @@ const routes = [
         component: () => import('../views/Help.vue'),
         meta: { title: '帮助中心' }
       },
-    ]
-  },
-  {
-    path: '/dashboard',
-    component: UserLayout,
-    redirect: '/dashboard/user',
-    meta: { requiresAuth: true },
-    children: [
       {
-        path: '',
-        component: () => import('../layout/DashboardLayout.vue'),
-        children: [
-          {
-            path: 'user',
-            name: 'UserDashboard',
-            component: () => import('../views/UserDashboard.vue'),
-            meta: { title: '控制台' }
-          },
-          {
-            path: 'vehicles',
-            name: 'MyVehicles',
-            component: () => import('../views/MyVehicles.vue'),
-            meta: { title: '我的车辆' }
-          },
-          {
-            path: 'batteries',
-            name: 'MyBatteries',
-            component: () => import('../views/MyBatteries.vue'),
-            meta: { title: '我的电池' }
-          },
-          {
-            path: 'map',
-            name: 'UserMap',
-            component: () => import('../views/UserMap.vue'),
-            meta: { title: '换电地图' }
-          },
-          {
-            path: 'alerts',
-            name: 'UserAlerts',
-            component: () => import('../views/UserAlerts.vue'),
-            meta: { title: '我的报警' }
-          },
-          {
-            path: 'profile',
-            name: 'UserProfile',
-            component: () => import('../views/UserProfile.vue'),
-            meta: { title: '个人中心' }
-          },
-        ]
+        path: 'vehicles',
+        name: 'MyVehicles',
+        component: () => import('../views/MyVehicles.vue'),
+        meta: { title: '我的车辆' }
+      },
+      {
+        path: 'batteries',
+        name: 'MyBatteries',
+        component: () => import('../views/MyBatteries.vue'),
+        meta: { title: '我的电池' }
+      },
+      {
+        path: 'map',
+        name: 'UserMap',
+        component: () => import('../views/UserMap.vue'),
+        meta: { title: '换电地图' }
+      },
+      {
+        path: 'alerts',
+        name: 'UserAlerts',
+        component: () => import('../views/UserAlerts.vue'),
+        meta: { title: '我的报警' }
+      },
+      {
+        path: 'profile',
+        name: 'UserProfile',
+        component: () => import('../views/UserProfile.vue'),
+        meta: { title: '个人中心' }
       },
     ]
   },
@@ -194,7 +181,7 @@ router.beforeEach((to, from, next) => {
     if (role === 'admin') {
       next('/admin/dashboard')
     } else {
-      next('/user/dashboard')
+      next('/dashboard')
     }
     return
   }
@@ -209,7 +196,7 @@ router.beforeEach((to, from, next) => {
       if (currentRole === 'admin') {
         next('/admin/dashboard')
       } else {
-        next('/user/dashboard')
+        next('/dashboard')
       }
     } else {
       next()
@@ -229,7 +216,7 @@ router.beforeEach((to, from, next) => {
     if (to.meta.role) {
       if (to.meta.role === 'admin' && currentRole !== 'admin') {
         // 普通用户尝试访问管理员页面
-        next('/user/dashboard')
+        next('/dashboard')
         return
       }
       if (to.meta.role === 'user' && currentRole === 'admin') {
@@ -246,7 +233,7 @@ router.beforeEach((to, from, next) => {
       if (currentRole === 'admin') {
         next('/admin/dashboard')
       } else {
-        next('/user/dashboard')
+        next('/dashboard')
       }
     } else {
       next('/login')
