@@ -598,12 +598,12 @@ onMounted(() => {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: rgba(30, 60, 114, 0.95);
+  background: rgba(0, 0, 0, 0.95);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
   min-width: 180px;
-  z-index: 2000; /* 增加z-index确保显示在最上层 */
+  z-index: 2000; /* 增加 z-index 确保显示在最上层 */
   overflow: hidden;
   backdrop-filter: blur(10px);
   animation: slideDown 0.3s ease;

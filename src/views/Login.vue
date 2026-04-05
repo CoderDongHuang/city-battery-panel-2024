@@ -304,16 +304,22 @@ const handleLogin = async () => {
   loading.value = true
   
   try {
-    // 后端可能期望 username 而不是 email
     const response = await authAPI.login({
-      username: email.value,  // 使用 username 字段
+      username: email.value,
       password: password.value
     })
     
     if (response.code === 200 || response.code === 0) {
       localStorage.setItem('token', response.data.token)
       localStorage.setItem('username', response.data.user.username)
-      router.push('/dashboard')
+      localStorage.setItem('userRole', response.data.user.role || 'user')
+      
+      // 根据角色跳转到不同的界面
+      if (response.data.user.role === 'admin') {
+        router.push('/admin/dashboard')
+      } else {
+        router.push('/user/dashboard')
+      }
     } else {
       errorMessage.value = response.message || t('loginFailed')
     }
