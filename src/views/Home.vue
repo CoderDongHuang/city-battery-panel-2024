@@ -256,7 +256,14 @@ const API_KEY = 'your_aggregate_data_api_key' // 替换为你的聚合数据 API
 const fetchIndustryNews = async () => {
   loading.value = true
   try {
-    const API_KEY = 'ba39ceba555e369ef9a9a064aa67a68a'
+    // 从环境变量获取 API Key（.env.local 中配置，不提交到 Git）
+    const API_KEY = import.meta.env.VITE_JUHE_API_KEY
+    
+    if (!API_KEY) {
+      console.warn('未配置 VITE_JUHE_API_KEY，请检查 .env.local 文件')
+      useMockData()
+      return
+    }
     
     // 与电车/换电相关的关键词
     const relevantKeywords = [
@@ -470,7 +477,14 @@ let newsUpdateInterval = null
 // 获取轮播图数据（使用聚合数据 API，与行业要闻相同）
 const fetchCarouselSlides = async () => {
   try {
-    const API_KEY = 'ba39ceba555e369ef9a9a064aa67a68a'
+    // 从环境变量获取 API Key（.env.local 中配置，不提交到 Git）
+    const API_KEY = import.meta.env.VITE_JUHE_API_KEY
+    
+    if (!API_KEY) {
+      console.warn('未配置 VITE_JUHE_API_KEY，请检查 .env.local 文件')
+      useMockCarouselData()
+      return
+    }
     
     console.log('正在调用 API 获取汽车新闻...')
     const autoResponse = await fetch(`/api/toutiao/index?type=auto&key=${API_KEY}`)
