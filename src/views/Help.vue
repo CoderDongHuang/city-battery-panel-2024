@@ -168,11 +168,15 @@
         </div>
       </div>
     </div>
+    
+    <!-- 页脚 -->
+    <SiteFooter />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import SiteFooter from '../components/SiteFooter.vue'
 
 const searchQuery = ref('')
 const activeFaq = ref(null)

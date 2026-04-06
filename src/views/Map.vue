@@ -205,6 +205,9 @@
         </div>
       </div>
     </div>
+    
+    <!-- 页脚 -->
+    <SiteFooter />
   </div>
 </template>
 
@@ -214,6 +217,7 @@ import { useMapStore } from '../store/modules/mapStore'
 import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
 import { stationAPI } from '../services/api'
 import VehiclePositionControl from '../components/VehiclePositionControl.vue'
+import SiteFooter from '../components/SiteFooter.vue'
 
 const mapStore = useMapStore()
 const vehicleStore = useApiVehicleStore()

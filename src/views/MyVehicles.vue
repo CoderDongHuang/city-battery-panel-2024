@@ -5,17 +5,14 @@
       <p>管理您的车辆信息</p>
     </div>
     
-    <div class="empty-state">
-      <div class="empty-icon">🚗</div>
-      <h2>暂无车辆</h2>
-      <p>您还没有添加任何车辆</p>
-      <button class="add-btn">添加第一辆车</button>
-    </div>
+    <!-- 页脚 -->
+    <SiteFooter />
   </div>
 </template>
 
 <script setup>
 // 我的车辆页面
+import SiteFooter from '../components/SiteFooter.vue'
 </script>
 
 <style scoped>

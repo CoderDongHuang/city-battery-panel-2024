@@ -314,6 +314,9 @@
         </div>
       </div>
     </div>
+    
+    <!-- 页脚 -->
+    <SiteFooter />
   </div>
 </template>
 
@@ -323,6 +326,7 @@ import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
 import { useBatteryStore } from '../store/modules/batteryStore'
 import { stationAPI, alertAPI, vehicleAPI } from '../services/api'
 import { useRouter } from 'vue-router'
+import SiteFooter from '../components/SiteFooter.vue'
 
 export default {
   name: 'Dashboard',

@@ -328,12 +328,16 @@
         </div>
       </div>
     </div>
+    
+    <!-- 页脚 -->
+    <SiteFooter />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { alertAPI } from '../services/api'
+import SiteFooter from '../components/SiteFooter.vue'
 
 // 响应式数据
 const alerts = ref([])

@@ -152,6 +152,9 @@
         </div>
       </div>
     </div>
+    
+    <!-- 页脚 -->
+    <SiteFooter />
   </div>
 </template>
 
@@ -159,6 +162,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { vehicleAPI, batteryAPI, alertAPI } from '../services/api'
+import SiteFooter from '../components/SiteFooter.vue'
 
 const router = useRouter()
 const username = ref(localStorage.getItem('username') || '用户')

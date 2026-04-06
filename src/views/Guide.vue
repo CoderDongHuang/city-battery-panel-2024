@@ -159,11 +159,15 @@
         </div>
       </div>
     </div>
+    
+    <!-- 页脚 -->
+    <SiteFooter />
   </div>
 </template>
 
 <script setup>
 // 指引页面
+import SiteFooter from '../components/SiteFooter.vue'
 </script>
 
 <style scoped>

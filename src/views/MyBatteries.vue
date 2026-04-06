@@ -5,17 +5,14 @@
       <p>管理您的电池信息</p>
     </div>
     
-    <div class="empty-state">
-      <div class="empty-icon">🔋</div>
-      <h2>暂无电池</h2>
-      <p>您还没有添加任何电池</p>
-      <button class="add-btn">添加第一块电池</button>
-    </div>
+    <!-- 页脚 -->
+    <SiteFooter />
   </div>
 </template>
 
 <script setup>
 // 我的电池页面
+import SiteFooter from '../components/SiteFooter.vue'
 </script>
 
 <style scoped>

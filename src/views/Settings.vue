@@ -145,6 +145,9 @@
         </div>
       </div>
     </div>
+    
+    <!-- 页脚 -->
+    <SiteFooter />
   </div>
 </template>
 
@@ -152,6 +155,7 @@
 import { ref, onMounted } from 'vue'
 import { useVehicleStore } from '../store/modules/vehicleStore'
 import { useBatteryStore } from '../store/modules/batteryStore'
+import SiteFooter from '../components/SiteFooter.vue'
 
 const vehicleStore = useVehicleStore()
 const batteryStore = useBatteryStore()

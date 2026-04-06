@@ -394,12 +394,16 @@
         </div>
       </div>
     </div>
+    
+    <!-- 页脚 -->
+    <SiteFooter />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useBatteryStore } from '../store/modules/batteryStore'
+import SiteFooter from '../components/SiteFooter.vue'
 
 const batteryStore = useBatteryStore()
 const filterStatus = ref('all')

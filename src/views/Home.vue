@@ -182,62 +182,14 @@
       </div>
 
       <!-- 页脚 -->
-      <footer class="site-footer">
-        <div class="footer-container">
-          <div class="footer-content">
-            <!-- 左侧：联系信息 -->
-            <div class="footer-section">
-              <h3>联系我们</h3>
-              <div class="contact-info">
-                <p><strong>客服电话：</strong>400-888-8888</p>
-                <p><strong>工作时间：</strong>周一至周五 9:00-18:00</p>
-                <p><strong>电子邮箱：</strong>support@cityswap.com</p>
-              </div>
-              <div class="social-links">
-                <a href="#" class="social-icon">微信</a>
-                <a href="#" class="social-icon">微博</a>
-                <a href="#" class="social-icon">抖音</a>
-              </div>
-            </div>
-            
-            <!-- 中间：快速链接 -->
-            <div class="footer-section">
-              <h3>快速链接</h3>
-              <ul class="footer-links">
-                <li><a href="/dashboard">控制台</a></li>
-                <li><a href="/guide">使用指南</a></li>
-                <li><a href="/help">帮助中心</a></li>
-                <li><a href="/about">关于我们</a></li>
-              </ul>
-            </div>
-            
-            <!-- 右侧：行业链接 -->
-            <div class="footer-section">
-              <h3>行业资源</h3>
-              <ul class="footer-links">
-                <li><a href="#" target="_blank">新能源汽车协会</a></li>
-                <li><a href="#" target="_blank">电池产业联盟</a></li>
-                <li><a href="#" target="_blank">换电技术标准</a></li>
-                <li><a href="#" target="_blank">行业研究报告</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <!-- 底部版权信息 -->
-          <div class="footer-bottom">
-            <div class="footer-info">
-              <p>&copy; 2024 CitySwap. 保留所有权利.</p>
-              <p>地址：北京市朝阳区科技园区创新大厦 8 层 | 京 ICP 备 12345678 号</p>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
   </div>
 </template>
 
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import SiteFooter from '../components/SiteFooter.vue'
 
 const router = useRouter()
 const showArrow = ref(true) // 控制箭头显示
@@ -1769,97 +1721,6 @@ onUnmounted(() => {
   }
 }
 
-/* 页脚样式 */
-.site-footer {
-  background: #1a1a1a;
-  color: #ccc;
-  padding: 60px 20px 20px;
-}
-
-.footer-container {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.footer-content {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-  margin-bottom: 40px;
-}
-
-.footer-section h3 {
-  color: white;
-  font-size: 18px;
-  margin: 0 0 20px 0;
-  font-weight: 600;
-}
-
-.contact-info p {
-  margin: 12px 0;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-.contact-info strong {
-  color: white;
-}
-
-.social-links {
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.social-icon {
-  display: inline-block;
-  padding: 8px 16px;
-  background: #333;
-  color: #ccc;
-  text-decoration: none;
-  border-radius: 4px;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.social-icon:hover {
-  background: #0066cc;
-  color: white;
-}
-
-.footer-links {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.footer-links li {
-  margin-bottom: 12px;
-}
-
-.footer-links a {
-  color: #ccc;
-  text-decoration: none;
-  font-size: 15px;
-  transition: color 0.3s ease;
-}
-
-.footer-links a:hover {
-  color: white;
-}
-
-.footer-bottom {
-  border-top: 1px solid #333;
-  padding-top: 24px;
-  text-align: center;
-}
-
-.footer-info p {
-  margin: 8px 0;
-  font-size: 14px;
-  color: #999;
-}
-
 /* 响应式设计 - 行内要闻 */
 @media (max-width: 992px) {
   .news-grid {
@@ -1869,11 +1730,6 @@ onUnmounted(() => {
   .two-column-layout {
     grid-template-columns: 1fr;
     gap: 40px;
-  }
-  
-  .footer-content {
-    grid-template-columns: 1fr;
-    gap: 32px;
   }
 }
 
@@ -1893,10 +1749,6 @@ onUnmounted(() => {
   .left-column,
   .right-column {
     padding: 20px;
-  }
-  
-  .site-footer {
-    padding: 40px 16px 20px;
   }
 }
 </style>

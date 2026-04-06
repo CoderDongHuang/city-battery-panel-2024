@@ -289,6 +289,9 @@
         </div>
       </div>
     </div>
+    
+    <!-- 页脚 -->
+    <SiteFooter />
   </div>
 </template>
 
@@ -299,6 +302,7 @@ import { vehicleAPI, alertAPI, createWebSocket } from '../services/api'
 import VehicleLightControl from '../components/VehicleLightControl.vue'
 import VehicleHornControl from '../components/VehicleHornControl.vue'
 import VehiclePositionControl from '../components/VehiclePositionControl.vue'
+import SiteFooter from '../components/SiteFooter.vue'
 
 const vehicleStore = useApiVehicleStore()
 const showControlPanel = ref(false)
