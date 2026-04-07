@@ -5,8 +5,8 @@
       <div class="banner-content">
         <h1 class="banner-title">帮助中心</h1>
         <p class="banner-description">
-                CitySwap 官方帮助文档，为您提供全面的产品使用指南、详细的操作步骤说明、常见问题解答以及专业的技术支持服务。无论您是初次使用的新手还是经验丰富的用户，都能在这里找到所需的帮助信息，让您轻松掌握换电服务的每一个环节。
-              </p>
+          CitySwap 官方帮助文档，为您提供全面的产品使用指南、详细的操作步骤说明、常见问题解答以及专业的技术支持服务，让您轻松掌握换电服务的每一个环节。
+        </p>
         
         <!-- 搜索框 -->
         <div class="search-container">
@@ -110,10 +110,10 @@
           </div>
         </div>
 
-        <!-- 常见问题和新手专区 - 左右布局 -->
-        <div class="content-box">
-          <div class="faq-guide-container">
-            <!-- 常见问题 -->
+        <!-- 常见问题和新手专区 - 左右布局 6:4，两个独立框框 -->
+        <div class="faq-newbie-container">
+          <!-- 常见问题 -->
+          <div class="content-box faq-content-box">
             <div class="faq-section">
               <h2 class="section-main-title">常见问题</h2>
               <div class="faq-list">
@@ -132,8 +132,10 @@
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- 新手专区 -->
+          <!-- 新手专区 -->
+          <div class="content-box newbie-content-box">
             <div class="newbie-section">
               <h2 class="section-main-title">新手专区</h2>
               <div class="newbie-cards">
@@ -297,10 +299,10 @@ const startChat = () => {
 /* 顶部横幅区域 - 透明背景，与页面背景融为一体 */
 .help-banner {
   background: transparent;
-  padding: 40px 20px 20px;
+  padding: 50px 20px 30px;
   text-align: center;
   position: relative;
-  min-height: 220px;
+  min-height: 240px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -313,25 +315,11 @@ const startChat = () => {
 }
 
 .banner-title {
-  font-size: 42px;
+  font-size: 48px;
   color: #333;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   font-weight: 700;
   letter-spacing: 2px;
-  position: relative;
-  display: inline-block;
-}
-
-.banner-title::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50px;
-  height: 3px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  border-radius: 2px;
 }
 
 .banner-description {
@@ -339,8 +327,8 @@ const startChat = () => {
   color: #555;
   margin-top: 48px;
   margin-bottom: 40px;
-  line-height: 2;
-  max-width: 900px;
+  line-height: 1.6;
+  max-width: 1600px;
   margin-left: auto;
   margin-right: auto;
   padding: 0 20px;
@@ -348,14 +336,14 @@ const startChat = () => {
 }
 
 .search-container {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
 .search-box {
   background: white;
   border-radius: 50px;
-  padding: 18px 20px 18px 40px;
+  padding: 20px 24px 20px 48px;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -375,7 +363,7 @@ const startChat = () => {
 }
 
 .search-icon {
-  font-size: 22px;
+  font-size: 24px;
   opacity: 0.6;
   flex-shrink: 0;
 }
@@ -384,8 +372,8 @@ const startChat = () => {
   flex: 1;
   border: none;
   outline: none;
-  font-size: 16px;
-  padding: 12px 0;
+  font-size: 18px;
+  padding: 14px 0;
   color: #333;
   background: transparent;
 }
@@ -396,9 +384,9 @@ const startChat = () => {
 
 /* 主内容容器 - 全宽布局 */
 .help-main-container {
-  max-width: 1400px;
+  max-width: 1700px;
   margin: 0 auto;
-  padding: 20px 40px 60px;
+  padding: 20px 80px 60px;
 }
 
 .help-content-wrapper {
@@ -410,31 +398,43 @@ const startChat = () => {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(10px);
   border-radius: 16px;
-  padding: 48px 40px;
+  padding: 48px 80px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.8);
-  margin-bottom: 40px;
+  margin-bottom: 48px;
 }
 
 .content-box:last-child {
   margin-bottom: 0;
 }
 
+/* 常见问题和新手专区的框框在容器内无底部间距 */
+.faq-content-box,
+.newbie-content-box {
+  margin-bottom: 0;
+}
+
+
+
+.section-main-title {
+  font-size: 40px;
+  color: #333;
+  margin-bottom: 48px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 1px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* 章节通用样式 */
 .quick-nav-section,
 .guide-section,
 .faq-section,
+.newbie-section,
 .contact-section {
-  margin-bottom: 80px;
-}
-
-.section-main-title {
-  font-size: 36px;
-  color: #333;
-  margin-bottom: 40px;
-  font-weight: 700;
-  text-align: center;
-  letter-spacing: 1px;
+  margin-bottom: 0;
 }
 
 /* 快速导航 */
@@ -535,18 +535,27 @@ const startChat = () => {
   line-height: 1.6;
 }
 
+/* 常见问题和新手专区容器 - 6:4 布局 */
+.faq-newbie-container {
+  display: grid;
+  grid-template-columns: 6fr 4fr;
+  gap: 40px;
+  margin-bottom: 48px;
+}
+
+.faq-content-box,
+.newbie-content-box {
+  min-width: 0;
+}
+
 /* 常见问题 */
 .faq-section {
   margin-bottom: 0;
-  flex: 1;
-  padding-right: 24px;
 }
 
-.faq-guide-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  margin-bottom: 80px;
+.faq-section .section-main-title {
+  text-align: center;
+  margin-bottom: 40px;
 }
 
 .faq-list {
@@ -577,9 +586,9 @@ const startChat = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 28px;
+  padding: 28px 32px;
   cursor: pointer;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 600;
   color: #333;
   background: transparent;
@@ -610,10 +619,10 @@ const startChat = () => {
 }
 
 .faq-answer {
-  padding: 0 28px 24px;
+  padding: 0 32px 28px;
   color: #666;
   line-height: 2;
-  font-size: 15px;
+  font-size: 16px;
   white-space: pre-line;
   background: transparent;
 }
@@ -621,8 +630,11 @@ const startChat = () => {
 /* 新手专区 */
 .newbie-section {
   margin-bottom: 0;
-  flex: 1;
-  padding-left: 24px;
+}
+
+.newbie-section .section-main-title {
+  text-align: center;
+  margin-bottom: 40px;
 }
 
 .newbie-cards {
@@ -635,10 +647,10 @@ const startChat = () => {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(12px);
   border-radius: 16px;
-  padding: 28px 24px;
+  padding: 32px 28px;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
@@ -646,14 +658,14 @@ const startChat = () => {
 }
 
 .newbie-card:hover {
-  transform: translateX(8px);
+  transform: translateY(-4px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   background: rgba(255, 255, 255, 0.85);
   border-color: rgba(255, 255, 255, 0.7);
 }
 
 .newbie-card-icon {
-  font-size: 40px;
+  font-size: 48px;
   flex-shrink: 0;
 }
 
@@ -662,12 +674,14 @@ const startChat = () => {
   color: #333;
   margin-bottom: 4px;
   font-weight: 600;
+  flex: 1;
 }
 
 .newbie-card p {
   font-size: 14px;
   color: #666;
-  line-height: 1.4;
+  line-height: 1.6;
+  flex: 2;
 }
 
 /* 联系我们 */
@@ -809,9 +823,14 @@ const startChat = () => {
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .faq-guide-container {
+  .faq-newbie-container {
     grid-template-columns: 1fr;
     gap: 40px;
+  }
+  
+  .faq-content-box,
+  .newbie-content-box {
+    margin-bottom: 0;
   }
   
   .faq-section {
