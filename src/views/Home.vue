@@ -13,7 +13,6 @@
             <div class="slide-content" v-if="!slide.isPureImage">
               <h1>{{ slide.title }}</h1>
               <p>{{ slide.subtitle }}</p>
-              <button class="cta-btn" @click.stop="goToDashboard">立即体验</button>
             </div>
             <div class="slide-bg">
               <div class="image-overlay" :class="{ 'pure-image-overlay': slide.isPureImage }"></div>
@@ -1531,6 +1530,7 @@ onUnmounted(() => {
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   background: white;
+  border: 1px solid #e0e0e0;
 }
 
 /* 左上大图 */
@@ -1637,6 +1637,7 @@ onUnmounted(() => {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e0e0;
   border-bottom: 3px solid transparent;
   display: flex;
   flex-direction: column;
