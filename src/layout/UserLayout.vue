@@ -50,13 +50,47 @@
               消息
             </router-link>
             
-            <router-link 
-              :to="{ name: 'Help' }"
-              class="nav-item"
-              :class="{ active: $route.name === 'Help' }"
+            <!-- 帮助菜单（带下拉） -->
+            <div 
+              class="nav-item dropdown" 
+              :class="{ active: isHelpRoute }" 
+              @click="toggleHelpDropdown"
+              style="cursor: pointer;"
             >
-              帮助
-            </router-link>
+              <div class="dropdown-trigger">
+                <span>帮助</span>
+                <span class="nav-arrow" :class="{ rotated: showHelpDropdown }">▼</span>
+              </div>
+              <div v-if="showHelpDropdown" class="dropdown-menu">
+                <router-link 
+                  :to="{ name: 'Help' }"
+                  class="dropdown-item"
+                  :class="{ active: $route.name === 'Help' }"
+                  @click="closeHelpDropdown"
+                >
+                  <span class="dropdown-icon">❓</span>
+                  <span class="dropdown-text">帮助中心</span>
+                </router-link>
+                <router-link 
+                  :to="{ name: 'Guide' }"
+                  class="dropdown-item"
+                  :class="{ active: $route.name === 'Guide' }"
+                  @click="closeHelpDropdown"
+                >
+                  <span class="dropdown-icon">📖</span>
+                  <span class="dropdown-text">使用指南</span>
+                </router-link>
+                <router-link 
+                  :to="{ name: 'Contact' }"
+                  class="dropdown-item"
+                  :class="{ active: $route.name === 'Contact' }"
+                  @click="closeHelpDropdown"
+                >
+                  <span class="dropdown-icon">💬</span>
+                  <span class="dropdown-text">联系我们</span>
+                </router-link>
+              </div>
+            </div>
           </nav>
           
           <div class="header-actions">
@@ -107,16 +141,36 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 
 const showProfileDropdown = ref(false)
+const showHelpDropdown = ref(false)
 const username = ref(localStorage.getItem('username') || '用户')
 const userAvatar = ref(localStorage.getItem('userAvatar') || '')
 
+// 判断是否在帮助相关页面
+const isHelpRoute = computed(() => {
+  return ['Help', 'Guide', 'Contact'].includes(route.name)
+})
+
 const toggleProfileDropdown = () => {
+  console.log('toggleProfileDropdown 被调用，当前 showProfileDropdown:', showProfileDropdown.value)
   showProfileDropdown.value = !showProfileDropdown.value
+  showHelpDropdown.value = false
+  console.log('切换后 showProfileDropdown:', showProfileDropdown.value)
+}
+
+const toggleHelpDropdown = (event) => {
+  event.stopPropagation()
+  showHelpDropdown.value = !showHelpDropdown.value
+  showProfileDropdown.value = false
+}
+
+const closeHelpDropdown = () => {
+  showHelpDropdown.value = false
 }
 
 const goToProfile = () => {
@@ -138,6 +192,7 @@ const handleLogout = () => {
 // 点击其他地方关闭下拉菜单
 const closeDropdown = () => {
   showProfileDropdown.value = false
+  showHelpDropdown.value = false
 }
 
 onMounted(() => {
@@ -325,6 +380,75 @@ onUnmounted(() => {
   height: 3px;
   background: linear-gradient(90deg, #0066cc 0%, #00cc99 100%);
   border-radius: 2px;
+}
+
+/* 下拉菜单样式 */
+.nav-item.dropdown {
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  z-index: 1001;
+  overflow: visible;
+  animation: slideDown 0.3s ease;
+  margin-top: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: #333;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background: #f5f5f5;
+}
+
+.dropdown-item.active {
+  color: #0066cc;
+  background: rgba(0, 102, 204, 0.08);
+}
+
+.dropdown-icon {
+  font-size: 18px;
+}
+
+.dropdown-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.nav-arrow {
+  font-size: 10px;
+  color: #666;
+  transition: transform 0.3s ease;
+  margin-left: 4px;
+}
+
+.nav-arrow.rotated {
+  transform: rotate(180deg);
 }
 
 /* 用户下拉菜单 */

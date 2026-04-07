@@ -58,6 +58,18 @@ const routes = [
         meta: { title: '帮助中心' }
       },
       {
+        path: 'guide',
+        name: 'Guide',
+        component: () => import('../views/Guide.vue'),
+        meta: { title: '使用指南' }
+      },
+      {
+        path: 'contact',
+        name: 'Contact',
+        component: () => import('../views/Contact.vue'),
+        meta: { title: '联系我们' }
+      },
+      {
         path: 'vehicles',
         name: 'MyVehicles',
         component: () => import('../views/MyVehicles.vue'),

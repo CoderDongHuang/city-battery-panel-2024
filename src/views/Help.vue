@@ -1,171 +1,213 @@
 <template>
   <div class="help-page">
-    <div class="help-container">
-      <div class="page-header">
-        <h1>帮助中心</h1>
-        <p>常见问题、使用教程和联系方式</p>
-      </div>
-
-      <!-- 搜索框 -->
-      <div class="search-section">
-        <div class="search-box">
-          <input 
-            v-model="searchQuery"
-            type="text" 
-            placeholder="搜索问题或关键词..."
-            class="search-input"
-          />
-        </div>
-      </div>
-
-      <!-- 快速分类 -->
-      <div class="quick-categories">
-        <div class="category-card" @click="scrollToSection('faq')">
-          <div class="category-icon">❓</div>
-          <h3>常见问题</h3>
-          <p>快速找到答案</p>
-        </div>
-        <div class="category-card" @click="scrollToSection('guide')">
-          <div class="category-icon">📖</div>
-          <h3>使用教程</h3>
-          <p>详细操作指南</p>
-        </div>
-        <div class="category-card" @click="scrollToSection('contact')">
-          <div class="category-icon">💬</div>
-          <h3>联系我们</h3>
-          <p>获取人工帮助</p>
-        </div>
-      </div>
-
-      <!-- 常见问题 -->
-      <div id="faq" class="section">
-        <h2 class="section-title">常见问题</h2>
-        <div class="faq-list">
-          <div 
-            v-for="(item, index) in faqItems" 
-            :key="index"
-            :class="['faq-item', { active: activeFaq === index }]"
-          >
-            <div class="faq-question" @click="toggleFaq(index)">
-              <span>{{ item.question }}</span>
-              <span class="toggle-icon">{{ activeFaq === index ? '−' : '+' }}</span>
-            </div>
-            <div v-show="activeFaq === index" class="faq-answer">
-              {{ item.answer }}
-            </div>
+    <!-- 顶部横幅区域 -->
+    <div class="help-banner">
+      <div class="banner-content">
+        <h1 class="banner-title">帮助中心</h1>
+        <p class="banner-description">
+                CitySwap 官方帮助文档，为您提供全面的产品使用指南、详细的操作步骤说明、常见问题解答以及专业的技术支持服务。无论您是初次使用的新手还是经验丰富的用户，都能在这里找到所需的帮助信息，让您轻松掌握换电服务的每一个环节。
+              </p>
+        
+        <!-- 搜索框 -->
+        <div class="search-container">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input 
+              v-model="searchQuery"
+              type="text" 
+              placeholder="搜索帮助文档、常见问题..."
+              class="search-input"
+            />
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- 使用教程 -->
-      <div id="guide" class="section">
-        <h2 class="section-title">使用教程</h2>
-        <div class="guide-grid">
-          <div class="guide-card">
-            <div class="guide-icon">🚗</div>
-            <h3>首次使用</h3>
-            <p>如何注册并完成首次换电</p>
-            <button class="btn-link" @click="viewGuide('first')">查看详情</button>
-          </div>
-          <div class="guide-card">
-            <div class="guide-icon">🔋</div>
-            <h3>预约换电</h3>
-            <p>提前预约，节省等待时间</p>
-            <button class="btn-link" @click="viewGuide('book')">查看详情</button>
-          </div>
-          <div class="guide-card">
-            <div class="guide-icon">💳</div>
-            <h3>支付流程</h3>
-            <p>多种支付方式，安全便捷</p>
-            <button class="btn-link" @click="viewGuide('pay')">查看详情</button>
-          </div>
-          <div class="guide-card">
-            <div class="guide-icon">⚠️</div>
-            <h3>问题处理</h3>
-            <p>遇到问题怎么办</p>
-            <button class="btn-link" @click="viewGuide('issue')">查看详情</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 联系方式 -->
-      <div id="contact" class="section">
-        <h2 class="section-title">联系我们</h2>
-        <div class="contact-methods">
-          <div class="contact-card">
-            <div class="contact-icon">📧</div>
-            <h3>电子邮件</h3>
-            <p>support@cityswap.com</p>
-            <p class="desc">工作日 24 小时内回复</p>
-          </div>
-          <div class="contact-card">
-            <div class="contact-icon">📱</div>
-            <h3>客服电话</h3>
-            <p>400-123-4567</p>
-            <p class="desc">工作日 9:00-18:00</p>
-          </div>
-          <div class="contact-card">
-            <div class="contact-icon">💬</div>
-            <h3>在线客服</h3>
-            <p>智能客服 + 人工服务</p>
-            <p class="desc">7×24 小时在线</p>
-            <button class="btn-primary" @click="startChat">开始聊天</button>
-          </div>
-          <div class="contact-card">
-            <div class="contact-icon">📍</div>
-            <h3>公司地址</h3>
-            <p>北京市朝阳区科技园 A 座</p>
-            <p class="desc">欢迎来访（需预约）</p>
-          </div>
-        </div>
-
-        <!-- 在线留言 -->
-        <div class="contact-form-section">
-          <h3>在线留言</h3>
-          <form @submit.prevent="handleSubmit" class="contact-form">
-            <div class="form-row">
-              <div class="form-group">
-                <label>姓名</label>
-                <input 
-                  v-model="formData.name" 
-                  type="text" 
-                  placeholder="请输入您的姓名"
-                  required
-                />
+    <!-- 主内容区域 - 全宽布局 -->
+    <div class="help-main-container">
+      <div class="help-content-wrapper">
+        <!-- 快速导航 -->
+        <div class="content-box">
+          <div class="quick-nav-section">
+            <h2 class="section-main-title">快速导航</h2>
+          <div class="quick-nav-grid">
+            <div class="quick-nav-card" @click="scrollToSection('guide')">
+              <div class="nav-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <span class="icon">�</span>
               </div>
-              <div class="form-group">
-                <label>邮箱</label>
-                <input 
-                  v-model="formData.email" 
-                  type="email" 
-                  placeholder="请输入您的邮箱"
-                  required
-                />
+              <h3>使用指南</h3>
+              <p>快速上手指南</p>
+            </div>
+            
+            <div class="quick-nav-card" @click="scrollToSection('faq')">
+              <div class="nav-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <span class="icon">❓</span>
+              </div>
+              <h3>常见问题</h3>
+              <p>常见问题解答</p>
+            </div>
+            
+            <div class="quick-nav-card" @click="scrollToSection('contact')">
+              <div class="nav-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <span class="icon">�</span>
+              </div>
+              <h3>联系我们</h3>
+              <p>获取帮助支持</p>
+            </div>
+            
+            <div class="quick-nav-card" @click="goToPage('dashboard')">
+              <div class="nav-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <span class="icon">�</span>
+              </div>
+              <h3>用户仪表盘</h3>
+              <p>查看账户信息</p>
+            </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 使用指南 -->
+        <div class="content-box">
+          <div id="guide" class="guide-section">
+            <h2 class="section-main-title">使用指南</h2>
+            <div class="guide-cards">
+              <div class="guide-card" @click="goToPage('register')">
+                <div class="guide-card-icon">📝</div>
+                <h3>注册账号</h3>
+                <p>快速注册 CitySwap 账号，开启便捷换电之旅</p>
+              </div>
+              
+              <div class="guide-card" @click="goToPage('first-swap')">
+                <div class="guide-card-icon">⚡</div>
+                <h3>首次换电</h3>
+                <p>3 分钟了解完整换电流程，快速上手</p>
+              </div>
+              
+              <div class="guide-card" @click="goToPage('payment')">
+                <div class="guide-card-icon">💳</div>
+                <h3>支付指南</h3>
+                <p>支持多种支付方式，安全便捷</p>
+              </div>
+              
+              <div class="guide-card" @click="goToPage('membership')">
+                <div class="guide-card-icon">👑</div>
+                <h3>会员服务</h3>
+                <p>开通会员，享受专属折扣和优先服务</p>
+              </div>
+              
+              <div class="guide-card" @click="goToPage('stations')">
+                <div class="guide-card-icon">📍</div>
+                <h3>服务网点</h3>
+                <p>查找附近换电站，预约换电服务</p>
+              </div>
+              
+              <div class="guide-card" @click="goToPage('batteries')">
+                <div class="guide-card-icon">🔋</div>
+                <h3>电池管理</h3>
+                <p>电池状态监控、健康度检测</p>
               </div>
             </div>
-            <div class="form-group">
-              <label>主题</label>
-              <input 
-                v-model="formData.subject" 
-                type="text" 
-                placeholder="请输入主题"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label>留言内容</label>
-              <textarea 
-                v-model="formData.message" 
-                rows="6" 
-                placeholder="请输入您的留言内容"
-                required
-              ></textarea>
-            </div>
-            <button type="submit" class="submit-btn">
-              提交留言
-            </button>
-          </form>
+          </div>
         </div>
+
+        <!-- 常见问题和新手专区 - 左右布局 -->
+        <div class="content-box">
+          <div class="faq-guide-container">
+            <!-- 常见问题 -->
+            <div class="faq-section">
+              <h2 class="section-main-title">常见问题</h2>
+              <div class="faq-list">
+                <div 
+                  v-for="(item, index) in faqItems" 
+                  :key="index"
+                  :class="['faq-item', { active: activeFaq === index }]"
+                >
+                  <div class="faq-question" @click="toggleFaq(index)">
+                    <span>{{ item.question }}</span>
+                    <span class="toggle-icon">{{ activeFaq === index ? '−' : '+' }}</span>
+                  </div>
+                  <div v-show="activeFaq === index" class="faq-answer">
+                    {{ item.answer }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 新手专区 -->
+            <div class="newbie-section">
+              <h2 class="section-main-title">新手专区</h2>
+              <div class="newbie-cards">
+                <div class="newbie-card" @click="goToPage('register')">
+                  <div class="newbie-card-icon" style="color: #999;">📝</div>
+                  <h3>新手入门</h3>
+                  <p>快速了解 CitySwap 基本功能</p>
+                </div>
+                
+                <div class="newbie-card" @click="goToPage('first-swap')">
+                  <div class="newbie-card-icon" style="color: #999;">⚡</div>
+                  <h3>首次换电</h3>
+                  <p>3 分钟学会完整换电流程</p>
+                </div>
+                
+                <div class="newbie-card" @click="goToPage('payment')">
+                  <div class="newbie-card-icon" style="color: #999;">💳</div>
+                  <h3>支付指南</h3>
+                  <p>多种支付方式任你选</p>
+                </div>
+                
+                <div class="newbie-card" @click="goToPage('membership')">
+                  <div class="newbie-card-icon" style="color: #999;">👑</div>
+                  <h3>会员福利</h3>
+                  <p>开通会员享受专属优惠</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 联系我们 -->
+        <div class="content-box">
+          <div class="contact-section">
+            <h2 class="section-main-title">联系我们</h2>
+            <div class="contact-methods">
+              <div class="contact-card">
+                <div class="contact-icon">📧</div>
+                <h3>电子邮件</h3>
+                <p>support@cityswap.com</p>
+                <p class="desc">工作日 24 小时内回复</p>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon">📱</div>
+                <h3>客服电话</h3>
+                <p>400-123-4567</p>
+                <p class="desc">工作日 9:00-18:00</p>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon">💬</div>
+                <h3>在线客服</h3>
+                <p>智能客服 + 人工服务</p>
+                <p class="desc">7×24 小时在线</p>
+                <button class="btn-primary" @click="startChat">开始聊天</button>
+              </div>
+              <div class="contact-card">
+                <div class="contact-icon">📍</div>
+                <h3>公司地址</h3>
+                <p>北京市朝阳区科技园 A 座</p>
+                <p class="desc">欢迎来访（需预约）</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 右侧悬浮客服 -->
+    <div class="floating-service">
+      <div class="service-item" @click="startChat">
+        <span class="icon">😊</span>
+      </div>
+      <div class="service-item" @click="scrollToSection('contact')">
+        <span class="icon">📞</span>
       </div>
     </div>
     
@@ -176,8 +218,10 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import SiteFooter from '../components/SiteFooter.vue'
 
+const router = useRouter()
 const searchQuery = ref('')
 const activeFaq = ref(null)
 
@@ -204,401 +248,622 @@ const faqItems = ref([
   }
 ])
 
-const formData = ref({
-  name: '',
-  email: '',
-  subject: '',
-  message: ''
-})
-
 const toggleFaq = (index) => {
   activeFaq.value = activeFaq.value === index ? null : index
 }
 
 const scrollToSection = (sectionId) => {
-  const element = document.getElementById(sectionId)
+  const element = document.querySelector(`.${sectionId}-section`)
   if (element) {
     element.scrollIntoView({ behavior: 'smooth' })
   }
 }
 
-const viewGuide = (type) => {
-  alert('查看教程：' + type)
+const goToPage = (page) => {
+  const routes = {
+    'dashboard': 'UserDashboard',
+    'stations': 'Stations',
+    'batteries': 'Batteries',
+    'orders': 'Orders',
+    'register': 'Help',
+    'first-swap': 'Guide',
+    'payment': 'Guide',
+    'membership': 'Guide'
+  }
+  if (routes[page]) {
+    router.push({ name: routes[page] })
+  }
 }
 
 const startChat = () => {
   alert('正在连接在线客服...')
 }
-
-const handleSubmit = () => {
-  alert('感谢您的留言！我们会尽快与您联系。')
-  formData.value = {
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  }
-}
 </script>
 
 <style scoped>
 .help-page {
-  min-height: calc(100vh - 80px);
-  background: #f5f7fa;
+  min-height: 100vh;
+  /* 使用柔和的渐变背景，参考图片配色：浅蓝绿 → 淡紫 → 白色 */
+  background: linear-gradient(180deg, 
+    rgba(200, 240, 245, 0.8) 0%, 
+    rgba(220, 230, 250, 0.7) 20%, 
+    rgba(230, 220, 255, 0.6) 40%, 
+    rgba(245, 245, 255, 0.5) 60%,
+    rgba(250, 250, 255, 0.4) 80%,
+    rgba(255, 255, 255, 0.3) 100%);
+  background-attachment: fixed;
+}
+
+/* 顶部横幅区域 - 透明背景，与页面背景融为一体 */
+.help-banner {
+  background: transparent;
+  padding: 40px 20px 20px;
+  text-align: center;
+  position: relative;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-content {
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 40px 20px;
 }
 
-.help-container {
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.page-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.page-header h1 {
-  font-size: 32px;
+.banner-title {
+  font-size: 42px;
   color: #333;
-  margin-bottom: 8px;
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  margin-bottom: 20px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  position: relative;
+  display: inline-block;
 }
 
-.page-header p {
-  color: #666;
-  font-size: 14px;
+.banner-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px;
 }
 
-.search-section {
+.banner-description {
+  font-size: 15px;
+  color: #555;
+  margin-top: 48px;
   margin-bottom: 40px;
+  line-height: 2;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 20px;
+  text-align: center;
+}
+
+.search-container {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .search-box {
-  max-width: 600px;
-  margin: 0 auto;
+  background: white;
+  border-radius: 50px;
+  padding: 18px 20px 18px 40px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.search-box:hover {
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.16);
+  transform: translateY(-2px);
+}
+
+.search-box:focus-within {
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.search-icon {
+  font-size: 22px;
+  opacity: 0.6;
+  flex-shrink: 0;
 }
 
 .search-input {
-  width: 100%;
-  padding: 16px 24px;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  font-size: 16px;
-  transition: all 0.3s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.search-input:focus {
+  flex: 1;
+  border: none;
   outline: none;
-  border-color: #0066cc;
-  box-shadow: 0 4px 16px rgba(0, 102, 204, 0.15);
+  font-size: 16px;
+  padding: 12px 0;
+  color: #333;
+  background: transparent;
 }
 
-.quick-categories {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+.search-input::placeholder {
+  color: #999;
+}
+
+/* 主内容容器 - 全宽布局 */
+.help-main-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 40px 60px;
+}
+
+.help-content-wrapper {
+  width: 100%;
+}
+
+/* 内容区块容器 - 白色背景 */
+.content-box {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 48px 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.8);
   margin-bottom: 40px;
 }
 
-.category-card {
-  background: white;
-  padding: 30px 20px;
-  border-radius: 12px;
+.content-box:last-child {
+  margin-bottom: 0;
+}
+
+/* 章节通用样式 */
+.quick-nav-section,
+.guide-section,
+.faq-section,
+.contact-section {
+  margin-bottom: 80px;
+}
+
+.section-main-title {
+  font-size: 36px;
+  color: #333;
+  margin-bottom: 40px;
+  font-weight: 700;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  letter-spacing: 1px;
+}
+
+/* 快速导航 */
+.quick-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+
+.quick-nav-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 40px 24px;
+  text-align: center;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-.category-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+.quick-nav-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
-.category-icon {
+.nav-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.nav-icon .icon {
+  font-size: 40px;
+}
+
+.quick-nav-card h3 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.quick-nav-card p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* 使用指南 */
+.guide-cards {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 24px;
+}
+
+.guide-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 32px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.guide-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.guide-card-icon {
   font-size: 48px;
   margin-bottom: 16px;
 }
 
-.category-card h3 {
-  font-size: 18px;
+.guide-card h3 {
+  font-size: 16px;
   color: #333;
   margin-bottom: 8px;
+  font-weight: 600;
 }
 
-.category-card p {
-  font-size: 14px;
+.guide-card p {
+  font-size: 13px;
   color: #666;
+  line-height: 1.6;
 }
 
-.section {
-  margin-bottom: 50px;
+/* 常见问题 */
+.faq-section {
+  margin-bottom: 0;
+  flex: 1;
+  padding-right: 24px;
 }
 
-.section-title {
-  font-size: 24px;
-  color: #333;
-  margin-bottom: 24px;
-  padding-left: 16px;
-  border-left: 4px solid #0066cc;
+.faq-guide-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 80px;
 }
 
 .faq-list {
+  max-width: 100%;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 .faq-item {
-  background: white;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.3s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.faq-item.active {
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
 }
 
 .faq-question {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  padding: 24px 28px;
   cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 17px;
+  font-weight: 600;
   color: #333;
+  background: transparent;
   transition: all 0.3s;
 }
 
 .faq-question:hover {
-  background: #f5f7fa;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .toggle-icon {
   font-size: 24px;
-  color: #0066cc;
+  color: #667eea;
   font-weight: 300;
+  transition: all 0.3s;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.faq-item.active .toggle-icon {
+  color: #764ba2;
+  background: rgba(118, 75, 162, 0.15);
 }
 
 .faq-answer {
-  padding: 0 20px 20px;
+  padding: 0 28px 24px;
   color: #666;
-  line-height: 1.8;
-  font-size: 14px;
+  line-height: 2;
+  font-size: 15px;
   white-space: pre-line;
+  background: transparent;
 }
 
-.guide-grid {
+/* 新手专区 */
+.newbie-section {
+  margin-bottom: 0;
+  flex: 1;
+  padding-left: 24px;
+}
+
+.newbie-cards {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1fr;
   gap: 20px;
 }
 
-.guide-card {
-  background: white;
-  padding: 30px 20px;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s;
+.newbie-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 28px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-.guide-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+.newbie-card:hover {
+  transform: translateX(8px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
-.guide-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+.newbie-card-icon {
+  font-size: 40px;
+  flex-shrink: 0;
 }
 
-.guide-card h3 {
+.newbie-card h3 {
   font-size: 18px;
   color: #333;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
+  font-weight: 600;
 }
 
-.guide-card p {
+.newbie-card p {
   font-size: 14px;
   color: #666;
-  margin-bottom: 16px;
+  line-height: 1.4;
 }
 
-.btn-link {
-  color: #0066cc;
-  background: none;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.btn-link:hover {
-  text-decoration: underline;
+/* 联系我们 */
+.contact-section {
+  margin-bottom: 80px;
 }
 
 .contact-methods {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .contact-card {
-  background: white;
-  padding: 30px 20px;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 36px 20px;
+  border-radius: 16px;
   transition: all 0.3s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .contact-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
 .contact-icon {
   font-size: 48px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .contact-card h3 {
   font-size: 18px;
   color: #333;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
 }
 
 .contact-card p {
-  font-size: 14px;
+  font-size: 15px;
   color: #666;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .contact-card .desc {
-  font-size: 12px;
+  font-size: 13px;
   color: #999;
 }
 
 .btn-primary {
-  margin-top: 12px;
-  padding: 10px 24px;
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
+  margin-top: 16px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
-}
-
-.contact-form-section {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.contact-form-section h3 {
-  font-size: 20px;
-  color: #333;
-  margin-bottom: 30px;
-}
-
-.contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  font-size: 14px;
-  color: #333;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.form-group input,
-.form-group textarea {
-  padding: 12px 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.3s;
-  font-family: inherit;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: #0066cc;
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
-}
-
-.form-group textarea {
-  resize: vertical;
-}
-
-.submit-btn {
-  padding: 14px 32px;
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  box-shadow: 0 4px 8px rgba(0, 102, 204, 0.3);
-  align-self: flex-start;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
 }
 
-.submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 102, 204, 0.4);
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
 }
 
-@media (max-width: 968px) {
-  .quick-categories,
-  .guide-grid,
+/* 右侧悬浮客服 */
+.floating-service {
+  position: fixed;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 999;
+}
+
+.service-item {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.service-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.service-item:hover::before {
+  opacity: 0.1;
+}
+
+.service-item:hover {
+  transform: translateY(-50%) scale(1.15);
+  box-shadow: 0 12px 40px rgba(102, 126, 234, 0.3);
+  border-color: #667eea;
+}
+
+.service-item .icon {
+  font-size: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .guide-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .quick-nav-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .faq-guide-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .faq-section {
+    padding-right: 0;
+  }
+  
+  .newbie-section {
+    padding-left: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .help-banner {
+    padding: 40px 20px 30px;
+    min-height: 200px;
+  }
+  
+  .banner-title {
+    font-size: 36px;
+  }
+  
+  .banner-description {
+    font-size: 14px;
+  }
+  
+  .search-box {
+    padding: 12px 12px 12px 20px;
+  }
+  
+  .search-input {
+    font-size: 14px;
+    padding: 10px 0;
+  }
+  
+  .help-main-container {
+    padding: 30px 20px 40px;
+  }
+  
+  .guide-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .quick-nav-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
   .contact-methods {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 640px) {
-  .quick-categories,
-  .guide-grid,
-  .contact-methods {
-    grid-template-columns: 1fr;
-  }
-
-  .contact-form-section {
-    padding: 20px;
+  
+  .floating-service {
+    display: none;
   }
 }
 </style>
