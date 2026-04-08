@@ -96,7 +96,7 @@
           <div id="guide" class="guide-section">
             <h2 class="section-main-title">使用指南</h2>
             <div class="guide-cards">
-              <div class="guide-card" @click="goToPage('register')">
+              <div class="guide-card" @click="toggleGuide('register')">
                 <div class="guide-card-icon-wrapper">
                   <svg class="guide-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
@@ -109,7 +109,7 @@
                 </div>
               </div>
               
-              <div class="guide-card" @click="goToPage('first-swap')">
+              <div class="guide-card" @click="toggleGuide('swap')">
                 <div class="guide-card-icon-wrapper">
                   <svg class="guide-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
@@ -121,7 +121,7 @@
                 </div>
               </div>
               
-              <div class="guide-card" @click="goToPage('payment')">
+              <div class="guide-card" @click="toggleGuide('payment')">
                 <div class="guide-card-icon-wrapper">
                   <svg class="guide-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
@@ -134,7 +134,7 @@
                 </div>
               </div>
               
-              <div class="guide-card" @click="goToPage('membership')">
+              <div class="guide-card" @click="toggleGuide('membership')">
                 <div class="guide-card-icon-wrapper">
                   <svg class="guide-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -146,7 +146,7 @@
                 </div>
               </div>
               
-              <div class="guide-card" @click="goToPage('stations')">
+              <div class="guide-card" @click="toggleGuide('stations')">
                 <div class="guide-card-icon-wrapper">
                   <svg class="guide-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -159,7 +159,7 @@
                 </div>
               </div>
               
-              <div class="guide-card" @click="goToPage('batteries')">
+              <div class="guide-card" @click="toggleGuide('batteries')">
                 <div class="guide-card-icon-wrapper">
                   <svg class="guide-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
@@ -171,6 +171,319 @@
                 <div class="guide-card-content">
                   <h3>电池管理</h3>
                   <p>电池状态监控、健康度检测</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 使用指南详细内容区域 - 手风琴效果 -->
+            <div class="guide-detail-sections">
+              <!-- 注册账号 -->
+              <div v-show="activeGuide === 'register'" class="guide-detail-card" :class="{ 'guide-detail-active': activeGuide === 'register' }">
+                <div class="guide-detail-header">
+                  <svg class="guide-detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  </svg>
+                  <h3 class="guide-detail-title">注册账号</h3>
+                </div>
+                <div class="guide-detail-content">
+                  <div class="guide-steps">
+                    <div class="step-item">
+                      <div class="step-number">1</div>
+                      <div class="step-content">
+                        <h4>下载 CitySwap APP</h4>
+                        <p>在应用商店搜索"CitySwap"下载安装，或访问官网下载页面</p>
+                      </div>
+                    </div>
+                    <div class="step-item">
+                      <div class="step-number">2</div>
+                      <div class="step-content">
+                        <h4>点击注册按钮</h4>
+                        <p>打开 APP，点击首页右下角"我的"，选择"注册账号"</p>
+                      </div>
+                    </div>
+                    <div class="step-item">
+                      <div class="step-number">3</div>
+                      <div class="step-content">
+                        <h4>填写手机号码</h4>
+                        <p>输入您的手机号码，点击"获取验证码"，输入收到的短信验证码</p>
+                      </div>
+                    </div>
+                    <div class="step-item">
+                      <div class="step-number">4</div>
+                      <div class="step-content">
+                        <h4>设置登录密码</h4>
+                        <p>设置 6-20 位登录密码（字母 + 数字组合），点击"完成注册"</p>
+                      </div>
+                    </div>
+                    <div class="step-item">
+                      <div class="step-number">5</div>
+                      <div class="step-content">
+                        <h4>完善个人信息</h4>
+                        <p>可选：上传头像、设置昵称、绑定邮箱等</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="guide-tips">
+                    <strong>💡 温馨提示：</strong>
+                    <ul>
+                      <li>注册过程仅需 1-2 分钟</li>
+                      <li>验证码 5 分钟内有效</li>
+                      <li>密码请妥善保管，建议包含字母和数字</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 首次换电 -->
+              <div v-show="activeGuide === 'swap'" class="guide-detail-card" :class="{ 'guide-detail-active': activeGuide === 'swap' }">
+                <div class="guide-detail-header">
+                  <svg class="guide-detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                  </svg>
+                  <h3 class="guide-detail-title">首次换电</h3>
+                </div>
+                <div class="guide-detail-content">
+                  <div class="guide-steps">
+                    <div class="step-item">
+                      <div class="step-number">1</div>
+                      <div class="step-content">
+                        <h4>查找附近换电站</h4>
+                        <p>打开 APP，点击首页"换电站"，查看附近换电站位置和实时电池库存</p>
+                      </div>
+                    </div>
+                    <div class="step-item">
+                      <div class="step-number">2</div>
+                      <div class="step-content">
+                        <h4>预约换电服务</h4>
+                        <p>选择目标换电站，点击"预约换电"，系统保留电池 30 分钟</p>
+                      </div>
+                    </div>
+                    <div class="step-item">
+                      <div class="step-number">3</div>
+                      <div class="step-content">
+                        <h4>到达换电站</h4>
+                        <p>按导航到达换电站，在 APP 点击"我已到达"</p>
+                      </div>
+                    </div>
+                    <div class="step-item">
+                      <div class="step-number">4</div>
+                      <div class="step-content">
+                        <h4>扫描设备二维码</h4>
+                        <p>使用 APP 扫描换电柜上的二维码，柜门自动打开</p>
+                      </div>
+                    </div>
+                    <div class="step-item">
+                      <div class="step-number">5</div>
+                      <div class="step-content">
+                        <h4>放入旧电池</h4>
+                        <p>将旧电池放入空位，关好柜门，系统自动检测电池</p>
+                      </div>
+                    </div>
+                    <div class="step-item">
+                      <div class="step-number">6</div>
+                      <div class="step-content">
+                        <h4>取出新电池</h4>
+                        <p>系统分配满电电池，对应柜门打开，取出电池并确认</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="guide-tips">
+                    <strong>💡 温馨提示：</strong>
+                    <ul>
+                      <li>首次换电免费体验</li>
+                      <li>整个过程仅需 3-5 分钟</li>
+                      <li>24 小时均可换电</li>
+                      <li>如遇问题，点击 APP 内"在线客服"</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 支付指南 -->
+              <div v-show="activeGuide === 'payment'" class="guide-detail-card" :class="{ 'guide-detail-active': activeGuide === 'payment' }">
+                <div class="guide-detail-header">
+                  <svg class="guide-detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                  </svg>
+                  <h3 class="guide-detail-title">支付指南</h3>
+                </div>
+                <div class="guide-detail-content">
+                  <div class="payment-methods">
+                    <div class="method-card">
+                      <div class="method-icon">💳</div>
+                      <h4>微信支付</h4>
+                      <p>支持微信钱包、信用卡支付</p>
+                    </div>
+                    <div class="method-card">
+                      <div class="method-icon">💰</div>
+                      <h4>支付宝</h4>
+                      <p>支持余额、余额宝、信用卡</p>
+                    </div>
+                    <div class="method-card">
+                      <div class="method-icon">🏦</div>
+                      <h4>银联卡</h4>
+                      <p>支持各大银行储蓄卡和信用卡</p>
+                    </div>
+                    <div class="method-card">
+                      <div class="method-icon">🎫</div>
+                      <h4>余额支付</h4>
+                      <p>使用 CitySwap 账户余额</p>
+                    </div>
+                  </div>
+                  <div class="guide-tips">
+                    <strong>💡 温馨提示：</strong>
+                    <ul>
+                      <li>换电完成后自动扣费</li>
+                      <li>可在"我的 - 支付设置"中设置默认支付方式</li>
+                      <li>会员用户享受专属折扣</li>
+                      <li>支持开具电子发票</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 会员服务 -->
+              <div v-show="activeGuide === 'membership'" class="guide-detail-card" :class="{ 'guide-detail-active': activeGuide === 'membership' }">
+                <div class="guide-detail-header">
+                  <svg class="guide-detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                  <h3 class="guide-detail-title">会员服务</h3>
+                </div>
+                <div class="guide-detail-content">
+                  <div class="membership-levels">
+                    <div class="level-card">
+                      <div class="level-badge level-silver">白银会员</div>
+                      <div class="level-price">¥19/月</div>
+                      <ul class="level-benefits">
+                        <li>✅ 换电 9 折优惠</li>
+                        <li>✅ 每月 2 张优惠券</li>
+                        <li>✅ 积分 1.2 倍</li>
+                      </ul>
+                    </div>
+                    <div class="level-card">
+                      <div class="level-badge level-gold">黄金会员</div>
+                      <div class="level-price">¥49/月</div>
+                      <ul class="level-benefits">
+                        <li>✅ 换电 8 折优惠</li>
+                        <li>✅ 每月 5 张优惠券</li>
+                        <li>✅ 积分 1.5 倍</li>
+                        <li>✅ 优先预约</li>
+                      </ul>
+                    </div>
+                    <div class="level-card">
+                      <div class="level-badge level-platinum">铂金会员</div>
+                      <div class="level-price">¥99/月</div>
+                      <ul class="level-benefits">
+                        <li>✅ 换电 7 折优惠</li>
+                        <li>✅ 无限次优惠券</li>
+                        <li>✅ 积分 2 倍</li>
+                        <li>✅ 优先预约</li>
+                        <li>✅ 免费电池检测</li>
+                        <li>✅ 专属客服</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="guide-tips">
+                    <strong>💡 温馨提示：</strong>
+                    <ul>
+                      <li>首次开通会员享 7 天免费试用</li>
+                      <li>连续包月更优惠</li>
+                      <li>会员等级可累积升级</li>
+                      <li>会员权益不可转让</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 服务网点 -->
+              <div v-show="activeGuide === 'stations'" class="guide-detail-card" :class="{ 'guide-detail-active': activeGuide === 'stations' }">
+                <div class="guide-detail-header">
+                  <svg class="guide-detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  <h3 class="guide-detail-title">服务网点</h3>
+                </div>
+                <div class="guide-detail-content">
+                  <div class="station-features">
+                    <div class="feature-item">
+                      <div class="feature-icon">📍</div>
+                      <h4>智能定位</h4>
+                      <p>APP 自动定位您的位置，推荐最近换电站</p>
+                    </div>
+                    <div class="feature-item">
+                      <div class="feature-icon">📊</div>
+                      <h4>实时库存</h4>
+                      <p>显示各换电站电池数量和型号</p>
+                    </div>
+                    <div class="feature-item">
+                      <div class="feature-icon">⏰</div>
+                      <h4>营业时间</h4>
+                      <p>大部分换电站 24 小时营业</p>
+                    </div>
+                    <div class="feature-item">
+                      <div class="feature-icon">🚗</div>
+                      <h4>导航服务</h4>
+                      <p>一键导航至换电站，支持多种交通方式</p>
+                    </div>
+                  </div>
+                  <div class="guide-tips">
+                    <strong>💡 温馨提示：</strong>
+                    <ul>
+                      <li>建议提前查看电池库存再前往</li>
+                      <li>高峰期可预约保留电池</li>
+                      <li>部分商圈换电站可能收费不同</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 电池管理 -->
+              <div v-show="activeGuide === 'batteries'" class="guide-detail-card" :class="{ 'guide-detail-active': activeGuide === 'batteries' }">
+                <div class="guide-detail-header">
+                  <svg class="guide-detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
+                    <line x1="6" y1="7" x2="6" y2="17"></line>
+                    <line x1="10" y1="7" x2="10" y2="17"></line>
+                    <line x1="14" y1="7" x2="14" y2="17"></line>
+                  </svg>
+                  <h3 class="guide-detail-title">电池管理</h3>
+                </div>
+                <div class="guide-detail-content">
+                  <div class="battery-features">
+                    <div class="feature-item">
+                      <div class="feature-icon">🔋</div>
+                      <h4>状态监控</h4>
+                      <p>实时查看电池电量、健康度、温度等信息</p>
+                    </div>
+                    <div class="feature-item">
+                      <div class="feature-icon">🛡️</div>
+                      <h4>安全保障</h4>
+                      <p>智能 BMS 系统，过充过放保护</p>
+                    </div>
+                    <div class="feature-item">
+                      <div class="feature-icon">📈</div>
+                      <h4>健康检测</h4>
+                      <p>每次换电自动检测电池健康状态</p>
+                    </div>
+                    <div class="feature-item">
+                      <div class="feature-icon">🔔</div>
+                      <h4>异常提醒</h4>
+                      <p>电池异常时 APP 实时推送通知</p>
+                    </div>
+                  </div>
+                  <div class="guide-tips">
+                    <strong>💡 温馨提示：</strong>
+                    <ul>
+                      <li>建议使用官方认证电池</li>
+                      <li>定期查看电池健康报告</li>
+                      <li>发现异常及时联系客服</li>
+                      <li>电池质保期 12 个月</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
@@ -206,7 +519,7 @@
             <div class="newbie-section">
               <h2 class="section-main-title">新手专区</h2>
               <div class="newbie-cards">
-                <div class="newbie-card" @click="goToPage('register')">
+                <div class="newbie-card" @click="toggleGuide('register')">
                   <svg class="newbie-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
                     <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
@@ -219,7 +532,7 @@
                   </div>
                 </div>
                 
-                <div class="newbie-card" @click="goToPage('first-swap')">
+                <div class="newbie-card" @click="toggleGuide('swap')">
                   <svg class="newbie-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                   </svg>
@@ -229,7 +542,7 @@
                   </div>
                 </div>
                 
-                <div class="newbie-card" @click="goToPage('payment')">
+                <div class="newbie-card" @click="toggleGuide('payment')">
                   <svg class="newbie-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                     <line x1="1" y1="10" x2="23" y2="10"></line>
@@ -240,7 +553,7 @@
                   </div>
                 </div>
                 
-                <div class="newbie-card" @click="goToPage('membership')">
+                <div class="newbie-card" @click="toggleGuide('membership')">
                   <svg class="newbie-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                   </svg>
@@ -457,6 +770,7 @@ import { ref as vueRef } from 'vue'
 const router = useRouter()
 const searchQuery = ref('')
 const activeFaq = ref(null)
+const activeGuide = ref(null) // 使用指南当前展开的项
 const showRateMenu = ref(false)
 const showPhoneMenu = ref(false)
 const rating = ref(null)
@@ -469,6 +783,11 @@ const toggleAiAssistant = () => {
   if (aiAssistantRef.value) {
     aiAssistantRef.value.toggleAssistant()
   }
+}
+
+// 使用指南手风琴效果
+const toggleGuide = (guideId) => {
+  activeGuide.value = activeGuide.value === guideId ? null : guideId
 }
 
 onMounted(() => {
@@ -1829,6 +2148,379 @@ const startAiChat = () => {
   .floating-btn {
     width: 48px;
     height: 48px;
+  }
+}
+
+/* 使用指南详细内容区域 */
+.guide-detail-sections {
+  margin-top: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.guide-detail-card {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  border: 1px solid rgba(200, 200, 200, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(-20px);
+}
+
+.guide-detail-card.guide-detail-active {
+  max-height: 2000px;
+  opacity: 1;
+  transform: translateY(0);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border-color: rgba(100, 150, 200, 0.4);
+}
+
+.guide-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid rgba(100, 150, 200, 0.15);
+}
+
+.guide-detail-icon {
+  width: 48px;
+  height: 48px;
+  color: #6496c8;
+  flex-shrink: 0;
+}
+
+.guide-detail-title {
+  font-size: 28px;
+  color: #333;
+  font-weight: 700;
+  margin: 0;
+}
+
+.guide-detail-content {
+  color: #555;
+}
+
+/* 步骤样式 */
+.guide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.step-item {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6496c8 0%, #a8c8e8 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(100, 150, 200, 0.3);
+}
+
+.step-content {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.step-content h4 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.step-content p {
+  font-size: 15px;
+  color: #666;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* 温馨提示 */
+.guide-tips {
+  background: linear-gradient(135deg, rgba(255, 250, 230, 0.8) 0%, rgba(255, 245, 220, 0.6) 100%);
+  border-left: 4px solid #ffb140;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-top: 32px;
+}
+
+.guide-tips strong {
+  font-size: 16px;
+  color: #333;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.guide-tips ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.guide-tips li {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.8;
+  margin-bottom: 6px;
+}
+
+/* 支付方式 */
+.payment-methods {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.method-card {
+  background: linear-gradient(135deg, rgba(240, 248, 255, 0.6) 0%, rgba(230, 240, 255, 0.4) 100%);
+  border-radius: 12px;
+  padding: 24px 20px;
+  text-align: center;
+  border: 1px solid rgba(100, 150, 200, 0.2);
+  transition: all 0.3s ease;
+}
+
+.method-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(100, 150, 200, 0.4);
+  box-shadow: 0 8px 20px rgba(100, 150, 200, 0.15);
+}
+
+.method-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.method-card h4 {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.method-card p {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* 会员等级 */
+.membership-levels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.level-card {
+  background: white;
+  border-radius: 16px;
+  padding: 28px 24px;
+  border: 2px solid rgba(100, 150, 200, 0.2);
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.level-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(100, 150, 200, 0.2);
+}
+
+.level-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+}
+
+.level-silver {
+  background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+}
+
+.level-card:nth-child(1)::before {
+  background: linear-gradient(90deg, #c0c0c0, #e8e8e8);
+}
+
+.level-gold {
+  background: linear-gradient(135deg, #ffd700 0%, #ffe066 100%);
+}
+
+.level-card:nth-child(2)::before {
+  background: linear-gradient(90deg, #ffd700, #ffe066);
+}
+
+.level-platinum {
+  background: linear-gradient(135deg, #e5e4e2 0%, #f0f0f0 100%);
+}
+
+.level-card:nth-child(3)::before {
+  background: linear-gradient(90deg, #e5e4e2, #f0f0f0);
+}
+
+.level-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 16px;
+}
+
+.level-price {
+  font-size: 24px;
+  color: #333;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.level-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.level-benefits li {
+  font-size: 14px;
+  color: #555;
+  line-height: 2;
+  padding: 4px 0;
+}
+
+/* 服务网点功能 */
+.station-features {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.feature-item {
+  background: linear-gradient(135deg, rgba(245, 250, 255, 0.6) 0%, rgba(240, 248, 255, 0.4) 100%);
+  border-radius: 12px;
+  padding: 24px 20px;
+  text-align: center;
+  border: 1px solid rgba(100, 150, 200, 0.2);
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  transform: translateY(-4px);
+  border-color: rgba(100, 150, 200, 0.4);
+  box-shadow: 0 8px 20px rgba(100, 150, 200, 0.15);
+}
+
+.feature-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.feature-item h4 {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.feature-item p {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* 电池管理功能 */
+.battery-features {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* 响应式 */
+@media (max-width: 1200px) {
+  .payment-methods,
+  .station-features,
+  .battery-features {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .membership-levels {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .guide-detail-card {
+    padding: 28px 20px;
+  }
+  
+  .guide-detail-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .guide-detail-icon {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .guide-detail-title {
+    font-size: 22px;
+  }
+  
+  .guide-steps {
+    gap: 16px;
+  }
+  
+  .step-number {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  
+  .step-content h4 {
+    font-size: 16px;
+  }
+  
+  .step-content p {
+    font-size: 14px;
+  }
+  
+  .payment-methods,
+  .station-features,
+  .battery-features {
+    grid-template-columns: 1fr;
+  }
+  
+  .method-card,
+  .feature-item {
+    padding: 20px 16px;
   }
 }
 </style>
