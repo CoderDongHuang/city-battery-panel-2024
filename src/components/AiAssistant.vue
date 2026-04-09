@@ -50,7 +50,13 @@
             >
               <div v-if="msg.role === 'assistant'" class="ai-message-avatar">🤖</div>
               <div class="ai-message-content">
-                <div class="ai-message-text">{{ msg.content }}</div>
+                <div class="ai-message-text">
+                  <span v-if="msg.role === 'user'">{{ msg.content }}</span>
+                  <span v-else>
+                    {{ formatTypingText(msg.content, msg.typing) }}
+                    <span v-if="msg.typing" class="typing-cursor"></span>
+                  </span>
+                </div>
               </div>
             </div>
             <div v-if="isLoading" class="ai-message assistant">
@@ -120,6 +126,13 @@ const recommendQuestions = ref([
 
 // 消息列表
 const messages = reactive([])
+
+// 打字机效果控制
+const typingSpeed = 30 // 每个字符的显示间隔（毫秒）
+const formatTypingText = (content, isTyping = false) => {
+  if (!isTyping) return content
+  return content
+}
 
 // DeepSeek API 配置
 const API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY
@@ -221,15 +234,34 @@ const sendMessage = async () => {
     const data = await response.json()
     const aiResponse = data.choices?.[0]?.message?.content || '抱歉，我暂时无法回答这个问题。'
 
-    // 添加 AI 回复到历史消息
+    // 添加用户消息
     messages.push({
       role: 'user',
       content: userMessage
     })
+    
+    // 添加 AI 消息（初始为空，用于打字机效果）
+    const aiMessageIndex = messages.length
     messages.push({
       role: 'assistant',
-      content: aiResponse
+      content: '',
+      typing: true
     })
+    
+    // 打字机效果显示
+    let charIndex = 0
+    const typeWriter = () => {
+      if (charIndex < aiResponse.length) {
+        messages[aiMessageIndex].content += aiResponse[charIndex]
+        charIndex++
+        setTimeout(typeWriter, typingSpeed)
+      } else {
+        messages[aiMessageIndex].typing = false
+      }
+    }
+    
+    // 开始打字机效果
+    typeWriter()
 
   } catch (error) {
     console.error('AI 请求错误:', error)
@@ -302,7 +334,7 @@ defineExpose({
   font-size: 16px;
   color: #666;
   margin: 8px 0 0 0;
-  text-align: center;
+  text-align: left;
 }
 
 /* 窗口控制按钮 */
@@ -642,5 +674,18 @@ defineExpose({
 .slide-fade-leave-to {
   opacity: 0;
   transform: translateY(20px) scale(0.95);
+}
+
+/* 打字机光标效果 */
+.typing-cursor::after {
+  content: '|';
+  animation: blink 1s infinite;
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 </style>
