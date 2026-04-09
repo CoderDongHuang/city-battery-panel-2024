@@ -65,7 +65,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import SiteFooter from '../components/SiteFooter.vue'
-import { vehicleAPI, batteryAPI } from '../services/api'
+import { userStatsAPI } from '../services/userAPI'
 
 const username = ref(localStorage.getItem('username') || '用户')
 const vehicleCount = ref(0)
@@ -74,16 +74,11 @@ const batteryCount = ref(0)
 // 加载用户数据
 const loadUserData = async () => {
   try {
-    // 加载车辆数据
-    const vehicleRes = await vehicleAPI.getVehicles()
-    if (vehicleRes.code === 200) {
-      vehicleCount.value = vehicleRes.data?.length || 0
-    }
-
-    // 加载电池数据
-    const batteryRes = await batteryAPI.getBatteries()
-    if (batteryRes.code === 200) {
-      batteryCount.value = batteryRes.data?.length || 0
+    // 获取用户统计信息
+    const statsRes = await userStatsAPI.getSummary()
+    if (statsRes.code === 200) {
+      vehicleCount.value = statsRes.data?.vehicles || 0
+      batteryCount.value = statsRes.data?.batteries || 0
     }
   } catch (error) {
     console.error('加载用户数据失败:', error)

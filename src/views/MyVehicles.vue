@@ -183,7 +183,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import vehicleService from '../services/vehicleService'
+import { userVehicleAPI } from '../services/userAPI'
 import SiteFooter from '../components/SiteFooter.vue'
 
 // 状态
@@ -209,12 +209,15 @@ const formData = reactive({
 const fetchVehicles = async () => {
   loading.value = true
   try {
-    const data = await vehicleService.getVehicles()
-    vehicles.value = Array.isArray(data) ? data : []
+    const res = await userVehicleAPI.getVehicles()
+    if (res.code === 200) {
+      vehicles.value = res.data || []
+    } else {
+      ElMessage.error(res.message || '加载车辆列表失败')
+    }
   } catch (error) {
     console.error('获取车辆列表失败:', error)
     ElMessage.error('加载车辆列表失败，请稍后重试')
-    // 开发环境使用模拟数据
     vehicles.value = []
   } finally {
     loading.value = false
@@ -225,13 +228,17 @@ const fetchVehicles = async () => {
 const handleAddVehicle = async () => {
   submitting.value = true
   try {
-    await vehicleService.addVehicle(formData)
-    ElMessage.success('车辆添加成功')
-    closeAddModal()
-    await fetchVehicles()
+    const res = await userVehicleAPI.addVehicle(formData)
+    if (res.code === 200) {
+      ElMessage.success('车辆添加成功')
+      closeAddModal()
+      await fetchVehicles()
+    } else {
+      ElMessage.error(res.message || '添加车辆失败')
+    }
   } catch (error) {
     console.error('添加车辆失败:', error)
-    ElMessage.error(error.response?.data?.message || '添加车辆失败，请稍后重试')
+    ElMessage.error('添加车辆失败，请稍后重试')
   } finally {
     submitting.value = false
   }
@@ -241,10 +248,14 @@ const handleAddVehicle = async () => {
 const handleUpdateVehicle = async () => {
   submitting.value = true
   try {
-    await vehicleService.updateVehicle(editingVehicleId.value, formData)
-    ElMessage.success('车辆信息更新成功')
-    closeEditModal()
-    await fetchVehicles()
+    const res = await userVehicleAPI.updateVehicle(editingVehicleId.value, formData)
+    if (res.code === 200) {
+      ElMessage.success('车辆信息更新成功')
+      closeEditModal()
+      await fetchVehicles()
+    } else {
+      ElMessage.error(res.message || '更新车辆失败')
+    }
   } catch (error) {
     console.error('更新车辆失败:', error)
     ElMessage.error(error.response?.data?.message || '更新车辆失败，请稍后重试')
@@ -287,12 +298,16 @@ const confirmDelete = (vehicle) => {
     }
   ).then(async () => {
     try {
-      await vehicleService.deleteVehicle(vehicle.id)
-      ElMessage.success('删除成功')
-      await fetchVehicles()
+      const res = await userVehicleAPI.deleteVehicle(vehicle.id)
+      if (res.code === 200) {
+        ElMessage.success('删除成功')
+        await fetchVehicles()
+      } else {
+        ElMessage.error(res.message || '删除失败')
+      }
     } catch (error) {
       console.error('删除车辆失败:', error)
-      ElMessage.error(error.response?.data?.message || '删除失败，请稍后重试')
+      ElMessage.error('删除失败，请稍后重试')
     }
   }).catch(() => {
     // 用户取消
@@ -423,26 +438,23 @@ onMounted(() => {
 .empty-state {
   text-align: center;
   padding: 80px 20px;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .empty-icon {
   font-size: 80px;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
   opacity: 0.5;
 }
 
 .empty-state h2 {
   margin: 0 0 16px 0;
   font-size: 24px;
-  color: #333;
+  color: #666;
 }
 
 .empty-state p {
-  margin: 0 0 24px 0;
-  color: #666;
+  margin: 0 0 32px 0;
+  color: #999;
   font-size: 16px;
 }
 
