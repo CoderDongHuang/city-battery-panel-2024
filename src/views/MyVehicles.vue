@@ -408,7 +408,7 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
+  border-top: 4px solid #999;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
@@ -507,7 +507,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f5f5f5;
   border-radius: 12px;
 }
 
@@ -708,9 +708,9 @@ onMounted(() => {
 
 .form-input:focus,
 .form-textarea:focus {
-  border-color: #667eea;
+  border-color: #999;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 0 0 2px rgba(153, 153, 153, 0.2);
 }
 
 .form-textarea {
