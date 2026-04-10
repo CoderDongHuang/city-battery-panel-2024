@@ -61,7 +61,7 @@
           <!-- 我的车辆区域 -->
           <div class="assets-section">
             <h2 class="assets-title">我的车辆</h2>
-            <div v-if="vehicleCount === 0" class="empty-assets">
+            <div v-if="vehicles.length === 0" class="empty-assets">
               <h3>暂无车辆</h3>
               <p>添加您的第一辆车，开始便捷的换电体验</p>
               <router-link :to="{ name: 'MyVehicles' }" class="add-btn">
@@ -70,11 +70,37 @@
               </router-link>
             </div>
             <div v-else class="assets-list">
-              <div v-for="i in Math.min(vehicleCount, 3)" :key="i" class="asset-item">
-                <span class="asset-name">车辆 {{ i }}</span>
+              <div v-for="vehicle in vehicles.slice(0, 3)" :key="vehicle.id" class="asset-item">
+                <div class="asset-item-content">
+                  <span class="asset-icon">🚗</span>
+                  <span class="asset-name">{{ vehicle.name }}</span>
+                  <span class="asset-status" :class="vehicle.status">{{ vehicle.status === 'online' ? '在线' : '离线' }}</span>
+                </div>
+                <div class="asset-item-actions">
+                  <button class="asset-action-btn view" @click="viewVehicleDetail(vehicle)" title="详情">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                  <button class="asset-action-btn edit" @click="editVehicle(vehicle)" title="编辑">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button class="asset-action-btn delete" @click="deleteVehicle(vehicle)" title="删除">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
               <div v-if="vehicleCount > 3" class="view-more">
-                还有 {{ vehicleCount - 3 }} 辆车...
+                <router-link :to="{ name: 'MyVehicles' }">还有 {{ vehicleCount - 3 }} 辆车... 查看全部 →</router-link>
               </div>
             </div>
           </div>
@@ -82,7 +108,7 @@
           <!-- 我的电池区域 -->
           <div class="assets-section">
             <h2 class="assets-title">我的电池</h2>
-            <div v-if="batteryCount === 0" class="empty-assets">
+            <div v-if="batteries.length === 0" class="empty-assets">
               <h3>暂无电池</h3>
               <p>添加您的第一块电池，开始便捷的换电体验</p>
               <router-link :to="{ name: 'MyBatteries' }" class="add-btn">
@@ -91,11 +117,37 @@
               </router-link>
             </div>
             <div v-else class="assets-list">
-              <div v-for="i in Math.min(batteryCount, 3)" :key="i" class="asset-item">
-                <span class="asset-name">电池 {{ i }}</span>
+              <div v-for="battery in batteries.slice(0, 3)" :key="battery.id" class="asset-item">
+                <div class="asset-item-content">
+                  <span class="asset-icon">🔋</span>
+                  <span class="asset-name">{{ battery.name }}</span>
+                  <span class="asset-status" :class="battery.status">{{ battery.status === 'online' ? '在线' : '离线' }}</span>
+                </div>
+                <div class="asset-item-actions">
+                  <button class="asset-action-btn view" @click="viewBatteryDetail(battery)" title="详情">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                  <button class="asset-action-btn edit" @click="editBattery(battery)" title="编辑">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button class="asset-action-btn delete" @click="deleteBattery(battery)" title="删除">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
               <div v-if="batteryCount > 3" class="view-more">
-                还有 {{ batteryCount - 3 }} 个电池...
+                <router-link :to="{ name: 'MyBatteries' }">还有 {{ batteryCount - 3 }} 个电池... 查看全部 →</router-link>
               </div>
             </div>
           </div>
@@ -111,11 +163,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import SiteFooter from '../components/SiteFooter.vue'
-import { userStatsAPI } from '../services/userAPI'
+import { userStatsAPI, userVehicleAPI, userBatteryAPI } from '../services/userAPI'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const username = ref(localStorage.getItem('username') || '用户')
 const vehicleCount = ref(0)
 const batteryCount = ref(0)
+const vehicles = ref([])
+const batteries = ref([])
 
 // 加载用户数据
 const loadUserData = async () => {
@@ -126,9 +182,69 @@ const loadUserData = async () => {
       vehicleCount.value = statsRes.data?.vehicles || 0
       batteryCount.value = statsRes.data?.batteries || 0
     }
+    
+    // 获取车辆列表
+    const vehiclesRes = await userVehicleAPI.getVehicles()
+    if (vehiclesRes.code === 200) {
+      vehicles.value = vehiclesRes.data || []
+    }
+    
+    // 获取电池列表
+    const batteriesRes = await userBatteryAPI.getBatteries()
+    if (batteriesRes.code === 200) {
+      batteries.value = batteriesRes.data || []
+    }
   } catch (error) {
     console.error('加载用户数据失败:', error)
   }
+}
+
+// 编辑车辆
+const editVehicle = (vehicle) => {
+  router.push({ name: 'MyVehicles' })
+  // 可以在这里设置编辑状态
+}
+
+// 删除车辆
+const deleteVehicle = async (vehicle) => {
+  if (confirm(`确定要删除车辆"${vehicle.name}"吗？`)) {
+    try {
+      const res = await userVehicleAPI.deleteVehicle(vehicle.id)
+      if (res.code === 200) {
+        await loadUserData()
+      }
+    } catch (error) {
+      console.error('删除失败:', error)
+    }
+  }
+}
+
+// 编辑电池
+const editBattery = (battery) => {
+  router.push({ name: 'MyBatteries' })
+}
+
+// 删除电池
+const deleteBattery = async (battery) => {
+  if (confirm(`确定要删除电池"${battery.name}"吗？`)) {
+    try {
+      const res = await userBatteryAPI.deleteBattery(battery.id)
+      if (res.code === 200) {
+        await loadUserData()
+      }
+    } catch (error) {
+      console.error('删除失败:', error)
+    }
+  }
+}
+
+// 查看详情
+const viewVehicleDetail = (vehicle) => {
+  router.push({ name: 'MyVehicles' })
+}
+
+const viewBatteryDetail = (battery) => {
+  router.push({ name: 'MyBatteries' })
 }
 
 onMounted(() => {
@@ -344,11 +460,19 @@ onMounted(() => {
 .asset-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   padding: 16px 20px;
   background: white;
   border-radius: 12px;
   border: 1px solid #e8e8e8;
+}
+
+.asset-item-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
 }
 
 .asset-icon {
@@ -359,6 +483,76 @@ onMounted(() => {
   font-size: 16px;
   color: #333;
   font-weight: 500;
+  flex: 1;
+}
+
+.asset-status {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.asset-status.online {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.asset-status.offline {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.asset-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.asset-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.asset-action-btn .btn-icon {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
+.asset-action-btn.view {
+  color: #2e7d32;
+  background: #e8f5e9;
+}
+
+.asset-action-btn.view:hover {
+  background: #c8e6c9;
+}
+
+.asset-action-btn.edit {
+  color: #1976d2;
+  background: #e3f2fd;
+}
+
+.asset-action-btn.edit:hover {
+  background: #bbdefb;
+}
+
+.asset-action-btn.delete {
+  color: #c62828;
+  background: #ffebee;
+}
+
+.asset-action-btn.delete:hover {
+  background: #ffcdd2;
 }
 
 .view-more {

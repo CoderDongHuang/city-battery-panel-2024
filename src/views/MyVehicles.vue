@@ -70,12 +70,27 @@
           </div>
 
           <div class="vehicle-card-footer">
+            <button class="action-btn view" @click="viewVehicleDetail(vehicle)">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <span>详情</span>
+            </button>
             <button class="action-btn edit" @click="editVehicle(vehicle)">
-              <span>✏️</span>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
               <span>编辑</span>
             </button>
             <button class="action-btn delete" @click="confirmDelete(vehicle)">
-              <span>🗑️</span>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
               <span>删除</span>
             </button>
           </div>
@@ -110,13 +125,43 @@
               <label class="form-label">
                 <span class="required">*</span> 品牌型号
               </label>
-              <input
-                v-model="formData.brand"
-                type="text"
-                class="form-input"
-                placeholder="例如：特斯拉 Model 3"
-                required
-              />
+              <div class="brand-selector">
+                <div class="search-box">
+                  <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                  </svg>
+                  <input
+                    v-model="brandSearch"
+                    type="text"
+                    class="form-input"
+                    placeholder="搜索品牌或型号（如：特斯拉、Model 3）"
+                    @input="filterBrands"
+                  />
+                </div>
+                
+                <div v-if="showBrandDropdown" class="brand-dropdown">
+                  <div 
+                    v-for="brand in filteredBrands" 
+                    :key="brand"
+                    class="brand-option"
+                    @click="selectBrand(brand)"
+                  >
+                    {{ brand }}
+                  </div>
+                  <div v-if="filteredBrands.length === 0" class="no-results">
+                    没有找到匹配的品牌
+                  </div>
+                </div>
+                
+                <input
+                  v-model="formData.brand"
+                  type="text"
+                  class="form-input"
+                  placeholder="或手动输入品牌型号"
+                  required
+                />
+              </div>
             </div>
 
             <div class="form-group">
@@ -175,13 +220,77 @@
       </div>
     </div>
 
+    <!-- 车辆详情弹窗 -->
+    <div v-if="showDetailModal" class="modal-overlay" @click="closeDetailModal">
+      <div class="modal-container detail-modal" @click.stop>
+        <div class="modal-header">
+          <h2>🚗 车辆详情</h2>
+          <button class="modal-close" @click="closeDetailModal">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="detail-content">
+            <div class="detail-row">
+              <span class="detail-label">车辆名称</span>
+              <span class="detail-value">{{ selectedVehicle?.name }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">品牌型号</span>
+              <span class="detail-value">{{ selectedVehicle?.brand }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">车架号 (VIN)</span>
+              <span class="detail-value">{{ selectedVehicle?.vin || '未登记' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">车牌号</span>
+              <span class="detail-value">{{ selectedVehicle?.plateNumber || '未登记' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">购买日期</span>
+              <span class="detail-value">{{ selectedVehicle?.purchaseDate || '未知' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">状态</span>
+              <span class="detail-value">
+                <span class="status-badge" :class="selectedVehicle?.status">
+                  {{ selectedVehicle?.status === 'online' ? '🟢 在线' : '🔴 离线' }}
+                </span>
+              </span>
+            </div>
+            <div v-if="selectedVehicle?.notes" class="detail-row">
+              <span class="detail-label">备注</span>
+              <span class="detail-value notes">{{ selectedVehicle?.notes }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">创建时间</span>
+              <span class="detail-value">{{ formatDate(selectedVehicle?.createdAt) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">更新时间</span>
+              <span class="detail-value">{{ formatDate(selectedVehicle?.updatedAt) }}</span>
+            </div>
+          </div>
+
+          <div class="detail-actions">
+            <button class="btn-cancel" @click="closeDetailModal">
+              关闭
+            </button>
+            <button class="btn-primary" @click="editFromDetail">
+              编辑
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 页脚 -->
     <SiteFooter />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { userVehicleAPI } from '../services/userAPI'
 import SiteFooter from '../components/SiteFooter.vue'
@@ -192,8 +301,19 @@ const submitting = ref(false)
 const vehicles = ref([])
 const showAddModal = ref(false)
 const showEditModal = ref(false)
+const showDetailModal = ref(false)
 const isEditing = ref(false)
 const editingVehicleId = ref(null)
+const selectedVehicle = ref(null)
+
+// 品牌选择相关
+const brandSearch = ref('')
+const showBrandDropdown = ref(false)
+const filteredBrands = ref([])
+
+// 从 JSON 文件加载车辆品牌和型号数据
+import vehicleBrandsData from '../data/vehicle-brands.json'
+const vehicleBrands = vehicleBrandsData.brands || []
 
 // 表单数据
 const formData = reactive({
@@ -340,11 +460,91 @@ const resetForm = () => {
   formData.plateNumber = ''
   formData.purchaseDate = ''
   formData.notes = ''
+  brandSearch.value = ''
+  filteredBrands.value = []
+  showBrandDropdown.value = false
+}
+
+// 过滤品牌
+const filterBrands = () => {
+  const search = brandSearch.value.trim().toLowerCase()
+  if (search) {
+    filteredBrands.value = vehicleBrands.filter(brand => 
+      brand.toLowerCase().includes(search)
+    )
+    showBrandDropdown.value = true
+  } else {
+    filteredBrands.value = []
+    showBrandDropdown.value = false
+  }
+}
+
+// 选择品牌
+const selectBrand = (brand) => {
+  formData.brand = brand
+  brandSearch.value = ''
+  filteredBrands.value = []
+  showBrandDropdown.value = false
+}
+
+// 点击外部关闭下拉框
+const handleClickOutside = (event) => {
+  const selector = document.querySelector('.brand-selector')
+  if (selector && !selector.contains(event.target)) {
+    showBrandDropdown.value = false
+  }
+}
+
+// 查看车辆详情
+const viewVehicleDetail = (vehicle) => {
+  selectedVehicle.value = vehicle
+  showDetailModal.value = true
+}
+
+// 关闭详情弹窗
+const closeDetailModal = () => {
+  showDetailModal.value = false
+  selectedVehicle.value = null
+}
+
+// 从详情页编辑
+const editFromDetail = () => {
+  if (selectedVehicle.value) {
+    // 直接填充表单数据并打开编辑弹窗，不关闭详情弹窗
+    editingVehicleId.value = selectedVehicle.value.id
+    formData.name = selectedVehicle.value.name
+    formData.brand = selectedVehicle.value.brand
+    formData.vin = selectedVehicle.value.vin
+    formData.plateNumber = selectedVehicle.value.plateNumber || ''
+    formData.purchaseDate = selectedVehicle.value.purchaseDate || ''
+    formData.notes = selectedVehicle.value.notes || ''
+    isEditing.value = true
+    showDetailModal.value = false
+    showEditModal.value = true
+  }
+}
+
+// 格式化日期
+const formatDate = (dateString) => {
+  if (!dateString) return '未知'
+  const date = new Date(dateString)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 // 生命周期
 onMounted(() => {
   fetchVehicles()
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -611,6 +811,21 @@ onMounted(() => {
   transition: all 0.2s ease;
 }
 
+.btn-icon {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
+.action-btn.view {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.action-btn.view:hover {
+  background: #c8e6c9;
+}
+
 .action-btn.edit {
   background: #e3f2fd;
   color: #1976d2;
@@ -735,6 +950,68 @@ onMounted(() => {
   min-height: 80px;
 }
 
+/* 品牌选择器样式 */
+.brand-selector {
+  position: relative;
+}
+
+.search-box {
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #999;
+  pointer-events: none;
+}
+
+.search-box .form-input {
+  padding-left: 40px;
+}
+
+.brand-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: 4px;
+}
+
+.brand-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.brand-option:last-child {
+  border-bottom: none;
+}
+
+.brand-option:hover {
+  background: #f5f5f5;
+}
+
+.no-results {
+  padding: 16px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
@@ -780,6 +1057,90 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
+/* 详情弹窗样式 */
+.detail-modal .detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: #333;
+  text-align: right;
+  flex: 1;
+  margin-left: 16px;
+}
+
+.detail-value.notes {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-badge.online {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.offline {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e8e8e8;
+}
+
+.detail-actions .btn-primary {
+  background: #f5f5f5;
+  color: #333;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #d9d9d9;
+}
+
+.detail-actions .btn-primary:hover {
+  background: #ffffff;
+  border-color: #d9d9d9;
+  transform: translateY(-2px);
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .page-header {
@@ -810,6 +1171,10 @@ onMounted(() => {
   .vehicle-detail-row {
     flex-direction: column;
     gap: 4px;
+  }
+
+  .vehicle-detail-row.notes-row {
+    align-items: flex-start;
   }
 
   .detail-value {

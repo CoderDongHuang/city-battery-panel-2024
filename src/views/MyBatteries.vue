@@ -70,12 +70,27 @@
           </div>
 
           <div class="battery-card-footer">
+            <button class="action-btn view" @click="viewBatteryDetail(battery)">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <span>详情</span>
+            </button>
             <button class="action-btn edit" @click="editBattery(battery)">
-              <span>✏️</span>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
               <span>编辑</span>
             </button>
             <button class="action-btn delete" @click="confirmDelete(battery)">
-              <span>🗑️</span>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
               <span>删除</span>
             </button>
           </div>
@@ -175,6 +190,70 @@
       </div>
     </div>
 
+    <!-- 电池详情弹窗 -->
+    <div v-if="showDetailModal" class="modal-overlay" @click="closeDetailModal">
+      <div class="modal-container detail-modal" @click.stop>
+        <div class="modal-header">
+          <h2>🔋 电池详情</h2>
+          <button class="modal-close" @click="closeDetailModal">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="detail-content">
+            <div class="detail-row">
+              <span class="detail-label">电池名称</span>
+              <span class="detail-value">{{ selectedBattery?.name }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">电池型号</span>
+              <span class="detail-value">{{ selectedBattery?.model }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">电池编码</span>
+              <span class="detail-value">{{ selectedBattery?.code || '未登记' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">电池容量</span>
+              <span class="detail-value">{{ selectedBattery?.capacity ? selectedBattery.capacity + ' Ah' : '未知' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">购买日期</span>
+              <span class="detail-value">{{ selectedBattery?.purchaseDate || '未知' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">状态</span>
+              <span class="detail-value">
+                <span class="status-badge" :class="selectedBattery?.status">
+                  {{ selectedBattery?.status === 'online' ? '🟢 在线' : '🔴 离线' }}
+                </span>
+              </span>
+            </div>
+            <div v-if="selectedBattery?.notes" class="detail-row">
+              <span class="detail-label">备注</span>
+              <span class="detail-value notes">{{ selectedBattery?.notes }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">创建时间</span>
+              <span class="detail-value">{{ formatDate(selectedBattery?.createdAt) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">更新时间</span>
+              <span class="detail-value">{{ formatDate(selectedBattery?.updatedAt) }}</span>
+            </div>
+          </div>
+
+          <div class="detail-actions">
+            <button class="btn-cancel" @click="closeDetailModal">
+              关闭
+            </button>
+            <button class="btn-primary" @click="editFromDetail">
+              编辑
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 页脚 -->
     <SiteFooter />
   </div>
@@ -192,7 +271,9 @@ const batteries = ref([])
 const loading = ref(false)
 const showAddModal = ref(false)
 const showEditModal = ref(false)
+const showDetailModal = ref(false)
 const submitting = ref(false)
+const selectedBattery = ref(null)
 
 const formData = ref({
   name: '',
@@ -322,6 +403,50 @@ const handleSubmit = async () => {
 onMounted(() => {
   loadBatteries()
 })
+
+// 查看电池详情
+const viewBatteryDetail = (battery) => {
+  selectedBattery.value = battery
+  showDetailModal.value = true
+}
+
+// 关闭详情弹窗
+const closeDetailModal = () => {
+  showDetailModal.value = false
+  selectedBattery.value = null
+}
+
+// 从详情页编辑
+const editFromDetail = () => {
+  if (selectedBattery.value) {
+    // 直接填充表单数据并打开编辑弹窗，不关闭详情弹窗
+    currentBattery.value = selectedBattery.value
+    formData.value = {
+      name: selectedBattery.value.name,
+      model: selectedBattery.value.model,
+      code: selectedBattery.value.code,
+      capacity: selectedBattery.value.capacity,
+      purchaseDate: selectedBattery.value.purchaseDate,
+      notes: selectedBattery.value.notes || ''
+    }
+    isEditing.value = true
+    showDetailModal.value = false
+    showEditModal.value = true
+  }
+}
+
+// 格式化日期
+const formatDate = (dateString) => {
+  if (!dateString) return '未知'
+  const date = new Date(dateString)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 </script>
 
 <style scoped>
@@ -571,6 +696,7 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: right;
 }
 
 .battery-card-footer {
@@ -593,6 +719,21 @@ onMounted(() => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.btn-icon {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
+.action-btn.view {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.action-btn.view:hover {
+  background: #c8e6c9;
 }
 
 .action-btn.edit {
@@ -765,6 +906,90 @@ onMounted(() => {
 .btn-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* 详情弹窗样式 */
+.detail-modal .detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.detail-value {
+  font-size: 14px;
+  color: #333;
+  text-align: right;
+  flex: 1;
+  margin-left: 16px;
+}
+
+.detail-value.notes {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-badge.online {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.offline {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.detail-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e8e8e8;
+}
+
+.detail-actions .btn-primary {
+  background: #f5f5f5;
+  color: #333;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #d9d9d9;
+}
+
+.detail-actions .btn-primary:hover {
+  background: #ffffff;
+  border-color: #d9d9d9;
+  transform: translateY(-2px);
 }
 
 /* 响应式设计 */
