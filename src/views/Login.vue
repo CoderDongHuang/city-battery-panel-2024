@@ -309,10 +309,17 @@ const handleLogin = async () => {
       password: password.value
     })
     
+    console.log('[登录响应] 完整数据:', response)
+    console.log('[登录响应] data:', response.data)
+    console.log('[登录响应] user:', response.data?.user)
+    
     if (response.code === 200 || response.code === 0) {
       localStorage.setItem('token', response.data.token)
+      localStorage.setItem('userId', response.data.user?.id || response.data.user?.userId || response.data.user?.uid)
       localStorage.setItem('username', response.data.user.username)
       localStorage.setItem('userRole', response.data.user.role || 'user')
+      
+      console.log('[登录] 保存的 userId:', localStorage.getItem('userId'))
       
       // 根据角色跳转到不同的界面
       if (response.data.user.role === 'admin') {
