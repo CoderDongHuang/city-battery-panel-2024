@@ -64,13 +64,14 @@
 .site-footer {
   background: #1a1a1a;
   color: #ccc;
-  padding: 60px 20px 30px;
+  padding: 60px 0 30px;
   margin-top: 80px;
+  width: 100%;
 }
 
 .footer-container {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  padding: 0 40px;
 }
 
 .footer-content {
@@ -78,6 +79,9 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 40px;
   margin-bottom: 40px;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .footer-section h3 {
@@ -152,6 +156,12 @@
   border-top: 1px solid #333;
   padding-top: 24px;
   text-align: center;
+  width: 100%;
+}
+
+.footer-info {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .footer-info p {
@@ -168,8 +178,12 @@
   }
   
   .site-footer {
-    padding: 40px 15px 20px;
+    padding: 40px 0 20px;
     margin-top: 40px;
+  }
+  
+  .footer-container {
+    padding: 0 20px;
   }
   
   /* 移动端行业资源恢复单列 */

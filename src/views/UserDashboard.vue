@@ -20,9 +20,10 @@
         </div>
       </div>
 
-      <!-- 快速操作 -->
-      <div class="quick-actions-container">
-        <div class="quick-actions">
+      <!-- 主要内容区域：左边按钮，右边显示车辆和电池 -->
+      <div class="dashboard-content">
+        <!-- 左边：快捷操作按钮 -->
+        <div class="quick-actions-sidebar">
           <router-link :to="{ name: 'UserMap' }" class="quick-action-btn">
             <svg class="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -53,6 +54,51 @@
             </svg>
             <span>个人中心</span>
           </router-link>
+        </div>
+
+        <!-- 右边：显示车辆和电池 -->
+        <div class="assets-panel">
+          <!-- 我的车辆区域 -->
+          <div class="assets-section">
+            <h2 class="assets-title">我的车辆</h2>
+            <div v-if="vehicleCount === 0" class="empty-assets">
+              <h3>暂无车辆</h3>
+              <p>添加您的第一辆车，开始便捷的换电体验</p>
+              <router-link :to="{ name: 'MyVehicles' }" class="add-btn">
+                <span class="plus-icon">+</span>
+                <span>添加车辆</span>
+              </router-link>
+            </div>
+            <div v-else class="assets-list">
+              <div v-for="i in Math.min(vehicleCount, 3)" :key="i" class="asset-item">
+                <span class="asset-name">车辆 {{ i }}</span>
+              </div>
+              <div v-if="vehicleCount > 3" class="view-more">
+                还有 {{ vehicleCount - 3 }} 辆车...
+              </div>
+            </div>
+          </div>
+
+          <!-- 我的电池区域 -->
+          <div class="assets-section">
+            <h2 class="assets-title">我的电池</h2>
+            <div v-if="batteryCount === 0" class="empty-assets">
+              <h3>暂无电池</h3>
+              <p>添加您的第一块电池，开始便捷的换电体验</p>
+              <router-link :to="{ name: 'MyBatteries' }" class="add-btn">
+                <span class="plus-icon">+</span>
+                <span>添加电池</span>
+              </router-link>
+            </div>
+            <div v-else class="assets-list">
+              <div v-for="i in Math.min(batteryCount, 3)" :key="i" class="asset-item">
+                <span class="asset-name">电池 {{ i }}</span>
+              </div>
+              <div v-if="batteryCount > 3" class="view-more">
+                还有 {{ batteryCount - 3 }} 个电池...
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -169,19 +215,20 @@ onMounted(() => {
 
 
 
-/* 快速操作 */
-.quick-actions-container {
+/* 主要内容区域：左边按钮，右边显示车辆和电池 */
+.dashboard-content {
   display: flex;
-  justify-content: center;
-  padding: 24px 0;
+  gap: 32px;
+  margin-top: 24px;
 }
 
-.quick-actions {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  max-width: 1200px;
-  width: 100%;
+/* 左边：快捷操作按钮 */
+.quick-actions-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 280px;
+  flex-shrink: 0;
 }
 
 .quick-action-btn {
@@ -189,27 +236,137 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 32px 24px;
-  background: transparent;
+  padding: 28px 20px;
+  background: white;
   border-radius: 16px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid #e8e8e8;
   text-decoration: none;
   color: #333;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   transition: all 0.3s ease;
 }
 
 .quick-action-btn:hover {
-  background: #f5f5f5;
+  background: #ffffff;
   border-color: #d9d9d9;
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
 }
 
 .action-icon {
   width: 28px;
   height: 28px;
   stroke: #333;
+}
+
+/* 右边：显示车辆和电池 */
+.assets-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* 资产区域 */
+.assets-section {
+  background: #f5f5f5;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.assets-title {
+  margin: 0 0 24px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #666;
+  text-align: left;
+}
+
+/* 空状态 */
+.empty-assets {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-assets .empty-icon {
+  font-size: 80px;
+  margin-bottom: 24px;
+  opacity: 0.5;
+}
+
+.empty-assets h3 {
+  margin: 0 0 12px 0;
+  font-size: 20px;
+  color: #666;
+}
+
+.empty-assets p {
+  margin: 0 0 24px 0;
+  font-size: 15px;
+  color: #999;
+}
+
+.add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: white;
+  color: #333;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.add-btn:hover {
+  background: #ffffff;
+  border-color: #d9d9d9;
+  transform: translateY(-2px);
+}
+
+.plus-icon {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* 资产列表 */
+.assets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.asset-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e8e8e8;
+}
+
+.asset-icon {
+  font-size: 28px;
+}
+
+.asset-name {
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
+.view-more {
+  padding: 12px 20px;
+  font-size: 14px;
+  color: #999;
+  font-style: italic;
+  text-align: center;
 }
 
 /* 响应式设计 */

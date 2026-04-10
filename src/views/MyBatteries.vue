@@ -328,8 +328,8 @@ onMounted(() => {
 .my-batteries {
   min-height: 100vh;
   padding: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 页面头部 */
@@ -450,11 +450,14 @@ onMounted(() => {
   transform: translateY(-2px);
 }
 
-/* 电池卡片 */
-.battery-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+/* 电池网格 */
+.batteries-grid {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 24px;
+  width: 100%;
 }
 
 .battery-card {
@@ -464,6 +467,8 @@ onMounted(() => {
   border: 1px solid #e8e8e8;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 400px;
 }
 
 .battery-card:hover {

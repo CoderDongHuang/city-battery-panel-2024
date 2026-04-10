@@ -42,11 +42,15 @@
         </div>
       </div>
     </div>
+
+    <!-- 页脚 -->
+    <SiteFooter />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import SiteFooter from '../components/SiteFooter.vue'
 
 const username = ref(localStorage.getItem('username') || '用户')
 const userEmail = ref(localStorage.getItem('userEmail') || '')
@@ -57,6 +61,9 @@ const userRole = ref(localStorage.getItem('userRole') || 'user')
 <style scoped>
 .user-profile {
   padding: 24px;
+  min-height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
 }
 
 .page-header {
@@ -79,6 +86,7 @@ const userRole = ref(localStorage.getItem('userRole') || 'user')
   border-radius: 16px;
   padding: 32px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  flex: 1;
 }
 
 .profile-header {
@@ -176,5 +184,10 @@ const userRole = ref(localStorage.getItem('userRole') || 'user')
   font-size: 12px;
   font-weight: 600;
   text-transform: capitalize;
+}
+
+/* 页脚样式 */
+.user-profile :deep(.site-footer) {
+  margin-top: 80px;
 }
 </style>
