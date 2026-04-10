@@ -14,13 +14,18 @@ userApi.interceptors.request.use(
   (config) => {
     // 从 localStorage 获取用户 ID
     const userId = localStorage.getItem('userId')
+    console.log('[UserAPI] 当前 userId:', userId)
+    
     if (userId) {
       config.headers['X-User-ID'] = userId
+    } else {
+      console.error('[UserAPI] 未找到 userId，无法设置 X-User-ID 请求头')
     }
     
     // 生产环境不打印日志
     if (import.meta.env.DEV) {
       console.log(`[UserAPI 请求] ${config.method?.toUpperCase()} ${config.url}`)
+      console.log('[UserAPI] 请求头:', config.headers)
     }
     return config
   },
@@ -36,6 +41,14 @@ userApi.interceptors.response.use(
   },
   (error) => {
     console.error('UserAPI 请求错误:', error)
+    
+    // 处理 401 未授权错误
+    if (error.response && error.response.status === 401) {
+      console.error('未授权访问：用户 ID 无效或已过期')
+      // 不自动跳转，让前端组件处理错误
+      // 前端组件可以根据错误信息显示提示信息
+    }
+    
     return Promise.reject(error)
   }
 )
