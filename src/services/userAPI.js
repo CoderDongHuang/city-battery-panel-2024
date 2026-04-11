@@ -159,4 +159,42 @@ export const userBatteryAPI = {
   deleteBattery: (batteryId) => userApi.delete(`/user/batteries/${batteryId}`)
 }
 
+// ==================== 用户端 - 订单管理接口 ====================
+export const userOrderAPI = {
+  /**
+   * 获取当前用户的订单列表
+   * GET /user/orders
+   * 响应格式：{ code: 200, message: 'success', data: [{ id, createTime, status, vehicleName, stationName, batteryInfo, amount, ... }] }
+   */
+  getOrders: () => userApi.get('/user/orders'),
+  
+  /**
+   * 获取单个订单详情
+   * GET /user/orders/{orderId}
+   * 响应格式：{ code: 200, message: 'success', data: { id, createTime, status, vehicleName, stationName, batteryInfo, amount, ... } }
+   */
+  getOrder: (orderId) => userApi.get(`/user/orders/${orderId}`),
+  
+  /**
+   * 获取用户订单统计
+   * GET /user/orders/stats
+   * 响应格式：{ code: 200, message: 'success', data: { total: 28, completed: 22, processing: 3, pending: 3 } }
+   */
+  getStats: () => userApi.get('/user/orders/stats'),
+  
+  /**
+   * 支付订单
+   * POST /user/orders/{orderId}/pay
+   * 响应格式：{ code: 200, message: '支付成功' }
+   */
+  payOrder: (orderId) => userApi.post(`/user/orders/${orderId}/pay`),
+  
+  /**
+   * 取消订单
+   * POST /user/orders/{orderId}/cancel
+   * 响应格式：{ code: 200, message: '订单已取消' }
+   */
+  cancelOrder: (orderId) => userApi.post(`/user/orders/${orderId}/cancel`)
+}
+
 export default userApi

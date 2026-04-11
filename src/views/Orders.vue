@@ -66,6 +66,13 @@
 
       <!-- 订单列表 -->
       <div class="order-list">
+        <!-- 加载状态 -->
+        <div v-if="loading" class="loading-state">
+          <div class="loading-spinner">⏳</div>
+          <p>正在加载订单...</p>
+        </div>
+        
+        <!-- 订单列表 -->
         <div 
           v-for="order in filteredOrders" 
           :key="order.id"
@@ -140,48 +147,58 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import SiteFooter from '../components/SiteFooter.vue'
+import { userOrderAPI } from '../services/userAPI'
+import { ElMessage } from 'element-plus'
 
 const currentFilter = ref('all')
 const searchQuery = ref('')
+const loading = ref(false)
 
 const stats = ref({
-  total: 28,
-  completed: 22,
-  processing: 3,
-  pending: 3
+  total: 0,
+  completed: 0,
+  processing: 0,
+  pending: 0
 })
 
-const orders = ref([
-  {
-    id: 'ORD20240115001',
-    createTime: '2024-01-15 14:30:22',
-    status: 'completed',
-    vehicleName: '特斯拉 Model 3',
-    stationName: '朝阳科技园站',
-    batteryInfo: '60kWh - 95%',
-    amount: 89.00
-  },
-  {
-    id: 'ORD20240114002',
-    createTime: '2024-01-14 09:15:10',
-    status: 'processing',
-    vehicleName: '比亚迪 汉 EV',
-    stationName: '海淀中关村站',
-    batteryInfo: '75kWh - 换电中',
-    amount: 120.00
-  },
-  {
-    id: 'ORD20240113003',
-    createTime: '2024-01-13 16:45:33',
-    status: 'pending',
-    vehicleName: '蔚来 ES8',
-    stationName: '望京 SOHO 站',
-    batteryInfo: '100kWh - 待支付',
-    amount: 150.00
+const orders = ref([])
+
+// 加载订单列表
+const loadOrders = async () => {
+  loading.value = true
+  try {
+    const res = await userOrderAPI.getOrders()
+    if (res.code === 200) {
+      orders.value = res.data || []
+    } else {
+      ElMessage.error(res.message || '加载订单列表失败')
+    }
+  } catch (error) {
+    console.error('加载订单列表失败:', error)
+    ElMessage.error('加载订单列表失败')
+  } finally {
+    loading.value = false
   }
-])
+}
+
+// 加载订单统计
+const loadStats = async () => {
+  try {
+    const res = await userOrderAPI.getStats()
+    if (res.code === 200) {
+      stats.value = res.data || { total: 0, completed: 0, processing: 0, pending: 0 }
+    }
+  } catch (error) {
+    console.error('加载订单统计失败:', error)
+  }
+}
+
+onMounted(() => {
+  loadOrders()
+  loadStats()
+})
 
 const filteredOrders = computed(() => {
   let result = orders.value
@@ -209,16 +226,42 @@ const getStatusText = (status) => {
   return statusMap[status] || status
 }
 
-const viewDetail = (order) => {
-  alert('查看订单详情：' + order.id)
+const viewDetail = async (order) => {
+  try {
+    const res = await userOrderAPI.getOrder(order.id)
+    if (res.code === 200) {
+      ElMessage.success('获取订单详情成功')
+      // TODO: 打开订单详情弹窗
+      console.log('订单详情:', res.data)
+    } else {
+      ElMessage.error(res.message || '获取订单详情失败')
+    }
+  } catch (error) {
+    console.error('获取订单详情失败:', error)
+    ElMessage.error('获取订单详情失败')
+  }
 }
 
-const payOrder = (order) => {
-  alert('支付订单：' + order.id)
+const payOrder = async (order) => {
+  try {
+    const res = await userOrderAPI.payOrder(order.id)
+    if (res.code === 200) {
+      ElMessage.success('支付成功')
+      // 重新加载订单列表和统计
+      await loadOrders()
+      await loadStats()
+    } else {
+      ElMessage.error(res.message || '支付失败')
+    }
+  } catch (error) {
+    console.error('支付失败:', error)
+    ElMessage.error('支付失败')
+  }
 }
 
 const trackOrder = (order) => {
-  alert('追踪订单：' + order.id)
+  ElMessage.info('订单追踪功能开发中')
+  console.log('追踪订单:', order)
 }
 </script>
 
@@ -242,10 +285,7 @@ const trackOrder = (order) => {
   font-size: 32px;
   color: #333;
   margin-bottom: 8px;
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-weight: 600;
 }
 
 .page-header p {
@@ -414,24 +454,36 @@ const trackOrder = (order) => {
 .order-detail {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .order-detail {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 .detail-row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  align-items: flex-start;
+  line-height: 1.5;
 }
 
 .detail-row .label {
   color: #666;
   font-size: 14px;
-  min-width: 80px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .detail-row .value {
   color: #333;
   font-size: 14px;
-  font-weight: 500;
+  flex: 1;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .detail-row .value.price {
@@ -482,6 +534,29 @@ const trackOrder = (order) => {
   padding: 60px 20px;
   background: white;
   border-radius: 12px;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+}
+
+.loading-spinner {
+  font-size: 48px;
+  margin-bottom: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-state p {
+  color: #666;
+  font-size: 16px;
 }
 
 .empty-icon {
