@@ -197,4 +197,44 @@ export const userOrderAPI = {
   cancelOrder: (orderId) => userApi.post(`/user/orders/${orderId}/cancel`)
 }
 
+// ==================== 用户端 - 服务网点（换电站）接口 ====================
+export const userStationAPI = {
+  /**
+   * 获取所有服务网点列表（公开信息，无需用户认证）
+   * GET /user/stations
+   * 响应格式：{ code: 200, message: 'success', data: [{ id, stationId, name, positionX, positionY, address, batteryCapacity, availableBatteries, status, operatingHours, contactPhone, manager }] }
+   */
+  getStations: () => userApi.get('/user/stations'),
+  
+  /**
+   * 获取单个服务网点详情（公开信息，无需用户认证）
+   * GET /user/stations/{stationId}
+   * 响应格式：{ code: 200, message: 'success', data: { id, stationId, name, positionX, positionY, address, batteryCapacity, availableBatteries, status, operatingHours, contactPhone, manager } }
+   */
+  getStation: (stationId) => userApi.get(`/user/stations/${stationId}`),
+  
+  /**
+   * 根据状态筛选服务网点
+   * GET /user/stations?status=active
+   * 响应格式：{ code: 200, message: 'success', data: [...] }
+   */
+  getStationsByStatus: (status) => userApi.get(`/user/stations?status=${status}`),
+  
+  /**
+   * 获取附近的服务网点（根据坐标范围）
+   * GET /user/stations/nearby?x=50&y=50&radius=100
+   * 响应格式：{ code: 200, message: 'success', data: [{ id, stationId, name, positionX, positionY, address, distance, ... }] }
+   */
+  getNearbyStations: (x, y, radius = 100) => 
+    userApi.get(`/user/stations/nearby?x=${x}&y=${y}&radius=${radius}`),
+  
+  /**
+   * 获取可用电池数量大于指定值的站点
+   * GET /user/stations/available?minBatteries=5
+   * 响应格式：{ code: 200, message: 'success', data: [...] }
+   */
+  getAvailableStations: (minBatteries = 1) => 
+    userApi.get(`/user/stations/available?minBatteries=${minBatteries}`)
+}
+
 export default userApi
