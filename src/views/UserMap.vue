@@ -35,6 +35,13 @@
           class="search-input"
         />
       </div>
+      <div class="sort-box">
+        <select v-model="sortBy" class="sort-select">
+          <option value="default">默认排序</option>
+          <option value="available-desc">可用电池 ↓ 多到少</option>
+          <option value="available-asc">可用电池 ↑ 少到多</option>
+        </select>
+      </div>
     </div>
 
     <!-- 站点列表 -->
@@ -119,6 +126,7 @@ import { ElMessage } from 'element-plus'
 
 const filterStatus = ref('all')
 const searchQuery = ref('')
+const sortBy = ref('default')
 const loading = ref(false)
 const stations = ref([])
 
@@ -159,6 +167,15 @@ const filteredStations = computed(() => {
       station.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       station.stationId.toLowerCase().includes(searchQuery.value.toLowerCase())
     )
+  }
+
+  // 按可用电池数量排序
+  if (sortBy.value === 'available-desc') {
+    // 多到少
+    result.sort((a, b) => b.availableBatteries - a.availableBatteries)
+  } else if (sortBy.value === 'available-asc') {
+    // 少到多
+    result.sort((a, b) => a.availableBatteries - b.availableBatteries)
   }
 
   return result
@@ -264,6 +281,31 @@ const navigateToStation = (station) => {
 }
 
 .search-input:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.sort-box {
+  margin-left: 16px;
+}
+
+.sort-select {
+  padding: 10px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.sort-select:hover {
+  border-color: #0066cc;
+}
+
+.sort-select:focus {
   outline: none;
   border-color: #0066cc;
   box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
