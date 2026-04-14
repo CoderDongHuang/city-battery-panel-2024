@@ -616,7 +616,7 @@ onUnmounted(() => {
 
 .line {
   position: absolute;
-  top: 28px;
+  top: 20px; /* 上移，连接按钮的中间部分 */
   left: 0;
   right: 100px;
   height: 2px;
@@ -625,7 +625,7 @@ onUnmounted(() => {
 
 .moving-car {
   position: absolute;
-  top: 8px;
+  top: 0px; /* 小车上移，与线对齐 */
   left: 100%;
   font-size: 20px;
   animation: moveCar 6s linear infinite;
