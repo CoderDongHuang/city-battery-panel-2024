@@ -54,6 +54,25 @@
             待支付
           </button>
         </div>
+        
+        <!-- 时间筛选 -->
+        <div class="time-filter">
+          <input 
+            v-model="startDate"
+            type="date" 
+            class="date-input"
+            placeholder="开始日期"
+          />
+          <span class="date-separator">至</span>
+          <input 
+            v-model="endDate"
+            type="date" 
+            class="date-input"
+            placeholder="结束日期"
+          />
+          <button @click="clearDateFilter" class="clear-date-btn">清除</button>
+        </div>
+        
         <div class="search-box">
           <input 
             v-model="searchQuery"
@@ -81,7 +100,7 @@
           <div class="order-header">
             <div class="order-info">
               <span class="order-id">订单号：{{ order.id }}</span>
-              <span class="order-time">{{ order.createTime }}</span>
+              <span class="order-time">{{ formatDateTime(order.createTime) }}</span>
             </div>
             <span :class="['order-status', order.status]">
               {{ getStatusText(order.status) }}
@@ -139,10 +158,10 @@
           <p>暂无订单</p>
         </div>
       </div>
+      
+      <!-- 页脚 -->
+      <SiteFooter />
     </div>
-    
-    <!-- 页脚 -->
-    <SiteFooter />
   </div>
 </template>
 
@@ -154,6 +173,8 @@ import { ElMessage } from 'element-plus'
 
 const currentFilter = ref('all')
 const searchQuery = ref('')
+const startDate = ref('')
+const endDate = ref('')
 const loading = ref(false)
 
 const stats = ref({
@@ -203,10 +224,30 @@ onMounted(() => {
 const filteredOrders = computed(() => {
   let result = orders.value
 
+  // 状态筛选
   if (currentFilter.value !== 'all') {
     result = result.filter(order => order.status === currentFilter.value)
   }
 
+  // 时间筛选
+  if (startDate.value) {
+    const start = new Date(startDate.value)
+    result = result.filter(order => {
+      const orderDate = new Date(order.createTime.replace('T', ' '))
+      return orderDate >= start
+    })
+  }
+  
+  if (endDate.value) {
+    const end = new Date(endDate.value)
+    end.setHours(23, 59, 59, 999) // 包含结束日期的整天
+    result = result.filter(order => {
+      const orderDate = new Date(order.createTime.replace('T', ' '))
+      return orderDate <= end
+    })
+  }
+
+  // 搜索筛选
   if (searchQuery.value) {
     result = result.filter(order => 
       order.id.toLowerCase().includes(searchQuery.value.toLowerCase())
@@ -216,6 +257,12 @@ const filteredOrders = computed(() => {
   return result
 })
 
+// 清除日期筛选
+const clearDateFilter = () => {
+  startDate.value = ''
+  endDate.value = ''
+}
+
 const getStatusText = (status) => {
   const statusMap = {
     completed: '已完成',
@@ -224,6 +271,12 @@ const getStatusText = (status) => {
     cancelled: '已取消'
   }
   return statusMap[status] || status
+}
+
+// 格式化日期时间，将 T 替换为空格
+const formatDateTime = (dateTimeString) => {
+  if (!dateTimeString) return ''
+  return dateTimeString.replace('T', ' ')
 }
 
 const viewDetail = async (order) => {
@@ -268,29 +321,33 @@ const trackOrder = (order) => {
 <style scoped>
 .orders-page {
   min-height: calc(100vh - 80px);
-  background: #f5f7fa;
+  background: linear-gradient(180deg, 
+    rgba(200, 240, 245, 0.8) 0%, 
+    rgba(220, 230, 250, 0.7) 20%, 
+    rgba(230, 220, 255, 0.6) 40%, 
+    rgba(245, 245, 255, 0.5) 60%,
+    rgba(250, 250, 255, 0.4) 80%,
+    rgba(255, 255, 255, 0.3) 100%);
+  background-attachment: fixed;
   padding: 40px 20px;
 }
 
-.orders-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
 .page-header {
-  margin-bottom: 30px;
+  text-align: center;
+  margin-bottom: 40px;
 }
 
 .page-header h1 {
   font-size: 32px;
   color: #333;
-  margin-bottom: 8px;
+  margin: 0 0 16px 0;
   font-weight: 600;
 }
 
 .page-header p {
   color: #666;
   font-size: 14px;
+  margin: 0;
 }
 
 .order-stats {
@@ -311,10 +368,7 @@ const trackOrder = (order) => {
 .stat-value {
   font-size: 36px;
   font-weight: 700;
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #333;
   margin-bottom: 8px;
 }
 
@@ -332,11 +386,55 @@ const trackOrder = (order) => {
   padding: 16px 20px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 .filter-tabs {
   display: flex;
   gap: 12px;
+}
+
+.time-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-input {
+  padding: 10px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #333;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.date-separator {
+  color: #999;
+  font-size: 14px;
+}
+
+.clear-date-btn {
+  padding: 10px 16px;
+  background: white;
+  color: #666;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.clear-date-btn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+  color: #333;
 }
 
 .filter-tab {
@@ -350,14 +448,14 @@ const trackOrder = (order) => {
 }
 
 .filter-tab:hover {
-  border-color: #0066cc;
-  color: #0066cc;
+  border-color: #333;
+  color: #333;
 }
 
 .filter-tab.active {
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
+  background: #333;
   color: white;
-  border-color: transparent;
+  border-color: #333;
 }
 
 .search-box {
@@ -377,8 +475,8 @@ const trackOrder = (order) => {
 
 .search-input:focus {
   outline: none;
-  border-color: #0066cc;
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+  border-color: #333;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 .order-list {
@@ -500,7 +598,7 @@ const trackOrder = (order) => {
 
 .btn-primary {
   padding: 8px 24px;
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
+  background: #333;
   color: white;
   border: none;
   border-radius: 6px;
@@ -510,15 +608,16 @@ const trackOrder = (order) => {
 }
 
 .btn-primary:hover {
+  background: #000;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .btn-secondary {
   padding: 8px 24px;
   background: white;
-  color: #0066cc;
-  border: 1px solid #0066cc;
+  color: #333;
+  border: 1px solid #333;
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
@@ -526,7 +625,7 @@ const trackOrder = (order) => {
 }
 
 .btn-secondary:hover {
-  background: #f0f7ff;
+  background: #f5f5f5;
 }
 
 .empty-state {

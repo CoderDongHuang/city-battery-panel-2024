@@ -61,7 +61,7 @@
             </router-link>
           </div>
           <div v-else class="assets-list">
-            <div v-for="vehicle in vehicles.slice(0, 3)" :key="vehicle.id" class="asset-item">
+            <div v-for="vehicle in vehicles" :key="vehicle.id" class="asset-item">
               <div class="asset-item-content">
                 <span class="asset-icon">🚗</span>
                 <span class="asset-name">{{ vehicle.name }}</span>
@@ -90,9 +90,6 @@
                 </button>
               </div>
             </div>
-            <div v-if="vehicleCount > 3" class="view-more">
-              <router-link :to="{ name: 'MyVehicles' }">还有 {{ vehicleCount - 3 }} 辆车... 查看全部 →</router-link>
-            </div>
           </div>
         </div>
         
@@ -114,7 +111,7 @@
             </router-link>
           </div>
           <div v-else class="assets-list">
-            <div v-for="battery in batteries.slice(0, 3)" :key="battery.id" class="asset-item">
+            <div v-for="battery in batteries" :key="battery.id" class="asset-item">
               <div class="asset-item-content">
                 <span class="asset-icon">🔋</span>
                 <span class="asset-name">{{ battery.name }}</span>
@@ -143,9 +140,6 @@
                 </button>
               </div>
             </div>
-            <div v-if="batteryCount > 3" class="view-more">
-              <router-link :to="{ name: 'MyBatteries' }">还有 {{ batteryCount - 3 }} 个电池... 查看全部 →</router-link>
-            </div>
           </div>
         </div>
       </div>
@@ -157,10 +151,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import SiteFooter from '../components/SiteFooter.vue'
-import { userStatsAPI, userVehicleAPI, userBatteryAPI } from '../services/userAPI'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { userStatsAPI, userVehicleAPI, userBatteryAPI } from '../services/userAPI'
+import SiteFooter from '../components/SiteFooter.vue'
 
 const router = useRouter()
 const username = ref(localStorage.getItem('username') || '用户')
@@ -168,6 +162,24 @@ const vehicleCount = ref(0)
 const batteryCount = ref(0)
 const vehicles = ref([])
 const batteries = ref([])
+
+// 分页相关
+const itemsPerPage = ref(5) // 每页显示 5 个
+const vehicleCurrentPage = ref(1)
+const batteryCurrentPage = ref(1)
+
+// 分页计算属性
+const paginatedVehicles = computed(() => {
+  const start = (vehicleCurrentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return vehicles.value.slice(start, end)
+})
+
+const paginatedBatteries = computed(() => {
+  const start = (batteryCurrentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return batteries.value.slice(start, end)
+})
 
 // 加载用户数据
 const loadUserData = async () => {
@@ -571,6 +583,45 @@ onMounted(() => {
 
 .asset-action-btn.delete:hover {
   background: #ffcdd2;
+}
+
+/* 分页样式 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e8e8e8;
+}
+
+.page-btn {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
 }
 
 .view-more {

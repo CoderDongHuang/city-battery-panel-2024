@@ -625,12 +625,18 @@ const formatDate = (dateString) => {
 
 /* 电池网格 */
 .batteries-grid {
-  flex: 1;
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
+  align-items: center;
+  min-height: 400px;
+}
+
+.battery-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   width: 100%;
+  max-width: 1400px;
 }
 
 .battery-card {
@@ -640,8 +646,6 @@ const formatDate = (dateString) => {
   border: 1px solid #e8e8e8;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  max-width: 400px;
 }
 
 .battery-card:hover {
