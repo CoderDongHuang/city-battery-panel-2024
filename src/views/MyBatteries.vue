@@ -3,13 +3,28 @@
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-content">
-        <h1>🔋 我的电池</h1>
+        <h1>我的电池</h1>
         <p>管理您的电池信息，随时掌握电池状态</p>
       </div>
-      <button class="add-battery-btn" @click="showAddModal = true">
-        <span class="plus-icon">+</span>
-        <span>添加电池</span>
-      </button>
+    </div>
+    
+    <!-- 装饰线（波浪线） -->
+    <div class="decorative-line-wrapper">
+      <div class="decorative-line">
+        <svg class="wave-line" viewBox="0 0 1200 60" preserveAspectRatio="none">
+          <path d="M0,30 Q30,0 60,30 T120,30 T180,30 T240,30 T300,30 T360,30 T420,30 T480,30 T540,30 T600,30 T660,30 T720,30 T780,30 T840,30 T900,30 T960,30 T1020,30 T1080,30 T1200,30" 
+                stroke="#333" 
+                stroke-width="2" 
+                fill="none"/>
+        </svg>
+      </div>
+      <!-- 添加电池按钮（独立一行） -->
+      <div class="add-btn-container">
+        <button class="add-battery-btn" @click="showAddModal = true">
+          <span class="plus-icon">+</span>
+          <span>添加电池</span>
+        </button>
+      </div>
     </div>
 
     <!-- 电池列表 -->
@@ -455,22 +470,24 @@ const formatDate = (dateString) => {
   padding: 24px;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(180deg, 
+    rgba(200, 240, 245, 0.8) 0%, 
+    rgba(220, 230, 250, 0.7) 20%, 
+    rgba(230, 220, 255, 0.6) 40%, 
+    rgba(245, 245, 255, 0.5) 60%,
+    rgba(250, 250, 255, 0.4) 80%,
+    rgba(255, 255, 255, 0.3) 100%);
+  background-attachment: fixed;
 }
 
 /* 页面头部 */
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  padding: 24px;
-  background: #f5f5f5;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  margin-bottom: 24px;
 }
 
 .header-content h1 {
-  margin: 0 0 8px 0;
+  margin: 0 0 16px 0;
   font-size: 28px;
   font-weight: 700;
   color: #333;
@@ -478,8 +495,39 @@ const formatDate = (dateString) => {
 
 .header-content p {
   margin: 0;
-  font-size: 14px;
   color: #666;
+  font-size: 14px;
+}
+
+/* 装饰线（波浪线） */
+.decorative-line-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.decorative-line {
+  position: relative;
+  flex: 1;
+  height: 40px;
+  margin-right: -100px;
+}
+
+.wave-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 添加电池按钮容器 */
+.add-btn-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
 }
 
 .add-battery-btn {
@@ -487,20 +535,20 @@ const formatDate = (dateString) => {
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: #f5f5f5;
-  color: #333;
-  border: 1px solid #d9d9d9;
+  background: #333;
+  color: white;
+  border: none;
   border-radius: 12px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
 }
 
 .add-battery-btn:hover {
-  background: #ffffff;
-  border-color: #d9d9d9;
+  background: #000;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .plus-icon {

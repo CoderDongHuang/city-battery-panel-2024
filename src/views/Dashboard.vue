@@ -643,7 +643,14 @@ export default {
 .dashboard {
   padding: 24px;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(180deg, 
+    rgba(200, 240, 245, 0.8) 0%, 
+    rgba(220, 230, 250, 0.7) 20%, 
+    rgba(230, 220, 255, 0.6) 40%, 
+    rgba(245, 245, 255, 0.5) 60%,
+    rgba(250, 250, 255, 0.4) 80%,
+    rgba(255, 255, 255, 0.3) 100%);
+  background-attachment: fixed;
   font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 

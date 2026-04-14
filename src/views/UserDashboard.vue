@@ -257,6 +257,14 @@ onMounted(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(180deg, 
+    rgba(200, 240, 245, 0.8) 0%, 
+    rgba(220, 230, 250, 0.7) 20%, 
+    rgba(230, 220, 255, 0.6) 40%, 
+    rgba(245, 245, 255, 0.5) 60%,
+    rgba(250, 250, 255, 0.4) 80%,
+    rgba(255, 255, 255, 0.3) 100%);
+  background-attachment: fixed;
 }
 
 /* 主要内容 */

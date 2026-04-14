@@ -3,13 +3,24 @@
     <!-- 页面头部 -->
     <div class="page-header">
       <div class="header-content">
-        <h1>🚗 我的车辆</h1>
+        <h1>我的车辆</h1>
         <p>管理您的车辆信息，随时掌握车辆状态</p>
       </div>
-      <button class="add-vehicle-btn" @click="showAddModal = true">
-        <span class="plus-icon">+</span>
-        <span>添加车辆</span>
-      </button>
+    </div>
+    
+    <!-- 装饰线（带小车动画） -->
+    <div class="decorative-line-wrapper">
+      <div class="decorative-line">
+        <div class="line"></div>
+        <div class="moving-car">🚗</div>
+      </div>
+      <!-- 添加车辆按钮（独立一行） -->
+      <div class="add-btn-container">
+        <button class="add-vehicle-btn" @click="showAddModal = true">
+          <span class="plus-icon">+</span>
+          <span>添加车辆</span>
+        </button>
+      </div>
     </div>
 
     <!-- 车辆列表 -->
@@ -552,22 +563,24 @@ onUnmounted(() => {
 .my-vehicles {
   padding: 24px;
   min-height: calc(100vh - 200px);
+  background: linear-gradient(180deg, 
+    rgba(200, 240, 245, 0.8) 0%, 
+    rgba(220, 230, 250, 0.7) 20%, 
+    rgba(230, 220, 255, 0.6) 40%, 
+    rgba(245, 245, 255, 0.5) 60%,
+    rgba(250, 250, 255, 0.4) 80%,
+    rgba(255, 255, 255, 0.3) 100%);
+  background-attachment: fixed;
 }
 
 /* 页面头部 */
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  padding: 24px 32px;
-  background: #f5f5f5;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  margin-bottom: 24px;
 }
 
 .header-content h1 {
-  margin: 0 0 8px 0;
+  margin: 0 0 14px 0;
   font-size: 28px;
   color: #333;
 }
@@ -578,25 +591,82 @@ onUnmounted(() => {
   font-size: 14px;
 }
 
+/* 添加车辆按钮容器 */
+.add-btn-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+/* 装饰线（带小车动画） */
+.decorative-line-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.decorative-line {
+  position: relative;
+  flex: 1;
+  height: 40px;
+  margin-right: -100px;
+}
+
+.line {
+  position: absolute;
+  top: 28px;
+  left: 0;
+  right: 100px;
+  height: 2px;
+  background: linear-gradient(to right, #333 0%, #666 100%);
+}
+
+.moving-car {
+  position: absolute;
+  top: 8px;
+  left: 100%;
+  font-size: 20px;
+  animation: moveCar 6s linear infinite;
+}
+
+@keyframes moveCar {
+  0% {
+    left: 100%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: 0;
+    opacity: 0;
+  }
+}
+
 .add-vehicle-btn {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  background: white;
-  color: #333;
-  border: 1px solid #d9d9d9;
+  background: #333;
+  color: white;
+  border: none;
   border-radius: 12px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
 }
 
 .add-vehicle-btn:hover {
-  background: #ffffff;
-  border-color: #d9d9d9;
+  background: #000;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .plus-icon {

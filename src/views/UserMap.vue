@@ -209,11 +209,19 @@ const navigateToStation = (station) => {
   min-height: calc(100vh - 200px);
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: linear-gradient(180deg, 
+    rgba(200, 240, 245, 0.8) 0%, 
+    rgba(220, 230, 250, 0.7) 20%, 
+    rgba(230, 220, 255, 0.6) 40%, 
+    rgba(245, 245, 255, 0.5) 60%,
+    rgba(250, 250, 255, 0.4) 80%,
+    rgba(255, 255, 255, 0.3) 100%);
+  background-attachment: fixed;
 }
 
 .page-header {
   margin-bottom: 24px;
+  text-align: center;
 }
 
 .page-header h1 {
@@ -255,14 +263,14 @@ const navigateToStation = (station) => {
 }
 
 .filter-tab:hover {
-  border-color: #0066cc;
-  color: #0066cc;
+  border-color: #333;
+  color: #333;
 }
 
 .filter-tab.active {
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
+  background: #333;
   color: white;
-  border-color: transparent;
+  border-color: #333;
 }
 
 .search-box {
@@ -282,8 +290,8 @@ const navigateToStation = (station) => {
 
 .search-input:focus {
   outline: none;
-  border-color: #0066cc;
-  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+  border-color: #333;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 .sort-box {
@@ -313,17 +321,18 @@ const navigateToStation = (station) => {
 
 /* 站点列表 */
 .station-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
 }
 
 .station-card {
   background: white;
   border-radius: 12px;
-  padding: 24px;
+  padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s;
+  height: fit-content;
 }
 
 .station-card:hover {
@@ -334,22 +343,22 @@ const navigateToStation = (station) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #f0f0f0;
 }
 
 .station-name {
-  font-size: 20px;
+  font-size: 18px;
   color: #333;
   margin: 0;
   font-weight: 600;
 }
 
 .status-badge {
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -369,13 +378,13 @@ const navigateToStation = (station) => {
 }
 
 .station-info {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .info-row {
   display: flex;
   gap: 8px;
-  padding: 10px 0;
+  padding: 8px 0;
   border-bottom: 1px solid #f5f5f5;
 }
 
@@ -385,14 +394,14 @@ const navigateToStation = (station) => {
 
 .info-label {
   color: #666;
-  font-size: 14px;
+  font-size: 13px;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .info-value {
   color: #333;
-  font-size: 14px;
+  font-size: 13px;
   flex: 1;
 }
 
@@ -403,39 +412,39 @@ const navigateToStation = (station) => {
 
 .station-actions {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   justify-content: flex-end;
 }
 
 .btn-primary {
-  padding: 8px 24px;
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
+  padding: 6px 16px;
+  background: #333;
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .btn-secondary {
-  padding: 8px 24px;
+  padding: 6px 16px;
   background: white;
-  color: #0066cc;
-  border: 1px solid #0066cc;
+  color: #333;
+  border: 1px solid #333;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .btn-secondary:hover {
-  background: #f0f7ff;
+  background: #f5f5f5;
 }
 
 /* 加载状态 */
@@ -486,6 +495,12 @@ const navigateToStation = (station) => {
 }
 
 /* 响应式设计 */
+@media (max-width: 1200px) {
+  .station-list {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .filter-bar {
     flex-direction: column;
@@ -508,6 +523,19 @@ const navigateToStation = (station) => {
     width: 100%;
     max-width: none;
     margin-left: 0;
+  }
+
+  .sort-box {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .sort-select {
+    width: 100%;
+  }
+
+  .station-list {
+    grid-template-columns: 1fr;
   }
 
   .station-header {
