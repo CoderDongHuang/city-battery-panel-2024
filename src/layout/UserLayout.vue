@@ -94,7 +94,7 @@
           </nav>
           
           <div class="header-actions">
-            <div class="user-profile" @click="toggleProfileDropdown">
+            <div class="user-menu" @click="toggleProfileDropdown">
               <img 
                 v-if="userAvatar" 
                 :src="userAvatar" 
@@ -207,18 +207,20 @@ onUnmounted(() => {
 <style scoped>
 .user-layout {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: var(--bg-primary);
+  transition: background-color 0.3s ease;
 }
 
 /* 顶部导航栏 */
 .user-header {
-  background: #F5F5F5;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--card-bg);
+  box-shadow: 0 2px 8px var(--shadow-color);
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* 导航栏占位符，防止内容被导航栏遮挡 */
@@ -228,7 +230,8 @@ onUnmounted(() => {
 }
 
 .header-main {
-  background: #F5F5F5;
+  background: var(--card-bg);
+  transition: background-color 0.3s ease;
 }
 
 .main-nav-container {
@@ -247,7 +250,7 @@ onUnmounted(() => {
   gap: 16px;
 }
 
-.user-profile {
+.user-menu {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -257,8 +260,8 @@ onUnmounted(() => {
   transition: all 0.3s ease;
 }
 
-.user-profile:hover {
-  background: rgba(0, 0, 0, 0.05);
+.user-menu:hover {
+  background: var(--hover-bg);
 }
 
 .user-avatar {
@@ -283,15 +286,16 @@ onUnmounted(() => {
 }
 
 .user-name {
-  color: #333;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .nav-arrow {
   font-size: 10px;
-  color: #666;
-  transition: transform 0.3s ease;
+  color: var(--text-secondary);
+  transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .nav-arrow.rotated {
@@ -329,7 +333,7 @@ onUnmounted(() => {
 }
 
 .app-title {
-  color: #333;
+  color: var(--text-primary);
   font-size: 32px;
   font-weight: 700;
   letter-spacing: 3px;
@@ -340,9 +344,10 @@ onUnmounted(() => {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+  filter: drop-shadow(2px 2px 4px var(--shadow-color));
   line-height: 1.2;
   padding: 4px 0;
+  transition: color 0.3s ease;
 }
 
 .main-nav {
@@ -352,7 +357,7 @@ onUnmounted(() => {
 
 .nav-item {
   padding: 20px 24px;
-  color: #333;
+  color: var(--text-primary);
   text-decoration: none;
   font-size: 15px;
   font-weight: 500;
@@ -362,12 +367,12 @@ onUnmounted(() => {
 
 .nav-item:hover {
   color: #0066cc;
-  background: rgba(0, 102, 204, 0.05);
+  background: var(--hover-bg);
 }
 
 .nav-item.active {
   color: #0066cc;
-  background: rgba(0, 102, 204, 0.08);
+  background: var(--hover-bg);
 }
 
 .nav-item.active::after {
@@ -400,15 +405,16 @@ onUnmounted(() => {
   position: absolute;
   top: 100%;
   left: 0;
-  background: white;
+  background: var(--card-bg);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px var(--shadow-color);
   min-width: 180px;
   z-index: 1001;
   overflow: visible;
   animation: slideDown 0.3s ease;
   margin-top: 4px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .dropdown-item {
@@ -416,18 +422,18 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  color: #333;
+  color: var(--text-primary);
   text-decoration: none;
   transition: all 0.2s ease;
 }
 
 .dropdown-item:hover {
-  background: #f5f5f5;
+  background: var(--hover-bg);
 }
 
 .dropdown-item.active {
   color: #0066cc;
-  background: rgba(0, 102, 204, 0.08);
+  background: var(--hover-bg);
 }
 
 .dropdown-icon {
@@ -465,13 +471,14 @@ onUnmounted(() => {
   position: absolute;
   top: calc(100% + 8px);
   right: 40px;
-  background: white;
+  background: var(--card-bg);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px var(--shadow-color);
   min-width: 180px;
   z-index: 2000;
   overflow: hidden;
   animation: slideDown 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .dropdown-item {
@@ -479,13 +486,13 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  color: #333;
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .dropdown-item:hover {
-  background: #f5f5f5;
+  background: var(--hover-bg);
 }
 
 .dropdown-icon {
