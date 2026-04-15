@@ -62,6 +62,7 @@
             type="date" 
             class="date-input"
             placeholder="开始日期"
+            @input="onStartDateChange"
           />
           <span class="date-separator">至</span>
           <input 
@@ -69,6 +70,7 @@
             type="date" 
             class="date-input"
             placeholder="结束日期"
+            :min="startDate || ''"
           />
           <button @click="clearDateFilter" class="clear-date-btn">清除</button>
         </div>
@@ -263,6 +265,17 @@ const clearDateFilter = () => {
   endDate.value = ''
 }
 
+// 开始时间改变时，如果结束时间早于开始时间，则清空结束时间
+const onStartDateChange = () => {
+  if (startDate.value && endDate.value) {
+    const start = new Date(startDate.value)
+    const end = new Date(endDate.value)
+    if (end < start) {
+      endDate.value = ''
+    }
+  }
+}
+
 const getStatusText = (status) => {
   const statusMap = {
     completed: '已完成',
@@ -413,6 +426,13 @@ const trackOrder = (order) => {
   outline: none;
   border-color: #333;
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+.date-input:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+  border-color: #e0e0e0;
 }
 
 .date-separator {
