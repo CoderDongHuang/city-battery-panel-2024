@@ -334,15 +334,9 @@ const trackOrder = (order) => {
 <style scoped>
 .orders-page {
   min-height: calc(100vh - 80px);
-  background: linear-gradient(180deg, 
-    rgba(200, 240, 245, 0.8) 0%, 
-    rgba(220, 230, 250, 0.7) 20%, 
-    rgba(230, 220, 255, 0.6) 40%, 
-    rgba(245, 245, 255, 0.5) 60%,
-    rgba(250, 250, 255, 0.4) 80%,
-    rgba(255, 255, 255, 0.3) 100%);
-  background-attachment: fixed;
+  background: var(--bg-primary);
   padding: 40px 20px;
+  transition: background-color 0.3s ease;
 }
 
 .page-header {
@@ -352,42 +346,57 @@ const trackOrder = (order) => {
 
 .page-header h1 {
   font-size: 32px;
-  color: #333;
+  color: var(--text-primary);
   margin: 0 0 16px 0;
   font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，页面标题保持深色（因为在浅色背景上） */
+html.dark-mode .page-header h1 {
+  color: #333333;
+}
+
+html.dark-mode .page-header p {
+  color: #666666;
 }
 
 .page-header p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
+/* 订单统计 */
 .order-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 }
 
 .stat-card {
-  background: white;
+  background: var(--card-bg);
   padding: 24px;
   border-radius: 12px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--shadow-color);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .stat-value {
   font-size: 36px;
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 8px;
+  transition: color 0.3s ease;
 }
 
 .stat-label {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .filter-bar {
@@ -395,17 +404,13 @@ const trackOrder = (order) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-  background: white;
+  background: var(--card-bg);
   padding: 16px 20px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--shadow-color);
   gap: 16px;
   flex-wrap: wrap;
-}
-
-.filter-tabs {
-  display: flex;
-  gap: 12px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .time-filter {
@@ -416,35 +421,37 @@ const trackOrder = (order) => {
 
 .date-input {
   padding: 10px 16px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.3s;
+  background: var(--input-bg);
+  color: var(--text-primary);
 }
 
 .date-input:focus {
   outline: none;
-  border-color: #333;
+  border-color: var(--border-color);
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 .date-input:disabled {
-  background: #f5f5f5;
-  color: #999;
+  background: var(--hover-bg);
+  color: var(--text-tertiary);
   cursor: not-allowed;
-  border-color: #e0e0e0;
+  border-color: var(--border-color);
 }
 
 .date-separator {
-  color: #999;
+  color: var(--text-tertiary);
   font-size: 14px;
 }
 
 .clear-date-btn {
   padding: 10px 16px;
-  background: white;
-  color: #666;
-  border: 1px solid #e0e0e0;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
@@ -452,9 +459,9 @@ const trackOrder = (order) => {
 }
 
 .clear-date-btn:hover {
-  background: #f5f5f5;
-  border-color: #999;
-  color: #333;
+  background: var(--hover-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
 }
 
 .filter-tab {
@@ -465,6 +472,7 @@ const trackOrder = (order) => {
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s;
+  color: #333;
 }
 
 .filter-tab:hover {
@@ -506,15 +514,15 @@ const trackOrder = (order) => {
 }
 
 .order-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--shadow-color);
   transition: all 0.3s;
 }
 
 .order-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 16px var(--shadow-color);
 }
 
 .order-header {
@@ -523,7 +531,8 @@ const trackOrder = (order) => {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .order-info {
@@ -534,13 +543,15 @@ const trackOrder = (order) => {
 
 .order-id {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .order-time {
   font-size: 12px;
-  color: #999;
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
 }
 
 .order-status {
@@ -590,14 +601,14 @@ const trackOrder = (order) => {
 }
 
 .detail-row .label {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .detail-row .value {
-  color: #333;
+  color: var(--text-primary);
   font-size: 14px;
   flex: 1;
   word-break: break-word;
@@ -635,9 +646,9 @@ const trackOrder = (order) => {
 
 .btn-secondary {
   padding: 8px 24px;
-  background: white;
-  color: #333;
-  border: 1px solid #333;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
@@ -645,13 +656,13 @@ const trackOrder = (order) => {
 }
 
 .btn-secondary:hover {
-  background: #f5f5f5;
+  background: var(--hover-bg);
 }
 
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
 }
 
@@ -674,7 +685,7 @@ const trackOrder = (order) => {
 }
 
 .loading-state p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 16px;
 }
 
@@ -684,7 +695,7 @@ const trackOrder = (order) => {
 }
 
 .empty-state p {
-  color: #999;
+  color: var(--text-tertiary);
   font-size: 16px;
 }
 

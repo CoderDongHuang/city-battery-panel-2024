@@ -56,9 +56,10 @@
               <h3 class="vehicle-name">{{ vehicle.name }}</h3>
               <p class="vehicle-brand">{{ vehicle.brand }}</p>
             </div>
-            <div class="vehicle-status-badge" :class="vehicle.status">
-              {{ vehicle.status === 'online' ? '🟢 在线' : '🔴 离线' }}
-            </div>
+          </div>
+          
+          <div class="vehicle-status-badge" :class="vehicle.status">
+            {{ vehicle.status === 'online' ? '🟢 在线' : '🔴 离线' }}
           </div>
 
           <div class="vehicle-card-body">
@@ -563,14 +564,8 @@ onUnmounted(() => {
 .my-vehicles {
   padding: 24px;
   min-height: calc(100vh - 200px);
-  background: linear-gradient(180deg, 
-    rgba(200, 240, 245, 0.8) 0%, 
-    rgba(220, 230, 250, 0.7) 20%, 
-    rgba(230, 220, 255, 0.6) 40%, 
-    rgba(245, 245, 255, 0.5) 60%,
-    rgba(250, 250, 255, 0.4) 80%,
-    rgba(255, 255, 255, 0.3) 100%);
-  background-attachment: fixed;
+  background: var(--bg-primary);
+  transition: background-color 0.3s ease;
 }
 
 /* 页面头部 */
@@ -582,13 +577,24 @@ onUnmounted(() => {
 .header-content h1 {
   margin: 0 0 14px 0;
   font-size: 28px;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，页面标题保持深色（因为在浅色背景上） */
+html.dark-mode .header-content h1 {
+  color: #333333;
+}
+
+html.dark-mode .header-content p {
+  color: #666666;
 }
 
 .header-content p {
   margin: 0;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 /* 添加车辆按钮容器 */
@@ -718,13 +724,14 @@ onUnmounted(() => {
 .empty-state h2 {
   margin: 0 0 16px 0;
   font-size: 24px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .empty-state p {
   margin: 0 0 32px 0;
-  color: #999;
+  color: var(--text-tertiary);
   font-size: 16px;
+  transition: color 0.3s ease;
 }
 
 .add-btn {
@@ -732,9 +739,9 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 12px 32px;
-  background: white;
-  color: #333;
-  border: 1px solid #d9d9d9;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 16px;
   font-weight: 600;
@@ -743,8 +750,8 @@ onUnmounted(() => {
 }
 
 .add-btn:hover {
-  background: #ffffff;
-  border-color: #d9d9d9;
+  background: var(--hover-bg);
+  border-color: var(--border-color);
   transform: translateY(-2px);
 }
 
@@ -758,24 +765,46 @@ onUnmounted(() => {
 }
 
 .vehicle-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--shadow-color);
   transition: all 0.3s ease;
-  border: 1px solid #e8e8e8;
+  border: 1px solid var(--border-color);
   width: 100%;
   max-width: 400px;
+  position: relative;
 }
 
 .vehicle-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  border-color: #d9d9d9;
+  box-shadow: 0 8px 24px var(--shadow-color);
+  border-color: var(--text-primary);
 }
 
 .vehicle-card.vehicle-offline {
   opacity: 0.7;
+}
+
+/* 深色模式下，车辆卡片文字保持白色 */
+html.dark-mode .vehicle-name {
+  color: #ffffff !important;
+}
+
+html.dark-mode .vehicle-brand {
+  color: #e0e0e0 !important;
+}
+
+html.dark-mode .detail-label {
+  color: #e0e0e0 !important;
+}
+
+html.dark-mode .detail-value {
+  color: #ffffff !important;
+}
+
+html.dark-mode .detail-value.notes {
+  color: #e0e0e0 !important;
 }
 
 .vehicle-card-header {
@@ -784,7 +813,8 @@ onUnmounted(() => {
   gap: 16px;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .vehicle-avatar {
@@ -794,8 +824,9 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
+  background: var(--bg-secondary);
   border-radius: 12px;
+  transition: background-color 0.3s ease;
 }
 
 .vehicle-basic-info {
@@ -805,17 +836,22 @@ onUnmounted(() => {
 .vehicle-name {
   margin: 0 0 4px 0;
   font-size: 20px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .vehicle-brand {
   margin: 0;
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 .vehicle-status-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 12px;
@@ -844,26 +880,30 @@ onUnmounted(() => {
 }
 
 .detail-label {
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .detail-value {
-  color: #333;
+  color: var(--text-primary);
   text-align: right;
   max-width: 60%;
+  transition: color 0.3s ease;
 }
 
 .detail-value.notes {
-  color: #666;
+  color: var(--text-secondary);
   font-style: italic;
+  transition: color 0.3s ease;
 }
 
 .vehicle-card-footer {
   display: flex;
   gap: 12px;
   padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .action-btn {
@@ -930,13 +970,14 @@ onUnmounted(() => {
 }
 
 .modal-container {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px var(--shadow-color);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .modal-header {
@@ -944,13 +985,15 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 24px;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .modal-close {
@@ -959,58 +1002,39 @@ onUnmounted(() => {
   border: none;
   background: transparent;
   font-size: 24px;
-  color: #666;
+  color: var(--text-secondary);
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .modal-close:hover {
-  background: #f5f5f5;
-  color: #333;
-}
-
-.modal-body {
-  padding: 24px;
-}
-
-/* 表单样式 */
-.vehicle-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  background: var(--hover-bg);
+  color: var(--text-primary);
 }
 
 .form-label {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
-}
-
-.required {
-  color: #ff4444;
-  margin-right: 4px;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .form-input,
 .form-textarea {
   padding: 12px 16px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
   font-family: inherit;
+  background: var(--input-bg);
+  color: var(--text-primary);
 }
 
 .form-input:focus,
 .form-textarea:focus {
-  border-color: #999;
+  border-color: var(--border-color);
   outline: none;
   box-shadow: 0 0 0 2px rgba(153, 153, 153, 0.2);
 }
@@ -1037,7 +1061,7 @@ onUnmounted(() => {
   transform: translateY(-50%);
   width: 18px;
   height: 18px;
-  color: #999;
+  color: var(--text-tertiary);
   pointer-events: none;
 }
 
@@ -1078,7 +1102,7 @@ onUnmounted(() => {
 .no-results {
   padding: 16px;
   text-align: center;
-  color: #999;
+  color: var(--text-tertiary);
   font-size: 14px;
 }
 
@@ -1101,24 +1125,24 @@ onUnmounted(() => {
 }
 
 .btn-cancel {
-  background: #f5f5f5;
-  color: #666;
+  background: var(--hover-bg);
+  color: var(--text-secondary);
 }
 
 .btn-cancel:hover {
-  background: #e8e8e8;
+  background: var(--bg-tertiary);
 }
 
 .btn-submit {
-  background: #f5f5f5;
-  color: #333;
+  background: var(--hover-bg);
+  color: var(--text-primary);
   min-width: 120px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-color);
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: #ffffff;
-  border-color: #d9d9d9;
+  background: var(--card-bg);
+  border-color: var(--border-color);
   transform: translateY(-2px);
 }
 
@@ -1148,14 +1172,14 @@ onUnmounted(() => {
 
 .detail-label {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
   min-width: 100px;
 }
 
 .detail-value {
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
   text-align: right;
   flex: 1;
   margin-left: 16px;
@@ -1190,24 +1214,24 @@ onUnmounted(() => {
   gap: 12px;
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px solid #e8e8e8;
+  border-top: 1px solid var(--border-color);
 }
 
 .detail-actions .btn-primary {
-  background: #f5f5f5;
-  color: #333;
+  background: var(--hover-bg);
+  color: var(--text-primary);
   padding: 12px 24px;
   border-radius: 8px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-color);
 }
 
 .detail-actions .btn-primary:hover {
-  background: #ffffff;
-  border-color: #d9d9d9;
+  background: var(--card-bg);
+  border-color: var(--border-color);
   transform: translateY(-2px);
 }
 

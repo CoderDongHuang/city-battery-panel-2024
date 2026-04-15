@@ -65,9 +65,9 @@
               <div class="asset-item-content">
                 <span class="asset-icon">🚗</span>
                 <span class="asset-name">{{ vehicle.name }}</span>
-                <span class="asset-status" :class="vehicle.status">{{ vehicle.status === 'online' ? '在线' : '离线' }}</span>
               </div>
               <div class="asset-item-actions">
+                <span class="asset-status" :class="vehicle.status">{{ vehicle.status === 'online' ? '🟢 在线' : '🔴 离线' }}</span>
                 <button class="asset-action-btn view" @click="viewVehicleDetail(vehicle)" title="详情">
                   <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -115,9 +115,9 @@
               <div class="asset-item-content">
                 <span class="asset-icon">🔋</span>
                 <span class="asset-name">{{ battery.name }}</span>
-                <span class="asset-status" :class="battery.status">{{ battery.status === 'online' ? '在线' : '离线' }}</span>
               </div>
               <div class="asset-item-actions">
+                <span class="asset-status" :class="battery.status">{{ battery.status === 'online' ? '🟢 在线' : '🔴 离线' }}</span>
                 <button class="asset-action-btn view" @click="viewBatteryDetail(battery)" title="详情">
                   <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -265,15 +265,9 @@ onMounted(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, 
-    rgba(200, 240, 245, 0.8) 0%, 
-    rgba(220, 230, 250, 0.7) 20%, 
-    rgba(230, 220, 255, 0.6) 40%, 
-    rgba(245, 245, 255, 0.5) 60%,
-    rgba(250, 250, 255, 0.4) 80%,
-    rgba(255, 255, 255, 0.3) 100%);
-  background-attachment: fixed;
+  background: var(--bg-primary);
   width: 100%;
+  transition: background-color 0.3s ease;
 }
 
 /* 主要内容 */
@@ -299,7 +293,13 @@ onMounted(() => {
   margin: 0;
   font-size: 42px;
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，欢迎标题保持深色（因为在浅色背景上） */
+html.dark-mode .welcome-title h1 {
+  color: #333333;
 }
 
 /* 四个按钮（扇形弧度排列） */
@@ -338,74 +338,65 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 48px 36px;
-  background: white;
-  border: 2px solid #333;
-  border-radius: 16px; /* 圆角四边形 */
+  background: var(--card-bg);
+  border: 2px solid var(--text-primary);
+  border-radius: 16px;
   text-decoration: none;
-  color: #333;
+  color: var(--text-primary);
   font-size: 15px;
   font-weight: 600;
   width: 200px;
-}
-
-/* 弧度参考线 */
-.arc-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  width: 100%;
-  height: 200px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.arc-line-top {
-  top: 0;
-}
-
-.arc-line-bottom {
-  top: 100px;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .btn-icon {
   width: 36px;
   height: 36px;
-  stroke: #333;
+  stroke: var(--text-primary);
+  transition: stroke 0.3s ease;
 }
 
-/* 分隔线 */
+.arc-btn:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+.arc-btn:hover .btn-icon {
+  stroke: var(--text-primary);
+}
 .divider-line {
   width: 100%;
   height: 2px;
-  background: #000;
+  background: var(--text-primary);
   margin: 24px 0 48px;
-}
-
-/* 主要内容区域：左右显示车辆和电池 */
-.dashboard-content {
-  display: flex;
-  gap: 24px;
-  margin-top: 24px;
-  padding: 0 24px;
-  justify-content: center;
-  align-items: stretch;
+  transition: background-color 0.3s ease;
 }
 
 /* 资产区域 */
 .assets-section {
   flex: 1;
   padding: 32px;
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--shadow-color);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 主要内容区域：左右布局 */
+.dashboard-content {
+  display: flex;
+  gap: 24px;
+  margin-top: 24px;
 }
 
 /* 中间垂直分隔线 */
 .dashboard-divider {
   width: 2px;
-  background: #000;
+  background: var(--text-primary);
   flex-shrink: 0;
   align-self: stretch;
+  transition: background-color 0.3s ease;
 }
 
 .section-header {
@@ -414,20 +405,32 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .assets-title {
   margin: 0;
   font-size: 22px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，区块标题保持深色（因为在浅色背景上） */
+html.dark-mode .assets-title {
+  color: #333333;
+}
+
+html.dark-mode .section-count {
+  color: #666666;
 }
 
 .section-count {
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 /* 空状态 */
@@ -445,13 +448,13 @@ onMounted(() => {
 .empty-assets h3 {
   margin: 0 0 12px 0;
   font-size: 20px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .empty-assets p {
   margin: 0 0 24px 0;
   font-size: 15px;
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 .add-btn {
@@ -459,9 +462,9 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 12px 28px;
-  background: white;
-  color: #333;
-  border: 1px solid #d9d9d9;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
@@ -470,14 +473,9 @@ onMounted(() => {
 }
 
 .add-btn:hover {
-  background: #ffffff;
-  border-color: #d9d9d9;
+  background: var(--hover-bg);
+  border-color: var(--border-color);
   transform: translateY(-2px);
-}
-
-.plus-icon {
-  font-size: 18px;
-  font-weight: bold;
 }
 
 /* 资产列表 */
@@ -493,27 +491,18 @@ onMounted(() => {
   justify-content: space-between;
   gap: 12px;
   padding: 16px 20px;
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
-  border: 1px solid #e8e8e8;
-}
-
-.asset-item-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
-.asset-icon {
-  font-size: 28px;
+  border: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .asset-name {
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
   flex: 1;
+  transition: color 0.3s ease;
 }
 
 .asset-status {
@@ -593,24 +582,25 @@ onMounted(() => {
   gap: 16px;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #e8e8e8;
+  border-top: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .page-btn {
   padding: 8px 16px;
-  background: white;
-  border: 1px solid #d9d9d9;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .page-btn:hover:not(:disabled) {
-  background: #f5f5f5;
-  border-color: #999;
+  background: var(--hover-bg);
+  border-color: var(--border-color);
 }
 
 .page-btn:disabled {
@@ -620,16 +610,18 @@ onMounted(() => {
 
 .page-info {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .view-more {
   padding: 12px 20px;
   font-size: 14px;
-  color: #999;
+  color: var(--text-tertiary);
   font-style: italic;
   text-align: center;
+  transition: color 0.3s ease;
 }
 
 /* 响应式设计 */

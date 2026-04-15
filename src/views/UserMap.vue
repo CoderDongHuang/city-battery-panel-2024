@@ -209,14 +209,8 @@ const navigateToStation = (station) => {
   min-height: calc(100vh - 200px);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, 
-    rgba(200, 240, 245, 0.8) 0%, 
-    rgba(220, 230, 250, 0.7) 20%, 
-    rgba(230, 220, 255, 0.6) 40%, 
-    rgba(245, 245, 255, 0.5) 60%,
-    rgba(250, 250, 255, 0.4) 80%,
-    rgba(255, 255, 255, 0.3) 100%);
-  background-attachment: fixed;
+  background: var(--bg-primary);
+  transition: background-color 0.3s ease;
 }
 
 .page-header {
@@ -227,12 +221,14 @@ const navigateToStation = (station) => {
 .page-header h1 {
   margin: 0 0 8px 0;
   font-size: 28px;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .page-header p {
   margin: 0;
-  color: #666;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 /* 筛选栏 */
@@ -241,10 +237,11 @@ const navigateToStation = (station) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-  background: white;
+  background: var(--card-bg);
   padding: 16px 20px;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--shadow-color);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .filter-tabs {
@@ -327,16 +324,16 @@ const navigateToStation = (station) => {
 }
 
 .station-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--shadow-color);
   transition: all 0.3s;
   height: fit-content;
 }
 
 .station-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 16px var(--shadow-color);
 }
 
 .station-header {
@@ -345,14 +342,16 @@ const navigateToStation = (station) => {
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .station-name {
   font-size: 18px;
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .status-badge {
@@ -393,14 +392,14 @@ const navigateToStation = (station) => {
 }
 
 .info-label {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 13px;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .info-value {
-  color: #333;
+  color: var(--text-primary);
   font-size: 13px;
   flex: 1;
 }
@@ -467,7 +466,7 @@ const navigateToStation = (station) => {
 }
 
 .loading-state p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 16px;
 }
 
@@ -475,7 +474,7 @@ const navigateToStation = (station) => {
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
 }
 
@@ -485,7 +484,7 @@ const navigateToStation = (station) => {
 }
 
 .empty-state p {
-  color: #999;
+  color: var(--text-tertiary);
   font-size: 16px;
 }
 

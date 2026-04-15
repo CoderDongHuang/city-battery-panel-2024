@@ -174,10 +174,10 @@
               <div class="setting-item">
                 <div class="setting-label">
                   <span>深色模式</span>
-                  <p class="setting-desc">启用深色主题（开发中）</p>
+                  <p class="setting-desc">启用深色主题，保护视力</p>
                 </div>
                 <label class="toggle-switch">
-                  <input type="checkbox" disabled />
+                  <input type="checkbox" v-model="darkModeEnabled" @change="toggleDarkMode" />
                   <span class="toggle-slider"></span>
                 </label>
               </div>
@@ -237,6 +237,25 @@ const confirmPassword = ref('')
 
 // 系统设置
 const notificationsEnabled = ref(true)
+const darkModeEnabled = ref(false)
+
+// 初始化深色模式状态
+onMounted(() => {
+  darkModeEnabled.value = localStorage.getItem('darkMode') === 'true'
+})
+
+// 切换深色模式
+const toggleDarkMode = () => {
+  localStorage.setItem('darkMode', darkModeEnabled.value)
+  if (darkModeEnabled.value) {
+    document.documentElement.classList.add('dark-mode')
+  } else {
+    document.documentElement.classList.remove('dark-mode')
+  }
+  // 触发自定义事件，通知 App.vue
+  window.dispatchEvent(new CustomEvent('darkModeChange', { detail: darkModeEnabled.value }))
+  ElMessage.success(darkModeEnabled.value ? '已启用深色模式' : '已关闭深色模式')
+}
 
 // 头像上传相关
 const showCropModal = ref(false)
@@ -433,15 +452,9 @@ const changePassword = () => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, 
-    rgba(200, 240, 245, 0.8) 0%, 
-    rgba(220, 230, 250, 0.7) 20%, 
-    rgba(230, 220, 255, 0.6) 40%, 
-    rgba(245, 245, 255, 0.5) 60%,
-    rgba(250, 250, 255, 0.4) 80%,
-    rgba(255, 255, 255, 0.3) 100%);
-  background-attachment: fixed;
+  background: var(--bg-primary);
   padding: 40px 20px;
+  transition: background-color 0.3s ease;
 }
 
 .page-header {
@@ -451,15 +464,26 @@ const changePassword = () => {
 
 .page-header h1 {
   font-size: 32px;
-  color: #333;
+  color: var(--text-primary);
   margin: 0 0 16px 0;
   font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，页面标题保持深色（因为在浅色背景上） */
+html.dark-mode .page-header h1 {
+  color: #333333;
+}
+
+html.dark-mode .page-header p {
+  color: #666666;
 }
 
 .page-header p {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .profile-container {
@@ -485,11 +509,17 @@ const changePassword = () => {
 }
 
 .profile-card {
-  background: #ffffff;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px var(--shadow-color);
   height: 100%;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 深色模式下，个人信息卡片变成深色 */
+html.dark-mode .profile-card {
+  background: #1a1a1a;
 }
 
 .profile-header {
@@ -497,8 +527,9 @@ const changePassword = () => {
   align-items: center;
   gap: 20px;
   padding-bottom: 20px;
-  border-bottom: 2px solid #e9ecef;
+  border-bottom: 2px solid var(--border-color);
   margin-bottom: 20px;
+  transition: border-color 0.3s ease;
 }
 
 .avatar-section {
@@ -576,12 +607,13 @@ const changePassword = () => {
 }
 
 .crop-modal {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px var(--shadow-color);
   max-width: 400px;
   width: 90%;
   overflow: hidden;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .crop-header {
@@ -589,21 +621,23 @@ const changePassword = () => {
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .crop-header h3 {
   margin: 0;
   font-size: 18px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .crop-close {
   background: none;
   border: none;
   font-size: 28px;
-  color: #999;
+  color: var(--text-tertiary);
   cursor: pointer;
   width: 32px;
   height: 32px;
@@ -615,8 +649,8 @@ const changePassword = () => {
 }
 
 .crop-close:hover {
-  background: #f0f0f0;
-  color: #333;
+  background: var(--hover-bg);
+  color: var(--text-primary);
 }
 
 .crop-body {
@@ -628,12 +662,13 @@ const changePassword = () => {
 
 .crop-canvas-wrapper {
   position: relative;
-  border: 2px dashed #e0e0e0;
+  border: 2px dashed var(--border-color);
   border-radius: 50%;
   overflow: hidden;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   width: 300px;
   height: 300px;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .crop-canvas-wrapper::before {
@@ -643,11 +678,12 @@ const changePassword = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  border: 2px solid #333;
+  border: 2px solid var(--text-primary);
   border-radius: 50%;
   z-index: 10;
   pointer-events: none;
   box-shadow: inset 0 0 0 1000px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.3s ease;
 }
 
 .crop-canvas-wrapper canvas {
@@ -662,7 +698,8 @@ const changePassword = () => {
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px;
-  border-top: 1px solid #e9ecef;
+  border-top: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .crop-cancel,
@@ -677,12 +714,12 @@ const changePassword = () => {
 }
 
 .crop-cancel {
-  background: #f0f0f0;
-  color: #666;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
 }
 
 .crop-cancel:hover {
-  background: #e0e0e0;
+  background: var(--hover-bg);
 }
 
 .crop-confirm {
@@ -696,15 +733,27 @@ const changePassword = () => {
 
 .user-info h2 {
   font-size: 20px;
-  color: #333;
+  color: var(--text-primary);
   margin: 0 0 6px 0;
   font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，用户名保持白色（因为卡片背景是深色） */
+html.dark-mode .user-info h2 {
+  color: #ffffff;
 }
 
 .user-email {
   font-size: 13px;
-  color: #999;
+  color: var(--text-tertiary);
   margin: 0 0 8px 0;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，邮箱文字保持浅灰色（因为卡片背景是深色） */
+html.dark-mode .user-email {
+  color: #a0a0a0;
 }
 
 .role-badge {
@@ -717,6 +766,12 @@ const changePassword = () => {
   font-weight: 500;
 }
 
+/* 深色模式下，角色徽章保持深色背景 */
+html.dark-mode .role-badge {
+  background: #333333;
+  color: #ffffff;
+}
+
 .stats-section {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -727,20 +782,38 @@ const changePassword = () => {
 .stat-item {
   text-align: center;
   padding: 12px 8px;
-  background: #f8f9fa;
+  background: var(--bg-secondary);
   border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+/* 深色模式下，统计卡片变成深色背景 */
+html.dark-mode .stat-item {
+  background: #2c2c2c;
 }
 
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 4px;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，统计数字保持白色（因为在深色背景上） */
+html.dark-mode .stat-value {
+  color: #ffffff;
 }
 
 .stat-label {
   font-size: 11px;
-  color: #999;
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，统计标签保持浅灰色（因为在深色背景上） */
+html.dark-mode .stat-label {
+  color: #a0a0a0;
 }
 
 .profile-main {
@@ -769,31 +842,50 @@ const changePassword = () => {
 }
 
 .settings-card {
-  background: #ffffff;
+  background: var(--card-bg);
   border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px var(--shadow-color);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   height: 100%;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .card-header {
   padding: 16px 20px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* 深色模式下，卡片头部背景变成深色 */
+html.dark-mode .card-header {
+  background: #2c2c2c;
+  border-bottom-color: #404040;
 }
 
 .card-header h3 {
   margin: 0;
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，卡片头部标题保持白色 */
+html.dark-mode .card-header h3 {
+  color: #ffffff;
 }
 
 .card-body {
   padding: 16px;
   flex: 1;
+}
+
+/* 深色模式下，卡片主体背景变成深色 */
+html.dark-mode .card-body {
+  background: #1a1a1a;
 }
 
 .form-group {
@@ -804,24 +896,43 @@ const changePassword = () => {
   display: block;
   margin-bottom: 6px;
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，表单标签保持白色 */
+html.dark-mode .form-label {
+  color: #e0e0e0;
 }
 
 .form-input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   font-size: 13px;
   transition: all 0.3s;
   box-sizing: border-box;
+  background: var(--input-bg);
+  color: var(--text-primary);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #333;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+  border-color: #666;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+/* 深色模式下，输入框背景变深，文字变白 */
+html.dark-mode .form-input {
+  background: #2c2c2c;
+  color: #ffffff;
+  border-color: #404040;
+}
+
+html.dark-mode .form-input:focus {
+  border-color: #666666;
 }
 
 .form-actions {
@@ -847,12 +958,23 @@ const changePassword = () => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* 深色模式下的按钮样式 */
+html.dark-mode .btn-save {
+  background: #ffffff;
+  color: #000000;
+}
+
+html.dark-mode .btn-save:hover {
+  background: #e0e0e0;
+}
+
 .setting-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .setting-item:last-child {
@@ -866,15 +988,27 @@ const changePassword = () => {
 .setting-label span {
   display: block;
   font-size: 13px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
   margin-bottom: 3px;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，设置项文字保持白色 */
+html.dark-mode .setting-label span {
+  color: #ffffff;
 }
 
 .setting-desc {
   font-size: 11px;
-  color: #999;
+  color: var(--text-tertiary);
   margin: 0;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，设置项描述保持浅灰色 */
+html.dark-mode .setting-desc {
+  color: #a0a0a0;
 }
 
 .toggle-switch {
@@ -899,7 +1033,7 @@ const changePassword = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #e0e0e0;
+  background-color: var(--border-color);
   transition: 0.3s;
   border-radius: 26px;
 }
@@ -914,6 +1048,7 @@ const changePassword = () => {
   background-color: white;
   transition: 0.3s;
   border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .toggle-switch input:checked + .toggle-slider {
@@ -922,6 +1057,23 @@ const changePassword = () => {
 
 .toggle-switch input:checked + .toggle-slider:before {
   transform: translateX(20px);
+}
+
+/* 深色模式下的开关样式 */
+html.dark-mode .toggle-slider {
+  background-color: #555555;
+}
+
+html.dark-mode .toggle-slider:before {
+  background-color: #ffffff;
+}
+
+html.dark-mode .toggle-switch input:checked + .toggle-slider {
+  background: #ffffff;
+}
+
+html.dark-mode .toggle-switch input:checked + .toggle-slider:before {
+  background-color: #333333;
 }
 
 .toggle-switch input:disabled + .toggle-slider {

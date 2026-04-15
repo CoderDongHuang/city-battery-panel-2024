@@ -60,9 +60,10 @@
               <h3 class="battery-name">{{ battery.name }}</h3>
               <p class="battery-model">{{ battery.model }}</p>
             </div>
-            <div class="battery-status-badge" :class="battery.status">
-              {{ battery.status === 'online' ? '🟢 在线' : '🔴 离线' }}
-            </div>
+          </div>
+          
+          <div class="battery-status-badge" :class="battery.status">
+            {{ battery.status === 'online' ? '🟢 在线' : '🔴 离线' }}
           </div>
 
           <div class="battery-card-body">
@@ -470,14 +471,8 @@ const formatDate = (dateString) => {
   padding: 24px;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, 
-    rgba(200, 240, 245, 0.8) 0%, 
-    rgba(220, 230, 250, 0.7) 20%, 
-    rgba(230, 220, 255, 0.6) 40%, 
-    rgba(245, 245, 255, 0.5) 60%,
-    rgba(250, 250, 255, 0.4) 80%,
-    rgba(255, 255, 255, 0.3) 100%);
-  background-attachment: fixed;
+  background: var(--bg-primary);
+  transition: background-color 0.3s ease;
 }
 
 /* 页面头部 */
@@ -490,13 +485,24 @@ const formatDate = (dateString) => {
   margin: 0 0 16px 0;
   font-size: 28px;
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，页面标题保持深色（因为在浅色背景上） */
+html.dark-mode .header-content h1 {
+  color: #333333;
+}
+
+html.dark-mode .header-content p {
+  color: #666666;
 }
 
 .header-content p {
   margin: 0;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 14px;
+  transition: color 0.3s ease;
 }
 
 /* 装饰线（波浪线） */
@@ -542,13 +548,23 @@ const formatDate = (dateString) => {
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
 .add-battery-btn:hover {
   background: #000;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 深色模式下的添加按钮样式 */
+html.dark-mode .add-battery-btn {
+  background: #ffffff;
+  color: #000000;
+}
+
+html.dark-mode .add-battery-btn:hover {
+  background: #e0e0e0;
 }
 
 .plus-icon {
@@ -560,14 +576,14 @@ const formatDate = (dateString) => {
 .loading-state {
   text-align: center;
   padding: 80px 20px;
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #999;
+  border: 4px solid var(--bg-tertiary);
+  border-top: 4px solid var(--text-tertiary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 16px;
@@ -593,13 +609,14 @@ const formatDate = (dateString) => {
 .empty-state h2 {
   margin: 0 0 12px 0;
   font-size: 24px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .empty-state p {
   margin: 0 0 32px 0;
   font-size: 16px;
-  color: #999;
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
 }
 
 .add-btn {
@@ -607,9 +624,9 @@ const formatDate = (dateString) => {
   align-items: center;
   gap: 8px;
   padding: 12px 32px;
-  background: #f5f5f5;
-  color: #333;
-  border: 1px solid #d9d9d9;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 16px;
   font-weight: 600;
@@ -618,44 +635,61 @@ const formatDate = (dateString) => {
 }
 
 .add-btn:hover {
-  background: #ffffff;
-  border-color: #d9d9d9;
+  background: var(--hover-bg);
+  border-color: var(--border-color);
   transform: translateY(-2px);
 }
 
-/* 电池网格 */
-.batteries-grid {
+/* 电池卡片容器 */
+.battery-cards {
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 400px;
-}
-
-.battery-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  flex-wrap: wrap;
   gap: 24px;
   width: 100%;
-  max-width: 1400px;
 }
 
 .battery-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 24px;
-  border: 1px solid #e8e8e8;
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px var(--shadow-color);
+  width: 100%;
+  max-width: 400px;
+  position: relative;
 }
 
 .battery-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  border-color: #d9d9d9;
+  box-shadow: 0 8px 24px var(--shadow-color);
+  border-color: var(--border-color);
 }
 
 .battery-card.battery-offline {
   opacity: 0.7;
+}
+
+/* 深色模式下，电池卡片文字保持白色 */
+html.dark-mode .battery-name {
+  color: #ffffff !important;
+}
+
+html.dark-mode .battery-model {
+  color: #e0e0e0 !important;
+}
+
+html.dark-mode .detail-label {
+  color: #e0e0e0 !important;
+}
+
+html.dark-mode .detail-value {
+  color: #ffffff !important;
+}
+
+html.dark-mode .detail-value.notes {
+  color: #e0e0e0 !important;
 }
 
 .battery-card-header {
@@ -664,7 +698,8 @@ const formatDate = (dateString) => {
   gap: 16px;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .battery-avatar {
@@ -686,22 +721,25 @@ const formatDate = (dateString) => {
   margin: 0 0 4px 0;
   font-size: 18px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .battery-model {
   margin: 0;
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .battery-status-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
   padding: 6px 12px;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  background: #f5f5f5;
-  color: #666;
+  background: var(--hover-bg);
+  color: var(--text-secondary);
 }
 
 .battery-status-badge.online {
@@ -709,9 +747,19 @@ const formatDate = (dateString) => {
   color: #2e7d32;
 }
 
+html.dark-mode .battery-status-badge.online {
+  background: rgba(76, 175, 80, 0.2);
+  color: #81c784;
+}
+
 .battery-status-badge.offline {
   background: #ffebee;
   color: #c62828;
+}
+
+html.dark-mode .battery-status-badge.offline {
+  background: rgba(244, 67, 54, 0.2);
+  color: #e57373;
 }
 
 .battery-card-body {
@@ -723,7 +771,8 @@ const formatDate = (dateString) => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .battery-detail-row:last-child {
@@ -732,17 +781,17 @@ const formatDate = (dateString) => {
 
 .detail-label {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .detail-value {
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .detail-value.notes {
-  color: #999;
+  color: var(--text-tertiary);
   font-style: italic;
   max-width: 200px;
   overflow: hidden;
@@ -755,7 +804,7 @@ const formatDate = (dateString) => {
   display: flex;
   gap: 12px;
   padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-color);
 }
 
 .action-btn {
@@ -806,6 +855,34 @@ const formatDate = (dateString) => {
   background: #ffcdd2;
 }
 
+/* 深色模式下的按钮样式 */
+html.dark-mode .action-btn.view {
+  background: rgba(76, 175, 80, 0.2);
+  color: #81c784;
+}
+
+html.dark-mode .action-btn.view:hover {
+  background: rgba(76, 175, 80, 0.3);
+}
+
+html.dark-mode .action-btn.edit {
+  background: rgba(33, 150, 243, 0.2);
+  color: #64b5f6;
+}
+
+html.dark-mode .action-btn.edit:hover {
+  background: rgba(33, 150, 243, 0.3);
+}
+
+html.dark-mode .action-btn.delete {
+  background: rgba(244, 67, 54, 0.2);
+  color: #e57373;
+}
+
+html.dark-mode .action-btn.delete:hover {
+  background: rgba(244, 67, 54, 0.3);
+}
+
 /* 弹窗 */
 .modal-overlay {
   position: fixed;
@@ -822,13 +899,14 @@ const formatDate = (dateString) => {
 }
 
 .modal-container {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px var(--shadow-color);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .modal-header {
@@ -836,14 +914,16 @@ const formatDate = (dateString) => {
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .modal-close {
@@ -852,7 +932,7 @@ const formatDate = (dateString) => {
   border: none;
   background: transparent;
   font-size: 24px;
-  color: #999;
+  color: var(--text-tertiary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -862,50 +942,34 @@ const formatDate = (dateString) => {
 }
 
 .modal-close:hover {
-  background: #f5f5f5;
-  color: #333;
-}
-
-.modal-body {
-  padding: 24px;
-}
-
-.battery-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  background: var(--hover-bg);
+  color: var(--text-primary);
 }
 
 .form-label {
   font-size: 14px;
   font-weight: 600;
-  color: #333;
-}
-
-.required {
-  color: #ff4d4f;
-  margin-right: 4px;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .form-input,
-.form-textarea {
+.form-textarea,
+.form-select {
   padding: 12px 16px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
   font-family: inherit;
+  background: var(--input-bg);
+  color: var(--text-primary);
 }
 
 .form-input:focus,
-.form-textarea:focus {
-  border-color: #999;
+.form-textarea:focus,
+.form-select:focus {
+  border-color: var(--border-color);
   outline: none;
   box-shadow: 0 0 0 2px rgba(153, 153, 153, 0.2);
 }

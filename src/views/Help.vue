@@ -1001,15 +1001,16 @@ const startAiChat = () => {
 
 .banner-title {
   font-size: 56px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 24px;
   font-weight: 700;
   letter-spacing: 2px;
+  transition: color 0.3s ease;
 }
 
 .banner-description {
   font-size: 15px;
-  color: #555;
+  color: var(--text-secondary);
   margin-top: 48px;
   margin-bottom: 40px;
   line-height: 1.6;
@@ -1018,6 +1019,7 @@ const startAiChat = () => {
   margin-right: auto;
   padding: 0 20px;
   text-align: center;
+  transition: color 0.3s ease;
 }
 
 .search-container {
@@ -1026,27 +1028,28 @@ const startAiChat = () => {
 }
 
 .search-box {
-  background: white;
+  background: var(--card-bg);
   border-radius: 50px;
   padding: 14px 20px 14px 40px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 32px var(--shadow-color);
   transition: all 0.3s ease;
   border: none;
 }
 
 .search-box:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 40px var(--shadow-color);
   transform: translateY(-2px);
 }
 
 .search-icon {
   width: 24px;
   height: 24px;
-  color: #999;
+  color: var(--text-tertiary);
   flex-shrink: 0;
+  transition: color 0.3s ease;
 }
 
 .search-input {
@@ -1054,12 +1057,13 @@ const startAiChat = () => {
   border: none;
   outline: none;
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   background: transparent;
+  transition: color 0.3s ease;
 }
 
 .search-input::placeholder {
-  color: #bbb;
+  color: var(--text-tertiary);
 }
 
 /* 主内容容器 - 全宽布局 */
@@ -1075,13 +1079,14 @@ const startAiChat = () => {
 
 /* 内容区块容器 - 白色背景 */
 .content-box {
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--card-bg);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   padding: 48px 80px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 20px var(--shadow-color);
+  border: 1px solid var(--border-color);
   margin-bottom: 48px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .content-box:last-child {
@@ -1105,7 +1110,7 @@ const startAiChat = () => {
 
 .section-main-title {
   font-size: 40px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 48px;
   font-weight: 700;
   text-align: center;
@@ -1113,6 +1118,7 @@ const startAiChat = () => {
   display: block;
   margin-left: auto;
   margin-right: auto;
+  transition: color 0.3s ease;
 }
 
 /* 快速导航 */
@@ -1123,7 +1129,7 @@ const startAiChat = () => {
 }
 
 .quick-nav-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -1132,12 +1138,12 @@ const startAiChat = () => {
   text-align: left;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid rgba(200, 200, 200, 0.2);
+  border: 1px solid var(--border-color);
 }
 
 .quick-nav-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(100, 150, 200, 0.4);
+  border-color: var(--primary-color);
 }
 
 .quick-nav-icon {
@@ -1177,15 +1183,17 @@ const startAiChat = () => {
 
 .quick-nav-card h3 {
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 6px;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .quick-nav-card p {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.4;
+  transition: color 0.3s ease;
 }
 
 /* 使用指南 */
@@ -1196,7 +1204,7 @@ const startAiChat = () => {
 }
 
 .guide-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -1205,12 +1213,12 @@ const startAiChat = () => {
   text-align: left;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid rgba(200, 200, 200, 0.2);
+  border: 1px solid var(--border-color);
 }
 
 .guide-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(100, 150, 200, 0.4);
+  border-color: var(--primary-color);
 }
 
 .guide-card-icon {
@@ -1258,15 +1266,17 @@ const startAiChat = () => {
 
 .guide-card h3 {
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 6px;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .guide-card p {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.4;
+  transition: color 0.3s ease;
 }
 
 /* 常见问题和新手专区容器 - 6:4 布局 */
@@ -1301,33 +1311,34 @@ const startAiChat = () => {
 }
 
 .faq-item {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
-  border: 1px solid rgba(200, 200, 200, 0.3);
+  border: 1px solid var(--border-color);
   overflow: hidden;
   transition: all 0.3s ease;
 }
 
 .faq-item:hover {
-  border-color: rgba(100, 150, 200, 0.5);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 16px var(--shadow-color);
 }
 
 .faq-question {
   padding: 20px 24px;
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .toggle-icon {
   font-size: 24px;
-  color: #999;
-  transition: transform 0.3s ease;
+  color: var(--text-tertiary);
+  transition: transform 0.3s ease, color 0.3s ease;
 }
 
 .faq-item.active .toggle-icon {
@@ -1337,11 +1348,12 @@ const startAiChat = () => {
 .faq-answer {
   padding: 0 24px 20px;
   font-size: 15px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.8;
-  border-top: 1px solid rgba(200, 200, 200, 0.2);
+  border-top: 1px solid var(--border-color);
   margin-top: 0;
   padding-top: 16px;
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 /* 新手专区 */
@@ -1361,7 +1373,7 @@ const startAiChat = () => {
 }
 
 .newbie-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -1370,19 +1382,20 @@ const startAiChat = () => {
   text-align: left;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid rgba(200, 200, 200, 0.2);
+  border: 1px solid var(--border-color);
 }
 
 .newbie-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(100, 150, 200, 0.4);
+  border-color: var(--primary-color);
 }
 
 .newbie-card-icon {
   width: 40px;
   height: 40px;
-  color: #999;
+  color: var(--text-tertiary);
   flex-shrink: 0;
+  transition: color 0.3s ease;
 }
 
 .newbie-card-content {
@@ -1392,15 +1405,17 @@ const startAiChat = () => {
 
 .newbie-card h3 {
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 6px;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .newbie-card p {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.4;
+  transition: color 0.3s ease;
 }
 
 /* 联系我们 */
@@ -1411,17 +1426,18 @@ const startAiChat = () => {
 }
 
 .contact-item {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 32px 24px;
   text-align: center;
-  border: 1px solid rgba(200, 200, 200, 0.2);
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
 }
 
 .contact-item:hover {
   transform: translateY(-4px);
-  border-color: rgba(100, 150, 200, 0.4);
+  border-color: var(--primary-color);
+  box-shadow: 0 8px 20px var(--shadow-color);
 }
 
 .contact-icon {
@@ -1431,21 +1447,24 @@ const startAiChat = () => {
 
 .contact-info h3 {
   font-size: 18px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 12px;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .contact-info p {
   font-size: 16px;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 8px;
   font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .contact-info span {
   font-size: 13px;
-  color: #999;
+  color: var(--text-tertiary);
+  transition: color 0.3s ease;
 }
 
 /* 右侧悬浮客服 */
@@ -1458,14 +1477,15 @@ const startAiChat = () => {
 }
 
 .floating-service {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   padding: 12px 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-  border: 1px solid rgba(200, 200, 200, 0.2);
+  box-shadow: 0 4px 20px var(--shadow-color);
+  border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 8px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .floating-btn-wrapper {
@@ -1475,40 +1495,41 @@ const startAiChat = () => {
 .floating-btn {
   width: 50px;
   height: 50px;
-  background: white;
+  background: var(--card-bg);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid var(--border-color);
+  box-shadow: 0 2px 12px var(--shadow-color);
 }
 
 .floating-btn:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px var(--shadow-color);
 }
 
 .floating-btn.floating-btn-ai {
-  background: white;
+  background: var(--card-bg);
 }
 
 .floating-btn.floating-btn-rate {
-  background: white;
+  background: var(--card-bg);
 }
 
 .floating-btn.floating-btn-rate:hover {
-  background: #f5f5f5;
-  border-color: #edbcc3;
+  background: var(--bg-secondary);
+  border-color: var(--primary-color);
 }
 
 .floating-icon {
   width: 24px;
   height: 24px;
-  color: #333;
+  color: var(--text-primary);
   flex-shrink: 0;
+  transition: color 0.3s ease;
 }
 
 /* 悬浮菜单 - 通用样式 */
@@ -1517,12 +1538,13 @@ const startAiChat = () => {
   right: 64px;
   top: 50%;
   transform: translateY(-50%);
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 24px var(--shadow-color);
   border: none;
   overflow: hidden;
   animation: slideIn 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* AI 客服菜单 - 紧凑型 */
@@ -1586,33 +1608,36 @@ const startAiChat = () => {
 
 .floating-menu-header h4 {
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* 评价菜单 - 白色头部 */
 .floating-menu-rate .floating-menu-header {
   padding: 20px 32px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
+  background: var(--card-bg);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .floating-menu-rate .floating-menu-header h4 {
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .floating-menu-rate .close-btn {
   font-size: 22px;
-  color: #999;
+  color: var(--text-tertiary);
   cursor: pointer;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, background-color 0.3s ease;
   line-height: 1;
   width: 32px;
   height: 32px;
@@ -1623,8 +1648,8 @@ const startAiChat = () => {
 }
 
 .floating-menu-rate .close-btn:hover {
-  color: #333;
-  background: #f5f5f5;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
 }
 
 .floating-menu-rate .floating-menu-content {
@@ -1657,18 +1682,20 @@ const startAiChat = () => {
 /* 电话菜单 - 简洁白色 */
 .floating-menu-phone .floating-menu-header {
   padding: 20px 24px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
+  background: var(--card-bg);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .floating-menu-phone .floating-menu-header h4 {
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .floating-menu-phone .floating-menu-content {
@@ -1696,7 +1723,7 @@ const startAiChat = () => {
 
 .ai-avatar-large.no-color {
   background: transparent;
-  border: 1px solid rgba(200, 200, 200, 0.5);
+  border: 1px solid var(--border-color);
 }
 
 .ai-avatar-large svg {
@@ -1706,20 +1733,22 @@ const startAiChat = () => {
 }
 
 .ai-avatar-large.no-color svg {
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .ai-info h3 {
   font-size: 15px;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin-bottom: 6px;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .ai-info p {
   font-size: 13px;
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .ai-start-btn {
@@ -1756,15 +1785,15 @@ const startAiChat = () => {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 15px;
-  color: #1a1a1a;
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.3s ease;
-  background: white;
+  background: var(--bg-primary);
 }
 
 .rating-number:hover {
@@ -1792,8 +1821,9 @@ const startAiChat = () => {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: #999;
+  color: var(--text-tertiary);
   margin-top: 10px;
+  transition: color 0.3s ease;
 }
 
 /* 评价表单样式 */
@@ -1814,10 +1844,11 @@ const startAiChat = () => {
 
 .reasons-title {
   font-size: 14px;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin-bottom: 16px;
   font-weight: 500;
   line-height: 1.5;
+  transition: color 0.3s ease;
 }
 
 .reasons-grid {
@@ -1833,18 +1864,18 @@ const startAiChat = () => {
   gap: 8px;
   cursor: pointer;
   font-size: 14px;
-  color: #1a1a1a;
+  color: var(--text-primary);
   transition: all 0.3s ease;
   padding: 0;
   background: transparent;
 }
 
 .reason-checkbox:hover {
-  color: #000000;
+  color: var(--text-secondary);
 }
 
 .reason-checkbox:hover input[type="checkbox"] {
-  border-color: #000000;
+  border-color: var(--text-primary);
 }
 
 .reason-checkbox input[type="checkbox"] {
@@ -1853,24 +1884,24 @@ const startAiChat = () => {
   cursor: pointer;
   flex-shrink: 0;
   margin-top: 1px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   appearance: none;
   -webkit-appearance: none;
-  background: white;
+  background: var(--bg-primary);
   transition: all 0.2s ease;
   position: relative;
 }
 
 .reason-checkbox input[type="checkbox"]:checked {
-  background: #000000;
-  border-color: #000000;
+  background: var(--text-primary);
+  border-color: var(--text-primary);
 }
 
 .reason-checkbox input[type="checkbox"]:checked::after {
   content: '✓';
   position: absolute;
-  color: #ffffff;
+  color: var(--bg-primary);
   font-size: 14px;
   font-weight: bold;
   left: 50%;
@@ -1902,33 +1933,34 @@ const startAiChat = () => {
 .rating-feedback textarea {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
-  color: #1a1a1a;
+  color: var(--text-primary);
   resize: none;
   font-family: inherit;
   transition: all 0.3s ease;
   box-sizing: border-box;
   min-height: 100px;
-  background: white;
+  background: var(--bg-primary);
 }
 
 .rating-feedback textarea:focus {
   outline: none;
-  border-color: #40a9ff;
+  border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
 .rating-feedback textarea::placeholder {
-  color: #bfbfbf;
+  color: var(--text-tertiary);
 }
 
 .feedback-count {
   text-align: right;
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   margin-top: 8px;
+  transition: color 0.3s ease;
 }
 
 .rating-actions {
@@ -1948,45 +1980,47 @@ const startAiChat = () => {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 1px solid #d9d9d9;
-  background: white;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
   min-width: 100px;
   flex: 0 0 auto;
+  color: var(--text-primary);
 }
 
 .action-btn:hover:not(:disabled) {
   transform: translateY(-1px);
+  border-color: var(--text-primary);
 }
 
 .action-btn-cancel {
-  color: #666;
-  border-color: #d9d9d9;
-  background: white;
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+  background: var(--card-bg);
 }
 
 .action-btn-cancel:hover {
-  border-color: #999;
-  color: #333;
+  border-color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .action-btn-submit {
-  background: #1890ff;
-  color: white;
+  background: var(--text-primary);
+  color: var(--bg-primary);
   border: none;
 }
 
 .action-btn-submit:hover:not(:disabled) {
-  background: #40a9ff;
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  background: var(--text-secondary);
+  box-shadow: 0 4px 12px var(--shadow-color);
 }
 
 .action-btn-submit:disabled {
-  background: #f5f5f5;
-  color: #ccc;
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--border-color);
 }
 
 .submit-rating-btn {
@@ -2019,7 +2053,7 @@ const startAiChat = () => {
 }
 
 .contact-item-floating:hover {
-  background: #fafafa;
+  background: var(--bg-secondary);
 }
 
 .contact-icon-floating {
@@ -2035,8 +2069,8 @@ const startAiChat = () => {
 }
 
 .contact-icon-floating.no-color {
-  background: #fafafa;
-  border: 1px solid #e8e8e8;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   font-size: 18px;
 }
 
@@ -2047,7 +2081,7 @@ const startAiChat = () => {
 }
 
 .contact-icon-floating.no-color svg {
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .contact-info-floating {
@@ -2057,16 +2091,18 @@ const startAiChat = () => {
 
 .contact-info-floating h3 {
   font-size: 15px;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin-bottom: 6px;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .contact-info-floating p {
   font-size: 13px;
-  color: #333;
+  color: var(--text-primary);
   margin: 0;
   line-height: 1.4;
+  transition: color 0.3s ease;
 }
 
 /* 响应式布局 */
@@ -2160,10 +2196,10 @@ const startAiChat = () => {
 }
 
 .guide-detail-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 40px;
-  border: 1px solid rgba(200, 200, 200, 0.2);
+  border: 1px solid var(--border-color);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   max-height: 0;
   opacity: 0;
@@ -2175,8 +2211,8 @@ const startAiChat = () => {
   max-height: 2000px;
   opacity: 1;
   transform: translateY(0);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  border-color: rgba(100, 150, 200, 0.4);
+  box-shadow: 0 8px 32px var(--shadow-color);
+  border-color: var(--primary-color);
 }
 
 .guide-detail-header {
@@ -2185,25 +2221,28 @@ const startAiChat = () => {
   gap: 16px;
   margin-bottom: 32px;
   padding-bottom: 24px;
-  border-bottom: 2px solid rgba(100, 150, 200, 0.15);
+  border-bottom: 2px solid var(--border-color);
+  transition: border-color 0.3s ease;
 }
 
 .guide-detail-icon {
   width: 48px;
   height: 48px;
-  color: #6496c8;
+  color: var(--primary-color);
   flex-shrink: 0;
 }
 
 .guide-detail-title {
   font-size: 28px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 700;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 .guide-detail-content {
-  color: #555;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
 }
 
 /* 步骤样式 */
@@ -2242,16 +2281,18 @@ const startAiChat = () => {
 
 .step-content h4 {
   font-size: 18px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 8px;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .step-content p {
   font-size: 15px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* 温馨提示 */
@@ -2265,9 +2306,10 @@ const startAiChat = () => {
 
 .guide-tips strong {
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   display: block;
   margin-bottom: 12px;
+  transition: color 0.3s ease;
 }
 
 .guide-tips ul {
@@ -2277,9 +2319,10 @@ const startAiChat = () => {
 
 .guide-tips li {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.8;
   margin-bottom: 6px;
+  transition: color 0.3s ease;
 }
 
 /* 支付方式 */
@@ -2295,14 +2338,14 @@ const startAiChat = () => {
   border-radius: 12px;
   padding: 24px 20px;
   text-align: center;
-  border: 1px solid rgba(100, 150, 200, 0.2);
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
 }
 
 .method-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(100, 150, 200, 0.4);
-  box-shadow: 0 8px 20px rgba(100, 150, 200, 0.15);
+  border-color: var(--primary-color);
+  box-shadow: 0 8px 20px var(--shadow-color);
 }
 
 .method-icon {
@@ -2312,16 +2355,18 @@ const startAiChat = () => {
 
 .method-card h4 {
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 8px;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .method-card p {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.5;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* 会员等级 */
@@ -2333,10 +2378,10 @@ const startAiChat = () => {
 }
 
 .level-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
   padding: 28px 24px;
-  border: 2px solid rgba(100, 150, 200, 0.2);
+  border: 2px solid var(--border-color);
   text-align: center;
   transition: all 0.3s ease;
   position: relative;
@@ -2345,7 +2390,7 @@ const startAiChat = () => {
 
 .level-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 12px 32px rgba(100, 150, 200, 0.2);
+  box-shadow: 0 12px 32px var(--shadow-color);
 }
 
 .level-card::before {
@@ -2393,9 +2438,10 @@ const startAiChat = () => {
 
 .level-price {
   font-size: 24px;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 700;
   margin-bottom: 20px;
+  transition: color 0.3s ease;
 }
 
 .level-benefits {
@@ -2407,9 +2453,10 @@ const startAiChat = () => {
 
 .level-benefits li {
   font-size: 14px;
-  color: #555;
+  color: var(--text-secondary);
   line-height: 2;
   padding: 4px 0;
+  transition: color 0.3s ease;
 }
 
 /* 服务网点功能 */
@@ -2425,14 +2472,14 @@ const startAiChat = () => {
   border-radius: 12px;
   padding: 24px 20px;
   text-align: center;
-  border: 1px solid rgba(100, 150, 200, 0.2);
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
 }
 
 .feature-item:hover {
   transform: translateY(-4px);
-  border-color: rgba(100, 150, 200, 0.4);
-  box-shadow: 0 8px 20px rgba(100, 150, 200, 0.15);
+  border-color: var(--primary-color);
+  box-shadow: 0 8px 20px var(--shadow-color);
 }
 
 .feature-icon {
@@ -2442,16 +2489,18 @@ const startAiChat = () => {
 
 .feature-item h4 {
   font-size: 16px;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 8px;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .feature-item p {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.5;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* 电池管理功能 */
@@ -2522,5 +2571,38 @@ const startAiChat = () => {
   .feature-item {
     padding: 20px 16px;
   }
+}
+
+/* 深色模式下，帮助中心横幅文字变成黑色（因为背景是浅色） */
+html.dark-mode .banner-title {
+  color: #333333 !important;
+}
+
+html.dark-mode .banner-description {
+  color: #333333 !important;
+}
+
+html.dark-mode .section-main-title {
+  color: #333333 !important;
+}
+
+html.dark-mode .section-sub-title {
+  color: #333333 !important;
+}
+
+html.dark-mode .quick-nav-card h3 {
+  color: #333333 !important;
+}
+
+html.dark-mode .quick-nav-card p {
+  color: #666666 !important;
+}
+
+html.dark-mode .guide-card h3 {
+  color: #333333 !important;
+}
+
+html.dark-mode .guide-card p {
+  color: #666666 !important;
 }
 </style>

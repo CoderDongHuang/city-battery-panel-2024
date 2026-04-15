@@ -27,9 +27,15 @@ onMounted(() => {
 </template>
 
 <style>
-/* 深色模式主题变量 */
+/* 浅色模式主题变量（默认）- 使用淡淡的渐变色 */
 :root {
-  --bg-primary: #ffffff;
+  --bg-primary: linear-gradient(180deg, 
+    rgba(200, 240, 245, 0.3) 0%, 
+    rgba(220, 230, 250, 0.25) 20%, 
+    rgba(230, 220, 255, 0.2) 40%, 
+    rgba(245, 245, 255, 0.15) 60%,
+    rgba(250, 250, 255, 0.1) 80%,
+    rgba(255, 255, 255, 0.05) 100%);
   --bg-secondary: #f8f9fa;
   --bg-tertiary: #e9ecef;
   --text-primary: #333333;
@@ -40,21 +46,31 @@ onMounted(() => {
   --card-bg: #ffffff;
   --input-bg: #ffffff;
   --hover-bg: #f0f0f0;
+  --footer-bg: #000000;
+  --footer-text: #ffffff;
 }
 
-/* 深色模式覆盖 */
+/* 深色模式覆盖 - 保持背景不变，只改变卡片和文字颜色 */
 html.dark-mode {
-  --bg-primary: #121212;
-  --bg-secondary: #1e1e1e;
-  --bg-tertiary: #2c2c2c;
+  --bg-primary: linear-gradient(180deg, 
+    rgba(200, 240, 245, 0.3) 0%, 
+    rgba(220, 230, 250, 0.25) 20%, 
+    rgba(230, 220, 255, 0.2) 40%, 
+    rgba(245, 245, 255, 0.15) 60%,
+    rgba(250, 250, 255, 0.1) 80%,
+    rgba(255, 255, 255, 0.05) 100%);
+  --bg-secondary: #f0f0f0;
+  --bg-tertiary: #e0e0e0;
   --text-primary: #ffffff;
   --text-secondary: #e0e0e0;
   --text-tertiary: #a0a0a0;
   --border-color: #404040;
-  --shadow-color: rgba(0, 0, 0, 0.4);
-  --card-bg: #1e1e1e;
+  --shadow-color: rgba(255, 255, 255, 0.1);
+  --card-bg: #1a1a1a;
   --input-bg: #2c2c2c;
   --hover-bg: #333333;
+  --footer-bg: #1a1a1a;
+  --footer-text: #ffffff;
 }
 
 /* 全局重置样式 */
@@ -72,6 +88,7 @@ html, body, #app {
   overflow-x: hidden;
   overflow-y: auto;
   background: var(--bg-primary);
+  background-attachment: fixed;
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
 }

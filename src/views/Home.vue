@@ -859,7 +859,8 @@ onUnmounted(() => {
 <style scoped>
 .home {
   min-height: 100vh;
-  background: #F5F5F5;
+  background: var(--bg-primary);
+  transition: background-color 0.3s ease;
 }
 
 /* CSS Scroll Snap - 接近时捕捉，允许慢慢滑动 */
@@ -1086,20 +1087,33 @@ onUnmounted(() => {
 }
 
 .cta-btn.primary:hover {
+  background: #f0f0f0;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .cta-btn.secondary {
   background: transparent;
-  color: white;
-  border: 2px solid white;
+  color: #333333;
+  border: 2px solid #333333;
   margin-left: 16px;
 }
 
 .cta-btn.secondary:hover {
+  background: #333333;
+  color: white;
+}
+
+/* 深色模式下的按钮样式 */
+html.dark-mode .cta-btn.secondary {
   background: white;
-  color: #0066cc;
+  color: #000000;
+  border-color: white;
+}
+
+html.dark-mode .cta-btn.secondary:hover {
+  background: #e0e0e0;
+  color: #000000;
 }
 
 .slide-bg {
@@ -1147,20 +1161,32 @@ onUnmounted(() => {
   text-align: center;
   font-size: 42px;
   font-weight: 700;
-  color: #333;
+  color: var(--text-primary);
   margin: 0 0 16px 0;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，首页标题保持深色（因为背景是浅色） */
+html.dark-mode .section-title {
+  color: #333333;
 }
 
 .section-subtitle {
   text-align: center;
   font-size: 20px;
-  color: #666;
+  color: var(--text-secondary);
   margin: 0 0 60px 0;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，首页副标题保持深色（因为背景是浅色） */
+html.dark-mode .section-subtitle {
+  color: #666666;
 }
 
 /* 介绍区域 - 全屏高度 */
 .intro-section {
-  background: white;
+  background: var(--card-bg);
   margin: 0;
   padding: 0;
   min-height: 80vh;
@@ -1168,6 +1194,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   scroll-snap-align: start;
+  transition: background-color 0.3s ease;
 }
 
 .intro-grid {
@@ -1183,7 +1210,7 @@ onUnmounted(() => {
 .intro-card {
   text-align: center;
   padding: 30px 20px;
-  background: #F5F5F5;
+  background: var(--bg-secondary);
   border-radius: 12px;
   transition: all 0.3s ease;
   display: flex;
@@ -1194,7 +1221,7 @@ onUnmounted(() => {
 
 .intro-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 24px var(--shadow-color);
 }
 
 .card-icon {
@@ -1204,24 +1231,27 @@ onUnmounted(() => {
 
 .intro-card h3 {
   font-size: 20px;
-  color: #333;
+  color: var(--text-primary);
   margin: 0 0 12px 0;
+  transition: color 0.3s ease;
 }
 
 .intro-card p {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.5;
+  transition: color 0.3s ease;
 }
 
 /* 数据统计与核心功能左右布局 */
 .data-features-section {
-  background: white;
+  background: var(--card-bg);
   min-height: 550px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 30px 20px;
+  transition: background-color 0.3s ease;
 }
 
 .two-column-layout {
@@ -1242,12 +1272,13 @@ onUnmounted(() => {
 .column-title {
   font-size: 24px;
   font-weight: bold;
-  color: #333;
+  color: var(--text-primary);
   margin: 0 auto 24px auto;
   text-align: center;
   padding-bottom: 12px;
-  border-bottom: 3px solid #0066cc;
+  border-bottom: 3px solid var(--border-color);
   width: 200px;
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 /* 左侧 - 数据统计（2x2 网格，高低层次排列） */
@@ -1309,7 +1340,6 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
-/* 第一个功能项 - 最高位置（竖向排列，内容上下分布） */
 .feature-item-1 {
   display: flex;
   flex-direction: column;
@@ -1407,39 +1437,51 @@ onUnmounted(() => {
 
 .feature-content h3 {
   font-size: 18px;
-  color: #333;
+  color: #000000;
   margin: 0 0 8px 0;
   font-weight: 600;
 }
 
 .feature-content p {
   font-size: 14px;
-  color: #666;
+  color: #333333;
   margin: 0;
   line-height: 1.5;
 }
 
 /* CTA 区域 - 紧凑设计 */
 .cta-section {
-  background: #F5F5F5;
+  background: var(--bg-secondary);
   min-height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 30px 20px;
+  transition: background-color 0.3s ease;
 }
 
 .cta-section h2 {
   font-size: 28px;
-  color: #333;
+  color: var(--text-primary);
   margin: 0 0 10px 0;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，CTA 标题保持深色（因为背景是浅色） */
+html.dark-mode .cta-section h2 {
+  color: #333333;
+}
+
+html.dark-mode .cta-section p {
+  color: #666666;
 }
 
 .cta-section p {
   font-size: 16px;
-  color: #666;
+  color: var(--text-secondary);
   margin: 0 0 24px 0;
+  transition: color 0.3s ease;
 }
 
 .cta-buttons {
@@ -1502,12 +1544,13 @@ onUnmounted(() => {
 
 /* 行业要闻样式（参考北大要闻设计） */
 .industry-news-section {
-  background: #F8F9FA;
+  background: var(--bg-secondary);
   min-height: 750px;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding: 15px 20px 40px 20px;
+  transition: background-color 0.3s ease;
 }
 
 .news-grid-layout {
@@ -1528,9 +1571,9 @@ onUnmounted(() => {
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  background: white;
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px var(--shadow-color);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
 }
 
 /* 左上大图 */
@@ -1631,13 +1674,13 @@ onUnmounted(() => {
 /* 新闻卡片样式 */
 
 .news-card-item {
-  background: white;
+  background: var(--card-bg);
   border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 6px var(--shadow-color);
+  border: 1px solid var(--border-color);
   border-bottom: 3px solid transparent;
   display: flex;
   flex-direction: column;
@@ -1645,7 +1688,7 @@ onUnmounted(() => {
 
 .news-card-item:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 16px var(--shadow-color);
   border-bottom-color: #0066cc;
 }
 
@@ -1659,34 +1702,41 @@ onUnmounted(() => {
 
 .news-card-title {
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: color 0.3s ease;
+}
+
+/* 深色模式下，新闻卡片标题保持深色（因为背景是浅色） */
+html.dark-mode .news-card-title {
+  color: #333333;
 }
 
 .news-card-meta {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #999;
+  color: var(--text-tertiary);
   margin-top: 8px;
+  transition: color 0.3s ease;
 }
 
 /* 加载状态 */
 .loading-news {
   text-align: center;
   padding: 40px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f3f3;
+  border: 4px solid var(--bg-tertiary);
   border-top: 4px solid #0066cc;
   border-radius: 50%;
   animation: spin 1s linear infinite;
