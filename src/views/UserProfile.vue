@@ -217,6 +217,7 @@ import { useRouter } from 'vue-router'
 import SiteFooter from '../components/SiteFooter.vue'
 import { ElMessage } from 'element-plus'
 import { userStatsAPI, userOrderAPI } from '../services/userAPI'
+import { userProfileAPI, userAvatarAPI, userSettingsAPI } from '../services/userProfileAPI'
 
 const router = useRouter()
 
@@ -242,10 +243,44 @@ const darkModeEnabled = ref(false)
 // 初始化深色模式状态
 onMounted(() => {
   darkModeEnabled.value = localStorage.getItem('darkMode') === 'true'
+  loadUserProfile()
 })
 
+// 加载用户信息
+const loadUserProfile = async () => {
+  try {
+    const res = await userProfileAPI.getProfile()
+    
+    if (res.code === 200) {
+      // 处理头像 URL（如果是相对路径，转换为绝对路径）
+      let avatarUrl = res.data.avatar
+      if (avatarUrl && avatarUrl.startsWith('/')) {
+        avatarUrl = 'http://localhost:8080' + avatarUrl
+      }
+      
+      // 更新用户信息
+      username.value = res.data.username || localStorage.getItem('username') || '用户'
+      userEmail.value = res.data.email || localStorage.getItem('userEmail') || ''
+      userAvatar.value = avatarUrl || localStorage.getItem('userAvatar') || ''
+      userRole.value = res.data.role || localStorage.getItem('userRole') || 'user'
+      
+      // 更新本地存储
+      localStorage.setItem('username', res.data.username)
+      localStorage.setItem('userEmail', res.data.email)
+      localStorage.setItem('userAvatar', userAvatar.value)
+      localStorage.setItem('userRole', res.data.role)
+    }
+  } catch (error) {
+    // 如果 API 调用失败，使用 localStorage 作为备用方案
+    username.value = localStorage.getItem('username') || '用户'
+    userEmail.value = localStorage.getItem('userEmail') || ''
+    userAvatar.value = localStorage.getItem('userAvatar') || ''
+    userRole.value = localStorage.getItem('userRole') || 'user'
+  }
+}
+
 // 切换深色模式
-const toggleDarkMode = () => {
+const toggleDarkMode = async () => {
   localStorage.setItem('darkMode', darkModeEnabled.value)
   if (darkModeEnabled.value) {
     document.documentElement.classList.add('dark-mode')
@@ -254,6 +289,17 @@ const toggleDarkMode = () => {
   }
   // 触发自定义事件，通知 App.vue
   window.dispatchEvent(new CustomEvent('darkModeChange', { detail: darkModeEnabled.value }))
+  
+  // 保存到后端
+  try {
+    await userSettingsAPI.updateSettings({
+      darkMode: darkModeEnabled.value,
+      notifications: notificationsEnabled.value
+    })
+  } catch (error) {
+    console.error('保存设置失败:', error)
+  }
+  
   ElMessage.success(darkModeEnabled.value ? '已启用深色模式' : '已关闭深色模式')
 }
 
@@ -349,7 +395,7 @@ const closeCropModal = () => {
 }
 
 // 确认裁剪
-const confirmCrop = () => {
+const confirmCrop = async () => {
   const canvas = cropCanvas.value
   if (!canvas) return
   
@@ -373,15 +419,38 @@ const confirmCrop = () => {
   // 绘制原 canvas 的内容到新 canvas
   outputCtx.drawImage(canvas, 0, 0)
   
-  // 将 canvas 转为 base64（PNG 格式支持透明）
-  const avatarDataUrl = outputCanvas.toDataURL('image/png', 1.0)
-  
-  // 更新头像
-  userAvatar.value = avatarDataUrl
-  localStorage.setItem('userAvatar', avatarDataUrl)
-  
-  ElMessage.success('头像更新成功')
-  closeCropModal()
+  // 将 canvas 转为 blob 用于上传
+  outputCanvas.toBlob(async (blob) => {
+    if (!blob) {
+      ElMessage.error('头像处理失败')
+      return
+    }
+    
+    try {
+      // 调用上传头像 API
+      const res = await userAvatarAPI.uploadAvatar(blob)
+      
+      if (res.code === 200) {
+        // 处理头像 URL（如果是相对路径，转换为绝对路径）
+        let avatarUrl = res.data.avatar
+        if (avatarUrl && avatarUrl.startsWith('/')) {
+          avatarUrl = 'http://localhost:8080' + avatarUrl
+        }
+        
+        // 更新头像
+        userAvatar.value = avatarUrl
+        localStorage.setItem('userAvatar', avatarUrl)
+        ElMessage.success('头像更新成功')
+      } else {
+        ElMessage.error('上传失败，请稍后重试')
+      }
+    } catch (error) {
+      console.error('上传头像失败:', error)
+      ElMessage.error('上传头像失败，请稍后重试')
+    }
+    
+    closeCropModal()
+  }, 'image/png')
 }
 
 // 加载统计数据
@@ -417,14 +486,30 @@ onMounted(() => {
 })
 
 // 保存基本信息
-const saveBasicInfo = () => {
-  localStorage.setItem('username', username.value)
-  localStorage.setItem('userEmail', userEmail.value)
-  ElMessage.success('基本信息保存成功')
+const saveBasicInfo = async () => {
+  try {
+    const res = await userProfileAPI.updateProfile({
+      username: username.value,
+      email: userEmail.value,
+      phone: localStorage.getItem('userPhone') || ''
+    })
+    
+    if (res.code === 200) {
+      // 更新本地存储
+      localStorage.setItem('username', username.value)
+      localStorage.setItem('userEmail', userEmail.value)
+      ElMessage.success('基本信息保存成功')
+    } else {
+      ElMessage.error('保存失败，请稍后重试')
+    }
+  } catch (error) {
+    console.error('保存基本信息失败:', error)
+    ElMessage.error('保存失败，请稍后重试')
+  }
 }
 
 // 修改密码
-const changePassword = () => {
+const changePassword = async () => {
   if (!currentPassword.value || !newPassword.value || !confirmPassword.value) {
     ElMessage.warning('请填写所有密码字段')
     return
@@ -440,10 +525,28 @@ const changePassword = () => {
     return
   }
   
-  // TODO: 调用后端 API 修改密码
-  ElMessage.success('密码修改成功，请重新登录')
-  localStorage.clear()
-  router.push('/login')
+  try {
+    const res = await userProfileAPI.changePassword({
+      currentPassword: currentPassword.value,
+      newPassword: newPassword.value
+    })
+    
+    if (res.code === 200) {
+      ElMessage.success('密码修改成功，请重新登录')
+      // 清空密码字段
+      currentPassword.value = ''
+      newPassword.value = ''
+      confirmPassword.value = ''
+      // 清除本地存储并跳转到登录页
+      localStorage.clear()
+      router.push('/login')
+    } else {
+      ElMessage.error('修改密码失败')
+    }
+  } catch (error) {
+    console.error('修改密码失败:', error)
+    ElMessage.error(error.response?.data?.message || '修改密码失败，请检查当前密码是否正确')
+  }
 }
 </script>
 
