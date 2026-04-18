@@ -1,7 +1,7 @@
 <template>
   <div class="guide">
     <div class="page-header">
-      <h1>📖 使用指南</h1>
+      <h1>使用指南</h1>
       <p>快速了解如何使用 CitySwap 换电系统</p>
     </div>
 
@@ -173,7 +173,15 @@ import SiteFooter from '../components/SiteFooter.vue'
 <style scoped>
 .guide {
   min-height: 100vh;
-  background: #F5F5F5;
+  /* 使用控制台风格的渐变背景 */
+  background: linear-gradient(180deg, 
+    rgba(200, 240, 245, 0.8) 0%, 
+    rgba(220, 230, 250, 0.7) 20%, 
+    rgba(230, 220, 255, 0.6) 40%, 
+    rgba(245, 245, 255, 0.5) 60%,
+    rgba(250, 250, 255, 0.4) 80%,
+    rgba(255, 255, 255, 0.3) 100%);
+  background-attachment: fixed;
   padding: 40px 20px;
 }
 
@@ -189,10 +197,20 @@ import SiteFooter from '../components/SiteFooter.vue'
   margin: 0 0 16px 0;
 }
 
+/* 深色模式下，标题变成黑色（因为背景是浅色渐变） */
+html.dark-mode .page-header h1 {
+  color: #333333 !important;
+}
+
 .page-header p {
   font-size: 20px;
   color: #666;
   margin: 0;
+}
+
+/* 深色模式下，描述变成黑色（因为背景是浅色渐变） */
+html.dark-mode .page-header p {
+  color: #666666 !important;
 }
 
 .guide-content {
@@ -210,12 +228,24 @@ import SiteFooter from '../components/SiteFooter.vue'
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
+/* 深色模式下，内容卡片变成纯黑色 */
+html.dark-mode .guide-section {
+  background: #000000;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
 .guide-section h2 {
   font-size: 32px;
   color: #333;
   margin: 0 0 32px 0;
   padding-bottom: 16px;
   border-bottom: 2px solid #F5F5F5;
+}
+
+/* 深色模式下，章节标题变成白色（因为在黑色卡片上） */
+html.dark-mode .guide-section h2 {
+  color: #ffffff !important;
+  border-bottom-color: #333;
 }
 
 /* 快速入门步骤 */
@@ -251,11 +281,21 @@ import SiteFooter from '../components/SiteFooter.vue'
   margin: 0 0 8px 0;
 }
 
+/* 深色模式下，步骤标题变成白色（因为在黑色卡片上） */
+html.dark-mode .step-content h3 {
+  color: #ffffff !important;
+}
+
 .step-content p {
   font-size: 16px;
   color: #666;
   line-height: 1.6;
   margin: 0;
+}
+
+/* 深色模式下，步骤描述变成白色（因为在黑色卡片上） */
+html.dark-mode .step-content p {
+  color: #ffffff !important;
 }
 
 /* 功能说明 */
@@ -265,40 +305,41 @@ import SiteFooter from '../components/SiteFooter.vue'
   gap: 32px;
 }
 
+.feature-icon {
+  font-size: 48px;
+  flex-shrink: 0;
+}
+
 .feature-doc {
   display: flex;
   gap: 24px;
   padding: 24px;
   background: #F5F5F5;
   border-radius: 12px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.feature-icon {
-  font-size: 48px;
-  flex-shrink: 0;
+/* 深色模式下，功能卡片背景变纯黑色，文字变白色，加白色边框 */
+html.dark-mode .feature-doc {
+  background: #000000;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
 }
 
-.feature-doc-content h3 {
-  font-size: 22px;
-  color: #333;
-  margin: 0 0 12px 0;
+/* 深色模式下，功能标题变白色 */
+html.dark-mode .feature-doc-content h3 {
+  color: #ffffff !important;
 }
 
-.feature-doc-content p {
-  font-size: 16px;
-  color: #666;
-  margin: 0 0 12px 0;
+/* 深色模式下，功能描述变白色 */
+html.dark-mode .feature-doc-content p {
+  color: #ffffff !important;
 }
 
-.feature-doc-content ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.feature-doc-content li {
-  font-size: 14px;
-  color: #666;
-  line-height: 1.8;
+/* 深色模式下，列表文字变白色 */
+html.dark-mode .feature-doc-content li {
+  color: #ffffff !important;
 }
 
 /* 常见问题 */
@@ -315,10 +356,20 @@ import SiteFooter from '../components/SiteFooter.vue'
   border-left: 4px solid #0066cc;
 }
 
+/* 深色模式下，FAQ 卡片变成纯黑色 */
+html.dark-mode .faq-item {
+  background: #000000;
+}
+
 .faq-item h3 {
   font-size: 18px;
   color: #333;
   margin: 0 0 12px 0;
+}
+
+/* 深色模式下，FAQ 标题变成白色（因为在黑色卡片上） */
+html.dark-mode .faq-item h3 {
+  color: #ffffff !important;
 }
 
 .faq-item p {
@@ -328,11 +379,21 @@ import SiteFooter from '../components/SiteFooter.vue'
   margin: 0;
 }
 
+/* 深色模式下，FAQ 描述变成白色（因为在黑色卡片上） */
+html.dark-mode .faq-item p {
+  color: #ffffff !important;
+}
+
 /* 联系我们 */
 .contact-info p {
   font-size: 16px;
   color: #666;
   margin: 0 0 24px 0;
+}
+
+/* 深色模式下，联系说明变成白色（因为在黑色卡片上） */
+html.dark-mode .contact-info p {
+  color: #ffffff !important;
 }
 
 .contact-methods {
@@ -352,6 +413,11 @@ import SiteFooter from '../components/SiteFooter.vue'
   min-width: 200px;
 }
 
+/* 深色模式下，联系卡片变成纯黑色 */
+html.dark-mode .contact-item {
+  background: #000000;
+}
+
 .contact-icon {
   font-size: 36px;
 }
@@ -363,10 +429,20 @@ import SiteFooter from '../components/SiteFooter.vue'
   margin-bottom: 4px;
 }
 
+/* 深色模式下，联系标题变成白色（因为在黑色卡片上） */
+html.dark-mode .contact-item strong {
+  color: #ffffff !important;
+}
+
 .contact-item p {
   margin: 0;
   font-size: 14px;
   color: #666;
+}
+
+/* 深色模式下，联系描述变成白色（因为在黑色卡片上） */
+html.dark-mode .contact-item p {
+  color: #ffffff !important;
 }
 
 /* 响应式设计 */

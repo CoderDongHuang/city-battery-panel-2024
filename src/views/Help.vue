@@ -2583,26 +2583,26 @@ html.dark-mode .banner-description {
 }
 
 html.dark-mode .section-main-title {
-  color: #333333 !important;
+  color: #ffffff !important;
 }
 
 html.dark-mode .section-sub-title {
-  color: #333333 !important;
+  color: #ffffff !important;
 }
 
 html.dark-mode .quick-nav-card h3 {
-  color: #333333 !important;
+  color: #ffffff !important;
 }
 
 html.dark-mode .quick-nav-card p {
-  color: #666666 !important;
+  color: #ffffff !important;
 }
 
 html.dark-mode .guide-card h3 {
-  color: #333333 !important;
+  color: #ffffff !important;
 }
 
 html.dark-mode .guide-card p {
-  color: #666666 !important;
+  color: #ffffff !important;
 }
 </style>
