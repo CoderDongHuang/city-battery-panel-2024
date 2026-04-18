@@ -94,7 +94,12 @@
           </nav>
           
           <div class="header-actions">
-            <div class="user-menu" @click="toggleProfileDropdown">
+            <!-- 用户菜单 -->
+            <div 
+              class="user-menu" 
+              @click="toggleProfileDropdown"
+              style="cursor: pointer;"
+            >
               <img 
                 v-if="userAvatar" 
                 :src="userAvatar" 
@@ -119,8 +124,7 @@
     <div class="navbar-placeholder"></div>
 
     <!-- 用户下拉菜单 -->
-    <div v-if="showProfileDropdown" class="profile-dropdown-overlay" @click="closeDropdown"></div>
-    <div v-if="showProfileDropdown" class="profile-dropdown-menu">
+    <div v-if="showProfileDropdown" class="profile-dropdown-menu-fixed">
       <div class="dropdown-item" @click="goToProfile">
         <span class="dropdown-icon">👨‍</span>
         <span>个人中心</span>
@@ -156,11 +160,10 @@ const isHelpRoute = computed(() => {
   return ['Help', 'Guide', 'Contact'].includes(route.name)
 })
 
-const toggleProfileDropdown = () => {
-  console.log('toggleProfileDropdown 被调用，当前 showProfileDropdown:', showProfileDropdown.value)
+const toggleProfileDropdown = (event) => {
+  event.stopPropagation()
   showProfileDropdown.value = !showProfileDropdown.value
   showHelpDropdown.value = false
-  console.log('切换后 showProfileDropdown:', showProfileDropdown.value)
 }
 
 const toggleHelpDropdown = (event) => {
@@ -248,6 +251,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 16px;
+  position: relative;
 }
 
 .user-menu {
@@ -258,6 +262,7 @@ onUnmounted(() => {
   padding: 8px 12px;
   border-radius: 4px;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .user-menu:hover {
@@ -457,28 +462,20 @@ onUnmounted(() => {
   transform: rotate(180deg);
 }
 
-/* 用户下拉菜单 */
-.profile-dropdown-overlay {
+/* 用户下拉菜单（fixed 定位，在 header 外面） */
+.profile-dropdown-menu-fixed {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1999;
-}
-
-.profile-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 40px;
+  top: 88px;
+  right: 100px;
   background: var(--card-bg);
   border-radius: 8px;
   box-shadow: 0 8px 24px var(--shadow-color);
   min-width: 180px;
-  z-index: 2000;
-  overflow: hidden;
+  z-index: 9999;
+  overflow: visible;
   animation: slideDown 0.3s ease;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .dropdown-item {
