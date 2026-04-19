@@ -126,6 +126,12 @@ const routes = [
         meta: { title: '电池管理' }
       },
       {
+        path: 'stations',
+        name: 'AdminStations',
+        component: () => import('../views/AdminStations.vue'),
+        meta: { title: '换电站管理' }
+      },
+      {
         path: 'map',
         name: 'Map',
         component: () => import('../views/Map.vue'),

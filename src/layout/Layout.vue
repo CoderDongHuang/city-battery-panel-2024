@@ -93,6 +93,16 @@
                 <span class="nav-text">电池管理</span>
               </router-link>
               
+              <!-- 换电站管理 -->
+              <router-link 
+                :to="{ name: 'AdminStations' }"
+                class="nav-item"
+                :class="{ active: $route.name === 'AdminStations' }"
+              >
+                <span class="nav-icon">⚡</span>
+                <span class="nav-text">换电站管理</span>
+              </router-link>
+              
               <!-- 报警管理（带下拉菜单） -->
               <div class="nav-item dropdown" :class="{ active: isAlarmRoute }" @click="toggleAlarmDropdown">
                 <div class="dropdown-trigger">
