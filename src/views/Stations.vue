@@ -21,7 +21,6 @@
             <option value="all">全部类型</option>
             <option value="swap">换电站</option>
             <option value="service">服务中心</option>
-            <option value="charging">充电站</option>
           </select>
           <select v-model="filterStatus" class="filter-select">
             <option value="all">全部状态</option>
@@ -30,6 +29,77 @@
             <option value="offline">离线</option>
           </select>
         </div>
+      </div>
+
+      <!-- 高级筛选 -->
+      <div class="advanced-filters">
+        <div class="filter-section">
+          <div class="filter-label">📍 距离排序</div>
+          <div class="filter-options">
+            <label class="radio-option">
+              <input type="radio" v-model="sortByDistance" value="asc" />
+              <span>从近到远</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" v-model="sortByDistance" value="desc" />
+              <span>从远到近</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-label">🔋 可用电池</div>
+          <div class="filter-options">
+            <label class="checkbox-option">
+              <input type="checkbox" v-model="filterBatteries" value="sufficient" />
+              <span>充足 (>10)</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" v-model="filterBatteries" value="limited" />
+              <span>紧张 (5-10)</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" v-model="filterBatteries" value="scarce" />
+              <span>不足 (<5)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-label">🚗 可用车位</div>
+          <div class="filter-options">
+            <label class="checkbox-option">
+              <input type="checkbox" v-model="filterSpots" value="sufficient" />
+              <span>充足 (>5)</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" v-model="filterSpots" value="limited" />
+              <span>紧张 (2-5)</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" v-model="filterSpots" value="scarce" />
+              <span>不足 (<2)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-label">⭐ 评分排序</div>
+          <div class="filter-options">
+            <label class="radio-option">
+              <input type="radio" v-model="sortByRating" value="high" />
+              <span>高到低</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" v-model="sortByRating" value="low" />
+              <span>低到高</span>
+            </label>
+          </div>
+        </div>
+
+        <button @click="clearFilters" class="clear-filters-btn">
+          清除筛选
+        </button>
       </div>
 
       <!-- 网点列表 -->
@@ -54,19 +124,17 @@
 
             <div class="station-details">
               <div class="detail-item">
-                <span class="icon">📍</span>
+                <span class="icon">地点：</span>
                 <span>{{ station.address }}</span>
               </div>
               <div class="detail-item">
-                <span class="icon">⏰</span>
+                <span class="icon">服务时间：</span>
                 <span>{{ station.hours }}</span>
               </div>
               <div class="detail-item">
-                <span class="icon">🔋</span>
                 <span>可用电池：{{ station.availableBatteries }}</span>
               </div>
               <div class="detail-item">
-                <span class="icon">🚗</span>
                 <span>空闲车位：{{ station.availableSpots }}</span>
               </div>
             </div>
@@ -120,6 +188,12 @@ const searchQuery = ref('')
 const filterType = ref('all')
 const filterStatus = ref('all')
 
+// 高级筛选
+const sortByDistance = ref('')
+const sortByRating = ref('')
+const filterBatteries = ref([])
+const filterSpots = ref([])
+
 const stations = ref([
   {
     id: 1,
@@ -168,6 +242,7 @@ const stations = ref([
 const filteredStations = computed(() => {
   let result = stations.value
 
+  // 基础筛选
   if (filterType.value !== 'all') {
     result = result.filter(station => station.type === filterType.value)
   }
@@ -183,8 +258,65 @@ const filteredStations = computed(() => {
     )
   }
 
+  // 高级筛选 - 可用电池
+  if (filterBatteries.value.length > 0) {
+    result = result.filter(station => {
+      const batteries = station.availableBatteries
+      if (filterBatteries.value.includes('sufficient') && batteries > 10) return true
+      if (filterBatteries.value.includes('limited') && batteries >= 5 && batteries <= 10) return true
+      if (filterBatteries.value.includes('scarce') && batteries < 5) return true
+      return false
+    })
+  }
+
+  // 高级筛选 - 可用车位
+  if (filterSpots.value.length > 0) {
+    result = result.filter(station => {
+      const spots = station.availableSpots
+      if (filterSpots.value.includes('sufficient') && spots > 5) return true
+      if (filterSpots.value.includes('limited') && spots >= 2 && spots <= 5) return true
+      if (filterSpots.value.includes('scarce') && spots < 2) return true
+      return false
+    })
+  }
+
+  // 排序 - 距离
+  if (sortByDistance.value === 'asc') {
+    result = [...result].sort((a, b) => {
+      const distA = parseFloat(a.distance)
+      const distB = parseFloat(b.distance)
+      return distA - distB
+    })
+  } else if (sortByDistance.value === 'desc') {
+    result = [...result].sort((a, b) => {
+      const distA = parseFloat(a.distance)
+      const distB = parseFloat(b.distance)
+      return distB - distA
+    })
+  }
+
+  // 排序 - 评分（只在没有距离排序时生效）
+  if (sortByRating.value && !sortByDistance.value) {
+    if (sortByRating.value === 'high') {
+      result = [...result].sort((a, b) => b.rating - a.rating)
+    } else if (sortByRating.value === 'low') {
+      result = [...result].sort((a, b) => a.rating - b.rating)
+    }
+  }
+
   return result
 })
+
+// 清除所有筛选
+const clearFilters = () => {
+  sortByDistance.value = ''
+  sortByRating.value = ''
+  filterBatteries.value = []
+  filterSpots.value = []
+  filterType.value = 'all'
+  filterStatus.value = 'all'
+  searchQuery.value = ''
+}
 
 const getStatusText = (status) => {
   const statusMap = {
@@ -220,31 +352,49 @@ const viewDetail = (station) => {
 <style scoped>
 .stations-page {
   min-height: calc(100vh - 80px);
-  background: #f5f7fa;
-  padding: 40px 20px;
+  /* 使用控制台风格的浅色渐变背景 */
+  background: linear-gradient(180deg, 
+    rgba(200, 240, 245, 0.8) 0%, 
+    rgba(220, 230, 250, 0.7) 20%, 
+    rgba(230, 220, 255, 0.6) 40%, 
+    rgba(245, 245, 255, 0.5) 60%,
+    rgba(250, 250, 255, 0.4) 80%,
+    rgba(255, 255, 255, 0.3) 100%);
+  background-attachment: fixed;
+  padding: 40px 0;
+  transition: background-color 0.3s ease;
+}
+
+/* 深色模式下，背景保持不变，内容卡片变深色 */
+html.dark-mode .stations-page {
+  background: linear-gradient(180deg, 
+    rgba(200, 240, 245, 0.8) 0%, 
+    rgba(220, 230, 250, 0.7) 20%, 
+    rgba(230, 220, 255, 0.6) 40%, 
+    rgba(245, 245, 255, 0.5) 60%,
+    rgba(250, 250, 255, 0.4) 80%,
+    rgba(255, 255, 255, 0.3) 100%);
 }
 
 .stations-container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 40px;
 }
 
 .page-header {
   margin-bottom: 30px;
+  text-align: center;
 }
 
 .page-header h1 {
   font-size: 32px;
-  color: #333;
+  color: #000000;
   margin-bottom: 8px;
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .page-header p {
-  color: #666;
+  color: #000000;
   font-size: 14px;
 }
 
@@ -291,6 +441,110 @@ const viewDetail = (station) => {
 .filter-select:focus {
   outline: none;
   border-color: #0066cc;
+}
+
+/* 高级筛选 */
+.advanced-filters {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.filter-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-option,
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.radio-option:hover,
+.checkbox-option:hover {
+  color: #0066cc;
+}
+
+.radio-option input[type="radio"],
+.checkbox-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #0066cc;
+}
+
+.clear-filters-btn {
+  padding: 10px 24px;
+  background: #f5f7fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s;
+  align-self: flex-end;
+  font-weight: 500;
+}
+
+.clear-filters-btn:hover {
+  background: #e8ecf1;
+  border-color: #ccc;
+}
+
+/* 深色模式下的高级筛选 */
+html.dark-mode .advanced-filters {
+  background: #000000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+html.dark-mode .filter-label {
+  color: #ffffff;
+}
+
+html.dark-mode .radio-option,
+html.dark-mode .checkbox-option {
+  color: #cccccc;
+}
+
+html.dark-mode .radio-option:hover,
+html.dark-mode .checkbox-option:hover {
+  color: #4facfe;
+}
+
+html.dark-mode .clear-filters-btn {
+  background: #000000;
+  border-color: #444;
+  color: #cccccc;
+}
+
+html.dark-mode .clear-filters-btn:hover {
+  background: #1a1a1a;
+  border-color: #666;
 }
 
 .stations-list {
@@ -363,8 +617,8 @@ const viewDetail = (station) => {
 }
 
 .station-header h3 {
-  font-size: 20px;
-  color: #333;
+  font-size: 16px;
+  color: #000000;
   margin: 0;
 }
 
@@ -373,7 +627,7 @@ const viewDetail = (station) => {
   background: #f0f7ff;
   color: #0066cc;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -389,18 +643,18 @@ const viewDetail = (station) => {
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #666;
+  color: #000000;
 }
 
 .detail-item .icon {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .station-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  padding: 20px 0;
+  padding: 16px 0;
   border-top: 1px solid #f0f0f0;
   border-bottom: 1px solid #f0f0f0;
   margin-bottom: 20px;
@@ -411,18 +665,15 @@ const viewDetail = (station) => {
 }
 
 .stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 18px;
+  font-weight: 600;
+  color: #000000;
   margin-bottom: 4px;
 }
 
 .stat-label {
-  font-size: 12px;
-  color: #999;
+  font-size: 13px;
+  color: #666;
 }
 
 .station-actions {
@@ -515,5 +766,102 @@ const viewDetail = (station) => {
   .filter-group {
     flex-direction: column;
   }
+}
+
+/* 深色模式下，卡片和文字样式 */
+html.dark-mode .page-header h1 {
+  color: #000000;
+}
+
+html.dark-mode .page-header p {
+  color: #000000;
+}
+
+html.dark-mode .search-input {
+  background: #1a1a2e;
+  border-color: #444;
+  color: #ffffff;
+}
+
+html.dark-mode .search-input:focus {
+  border-color: #4facfe;
+  box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2);
+}
+
+html.dark-mode .filter-select {
+  background: #1a1a2e;
+  border-color: #444;
+  color: #ffffff;
+}
+
+html.dark-mode .filter-select:focus {
+  border-color: #4facfe;
+}
+
+html.dark-mode .station-card {
+  background: #000000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+html.dark-mode .station-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+html.dark-mode .station-image {
+  background: #2a2a3e;
+}
+
+html.dark-mode .station-header h3 {
+  color: #ffffff;
+}
+
+html.dark-mode .station-type {
+  background: #2a2a3e;
+  color: #4facfe;
+}
+
+html.dark-mode .detail-item {
+  color: #cccccc;
+}
+
+html.dark-mode .station-stats {
+  border-top-color: #444;
+  border-bottom-color: #444;
+}
+
+html.dark-mode .stat-value {
+  color: #ffffff;
+}
+
+html.dark-mode .stat-label {
+  color: #999;
+}
+
+html.dark-mode .btn-secondary {
+  background: #000000;
+  color: #ffffff;
+  border-color: #444;
+}
+
+html.dark-mode .btn-secondary:hover {
+  background: #1a1a1a;
+}
+
+html.dark-mode .btn-outline {
+  background: #000000;
+  color: #4facfe;
+  border-color: #4facfe;
+}
+
+html.dark-mode .btn-outline:hover {
+  background: #1a1a1a;
+}
+
+html.dark-mode .empty-state {
+  background: #000000;
+}
+
+html.dark-mode .empty-state p {
+  color: #999;
 }
 </style>
