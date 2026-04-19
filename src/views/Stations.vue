@@ -104,13 +104,21 @@
 
       <!-- 网点列表 -->
       <div class="stations-list">
+        <!-- 加载状态 -->
+        <div v-if="loading" class="loading-state">
+          <div class="loading-icon">⏳</div>
+          <p>正在加载服务网点...</p>
+        </div>
+
+        <!-- 站点列表 -->
         <div 
+          v-else
           v-for="station in filteredStations" 
           :key="station.id"
           class="station-card"
         >
           <div class="station-image">
-            <img :src="station.image" :alt="station.name" />
+            <img :src="station.image || (station.photos && station.photos[0] ? station.photos[0].url : '/images/default-station.jpg')" :alt="station.name" />
             <span :class="['status-badge', station.status]">
               {{ getStatusText(station.status) }}
             </span>
@@ -124,18 +132,18 @@
 
             <div class="station-details">
               <div class="detail-item">
-                <span class="icon">地点：</span>
+                <span class="icon">📍</span>
                 <span>{{ station.address }}</span>
               </div>
               <div class="detail-item">
-                <span class="icon">服务时间：</span>
-                <span>{{ station.hours }}</span>
+                <span class="icon">🕐</span>
+                <span>{{ station.hours || station.serviceTime }}</span>
               </div>
               <div class="detail-item">
-                <span>可用电池：{{ station.availableBatteries }}</span>
+                <span>🔋 可用电池：{{ station.availableBatteries }}</span>
               </div>
               <div class="detail-item">
-                <span>空闲车位：{{ station.availableSpots }}</span>
+                <span>🚗 空闲车位：{{ station.availableSpots || station.availableSlots }}</span>
               </div>
             </div>
 
@@ -168,9 +176,77 @@
           </div>
         </div>
 
-        <div v-if="filteredStations.length === 0" class="empty-state">
-          <div class="empty-icon">🗺️</div>
-          <p>暂无服务网点</p>
+        <div v-if="filteredStations.length === 0 && !loading" class="empty-state">
+          <p>附近暂无换电站和服务网点</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 详情弹窗 -->
+    <div v-if="showDetailModal" class="modal-overlay" @click="closeDetailModal">
+      <div class="modal-content detail-modal" @click.stop>
+        <div class="modal-header">
+          <h2>{{ currentStation?.name }}</h2>
+          <button @click="closeDetailModal" class="close-btn">✕</button>
+        </div>
+        <div class="modal-body">
+          <!-- 照片轮播 -->
+          <div class="photo-gallery" v-if="currentStation?.photos && currentStation.photos.length > 0">
+            <img :src="currentStation.photos[0].url" :alt="currentStation.name" class="main-photo" />
+            <div class="photo-thumbnails">
+              <img 
+                v-for="(photo, index) in currentStation.photos" 
+                :key="photo.id"
+                :src="photo.url" 
+                :alt="photo.description || '照片' + (index + 1)"
+                :class="['thumbnail', { active: currentPhotoIndex === index }]"
+                @click="currentPhotoIndex = index"
+              />
+            </div>
+          </div>
+          
+          <div class="detail-info">
+            <div class="detail-row">
+              <span class="label">站点类型：</span>
+              <span class="value">{{ getTypeText(currentStation?.type) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">地址：</span>
+              <span class="value">{{ currentStation?.address }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">服务时间：</span>
+              <span class="value">{{ currentStation?.hours || currentStation?.serviceTime }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">联系电话：</span>
+              <span class="value">{{ currentStation?.phone || '400-888-8888' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">可用电池：</span>
+              <span class="value">{{ currentStation?.availableBatteries }} 块</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">空闲车位：</span>
+              <span class="value">{{ currentStation?.availableSpots || currentStation?.availableSlots }} 个</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">评分：</span>
+              <span class="value">⭐ {{ currentStation?.rating }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">累计换电：</span>
+              <span class="value">{{ currentStation?.totalSwaps }} 次</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button @click="navigateToStation(currentStation)" class="btn-primary">
+            导航到这里
+          </button>
+          <button @click="bookService(currentStation)" class="btn-secondary">
+            预约服务
+          </button>
         </div>
       </div>
     </div>
@@ -181,8 +257,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import SiteFooter from '../components/SiteFooter.vue'
+import { getStationsListAPI, getStationPhotosAPI } from '../services/stationsAPI'
 
 const searchQuery = ref('')
 const filterType = ref('all')
@@ -194,50 +271,33 @@ const sortByRating = ref('')
 const filterBatteries = ref([])
 const filterSpots = ref([])
 
-const stations = ref([
-  {
-    id: 1,
-    name: '朝阳科技园换电站',
-    type: 'swap',
-    status: 'available',
-    address: '北京市朝阳区科技园路 88 号',
-    hours: '24 小时营业',
-    availableBatteries: 12,
-    availableSpots: 3,
-    distance: '1.2km',
-    rating: 4.8,
-    totalSwaps: 2340,
-    image: '/images/station1.jpg'
-  },
-  {
-    id: 2,
-    name: '海淀中关村服务中心',
-    type: 'service',
-    status: 'busy',
-    address: '北京市海淀区中关村大街 1 号',
-    hours: '09:00-18:00',
-    availableBatteries: 8,
-    availableSpots: 1,
-    distance: '3.5km',
-    rating: 4.6,
-    totalSwaps: 1890,
-    image: '/images/station2.jpg'
-  },
-  {
-    id: 3,
-    name: '望京 SOHO 换电站',
-    type: 'swap',
-    status: 'available',
-    address: '北京市朝阳区望京东园四区',
-    hours: '24 小时营业',
-    availableBatteries: 15,
-    availableSpots: 5,
-    distance: '2.8km',
-    rating: 4.9,
-    totalSwaps: 3120,
-    image: '/images/station3.jpg'
+const stations = ref([])
+const loading = ref(false)
+const error = ref(null)
+
+// 加载站点列表
+const loadStations = async () => {
+  loading.value = true
+  error.value = null
+  try {
+    const data = await getStationsListAPI({
+      page: 1,
+      pageSize: 20,
+      type: filterType.value === 'all' ? undefined : filterType.value
+    })
+    stations.value = data
+  } catch (err) {
+    console.error('加载站点列表失败:', err)
+    error.value = '加载失败，请稍后重试'
+    stations.value = []
+  } finally {
+    loading.value = false
   }
-])
+}
+
+onMounted(() => {
+  loadStations()
+})
 
 const filteredStations = computed(() => {
   let result = stations.value
@@ -344,8 +404,33 @@ const bookService = (station) => {
   alert('预约服务：' + station.name)
 }
 
-const viewDetail = (station) => {
-  alert('查看详情：' + station.name)
+// 详情弹窗相关
+const showDetailModal = ref(false)
+const currentStation = ref(null)
+const currentPhotoIndex = ref(0)
+
+const viewDetail = async (station) => {
+  currentStation.value = station
+  currentPhotoIndex.value = 0
+  showDetailModal.value = true
+  
+  // 如果有照片，可以加载更多照片
+  if (station.id) {
+    try {
+      const photos = await getStationPhotosAPI(station.id)
+      if (photos && photos.length > 0) {
+        currentStation.value.photos = photos
+      }
+    } catch (err) {
+      console.error('加载照片失败:', err)
+    }
+  }
+}
+
+const closeDetailModal = () => {
+  showDetailModal.value = false
+  currentStation.value = null
+  currentPhotoIndex.value = 0
 }
 </script>
 
@@ -684,9 +769,9 @@ html.dark-mode .clear-filters-btn:hover {
 .btn-primary {
   flex: 1;
   padding: 12px;
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
-  color: white;
-  border: none;
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
@@ -695,8 +780,9 @@ html.dark-mode .clear-filters-btn:hover {
 }
 
 .btn-primary:hover {
+  background: #f0f0f0;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .btn-secondary {
@@ -748,6 +834,245 @@ html.dark-mode .clear-filters-btn:hover {
 .empty-state p {
   color: #999;
   font-size: 16px;
+}
+
+/* 加载状态 */
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+}
+
+.loading-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.loading-state p {
+  color: #666;
+  font-size: 16px;
+}
+
+/* 错误状态 */
+.error-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+}
+
+.error-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.error-state p {
+  color: #f44336;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.retry-btn {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
+}
+
+/* 照片数量标识 */
+.photo-count {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+}
+
+/* 详情弹窗 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.detail-modal {
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #000000;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.close-btn:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+/* 照片画廊 */
+.photo-gallery {
+  margin-bottom: 24px;
+}
+
+.main-photo {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.photo-thumbnails {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.thumbnail {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+.thumbnail:hover {
+  border-color: #0066cc;
+  transform: scale(1.05);
+}
+
+.thumbnail.active {
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+}
+
+/* 详情信息 */
+.detail-info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detail-row .label {
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+.detail-row .value {
+  font-size: 15px;
+  color: #000000;
+  font-weight: 500;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.modal-footer .btn-primary,
+.modal-footer .btn-secondary {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .detail-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .main-photo {
+    height: 250px;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 968px) {

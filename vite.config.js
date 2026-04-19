@@ -6,11 +6,10 @@ export default defineConfig({
   plugins: [vue()],
   server: {
     proxy: {
-      // 代理 API 请求，解决 CORS 跨域问题
+      // 代理 API 请求到后端服务
       '/api': {
-        target: 'http://v.juhe.cn',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        target: 'http://localhost:8080',
+        changeOrigin: true
       }
     }
   }
