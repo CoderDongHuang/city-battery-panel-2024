@@ -152,7 +152,7 @@ const route = useRoute()
 
 const showProfileDropdown = ref(false)
 const showHelpDropdown = ref(false)
-const username = ref(localStorage.getItem('username') || '用户')
+const username = ref(localStorage.getItem('userUsername') || '用户')
 const userAvatar = ref(localStorage.getItem('userAvatar') || '')
 
 // 判断是否在帮助相关页面
@@ -182,10 +182,11 @@ const goToProfile = () => {
 }
 
 const handleLogout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('refreshToken')
-  localStorage.removeItem('username')
-  localStorage.removeItem('userId')
+  // 清除用户端登录状态
+  localStorage.removeItem('userToken')
+  localStorage.removeItem('userRefreshToken')
+  localStorage.removeItem('userUsername')
+  localStorage.removeItem('userUserId')
   localStorage.removeItem('userAvatar')
   localStorage.removeItem('userEmail')
   localStorage.removeItem('userRole')

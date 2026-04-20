@@ -245,8 +245,14 @@ const goToProfile = () => {
 
 const handleLogout = () => {
   showProfileDropdown.value = false
-  localStorage.removeItem('token')
-  localStorage.removeItem('username')
+  // 清除管理端登录状态
+  localStorage.removeItem('adminToken')
+  localStorage.removeItem('adminUsername')
+  localStorage.removeItem('adminUserId')
+  localStorage.removeItem('adminAvatar')
+  localStorage.removeItem('adminEmail')
+  localStorage.removeItem('adminRefreshToken')
+  localStorage.removeItem('adminRole')
   router.push('/login')
 }
 

@@ -157,7 +157,7 @@ import { userStatsAPI, userVehicleAPI, userBatteryAPI } from '../services/userAP
 import SiteFooter from '../components/SiteFooter.vue'
 
 const router = useRouter()
-const username = ref(localStorage.getItem('username') || '用户')
+const username = ref(localStorage.getItem('userUsername') || '用户')
 const vehicleCount = ref(0)
 const batteryCount = ref(0)
 const vehicles = ref([])

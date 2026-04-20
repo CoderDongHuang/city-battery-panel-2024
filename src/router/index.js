@@ -171,88 +171,93 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token')
+  // 管理端和用户端使用不同的 token key，实现登录状态隔离
+  const adminToken = localStorage.getItem('adminToken')
+  const userToken = localStorage.getItem('userToken')
+  const adminRole = localStorage.getItem('adminRole') || 'admin'
   const userRole = localStorage.getItem('userRole') || 'user'
   
   // 检查 URL 中是否有 token 参数（GitHub 登录回调）
   const urlParams = new URLSearchParams(window.location.search)
   const urlToken = urlParams.get('token')
+  const urlRole = urlParams.get('role')
   
-  // 如果是 GitHub 登录回调，先保存 token
-  if (to.path === '/admin/dashboard' && urlToken && !token) {
-    localStorage.setItem('token', urlToken)
-    const refreshToken = urlParams.get('refreshToken')
-    const username = urlParams.get('username')
-    const id = urlParams.get('id')
-    const avatar = urlParams.get('avatar')
-    const email = urlParams.get('email')
-    const role = urlParams.get('role')
-    
-    if (refreshToken) localStorage.setItem('refreshToken', refreshToken)
-    if (username) localStorage.setItem('username', username)
-    if (id) localStorage.setItem('userId', id)
-    if (avatar) localStorage.setItem('userAvatar', avatar)
-    if (email) localStorage.setItem('userEmail', email)
-    if (role) localStorage.setItem('userRole', role)
-    
-    // 根据角色重定向
-    if (role === 'admin') {
+  // 如果是 GitHub 登录回调，根据角色保存到不同的 key
+  if (urlToken) {
+    if (urlRole === 'admin') {
+      // 管理员登录
+      localStorage.setItem('adminToken', urlToken)
+      const refreshToken = urlParams.get('refreshToken')
+      const username = urlParams.get('username')
+      const id = urlParams.get('id')
+      const avatar = urlParams.get('avatar')
+      const email = urlParams.get('email')
+      
+      if (refreshToken) localStorage.setItem('adminRefreshToken', refreshToken)
+      if (username) localStorage.setItem('adminUsername', username)
+      if (id) localStorage.setItem('adminUserId', id)
+      if (avatar) localStorage.setItem('adminAvatar', avatar)
+      if (email) localStorage.setItem('adminEmail', email)
+      if (urlRole) localStorage.setItem('adminRole', urlRole)
+      
       next('/admin/dashboard')
     } else {
+      // 普通用户登录
+      localStorage.setItem('userToken', urlToken)
+      const refreshToken = urlParams.get('refreshToken')
+      const username = urlParams.get('username')
+      const id = urlParams.get('id')
+      const avatar = urlParams.get('avatar')
+      const email = urlParams.get('email')
+      
+      if (refreshToken) localStorage.setItem('userRefreshToken', refreshToken)
+      if (username) localStorage.setItem('userUsername', username)
+      if (id) localStorage.setItem('userUserId', id)
+      if (avatar) localStorage.setItem('userAvatar', avatar)
+      if (email) localStorage.setItem('userEmail', email)
+      if (urlRole) localStorage.setItem('userRole', urlRole)
+      
       next('/dashboard')
     }
     return
   }
   
-  const currentToken = localStorage.getItem('token')
-  const currentRole = localStorage.getItem('userRole') || 'user'
-  
   // 允许访问登录和注册页面
   if (to.path === '/login' || to.path === '/register') {
-    if (currentToken) {
-      // 已登录用户根据角色重定向
-      if (currentRole === 'admin') {
-        next('/admin/dashboard')
-      } else {
-        next('/dashboard')
-      }
-    } else {
-      next()
-    }
+    next()
     return
   }
   
   // 检查路由是否需要认证
   if (to.meta.requiresAuth) {
-    if (!currentToken) {
-      // 未登录，跳转到登录页
-      next('/login')
+    // 管理端路由
+    if (to.meta.role === 'admin') {
+      if (!adminToken) {
+        alert('请先登录管理端')
+        next('/login')
+        return
+      }
+      next()
       return
     }
     
-    // 检查角色权限
-    if (to.meta.role) {
-      if (to.meta.role === 'admin' && currentRole !== 'admin') {
-        // 普通用户尝试访问管理员页面
-        next('/dashboard')
+    // 用户端路由
+    if (to.meta.role === 'user' || !to.meta.role) {
+      if (!userToken) {
+        next('/login')
         return
       }
-      if (to.meta.role === 'user' && currentRole === 'admin') {
-        // 管理员尝试访问用户页面（允许访问）
-        next()
-        return
-      }
+      next()
+      return
     }
   }
   
   // 根路径重定向
   if (to.path === '/') {
-    if (currentToken) {
-      if (currentRole === 'admin') {
-        next('/admin/dashboard')
-      } else {
-        next('/dashboard')
-      }
+    if (adminToken) {
+      next('/admin/dashboard')
+    } else if (userToken) {
+      next('/dashboard')
     } else {
       next('/login')
     }

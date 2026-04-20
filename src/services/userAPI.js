@@ -13,7 +13,7 @@ const userApi = axios.create({
 userApi.interceptors.request.use(
   (config) => {
     // 从 localStorage 获取用户 ID
-    const userId = localStorage.getItem('userId')
+    const userId = localStorage.getItem('userUserId')
     console.log('[UserAPI] 当前 userId:', userId)
     
     if (userId) {

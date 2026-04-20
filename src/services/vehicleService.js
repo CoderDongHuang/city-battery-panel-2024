@@ -20,7 +20,14 @@ const apiClient = axios.create({
 // 请求拦截器 - 添加认证 token
 apiClient.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('token')
+    // 管理端 API 使用 adminToken，用户端 API 使用 userToken
+    let token = null
+    if (config.url.includes('/admin/')) {
+      token = localStorage.getItem('adminToken')
+    } else {
+      token = localStorage.getItem('userToken')
+    }
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -40,8 +47,12 @@ apiClient.interceptors.response.use(
       console.error('API Error:', error.response.status, error.response.data)
       
       if (error.response.status === 401) {
-        // 未授权，跳转到登录页
-        localStorage.removeItem('token')
+        // 未授权，根据 URL 清除对应的 token
+        if (error.config.url.includes('/admin/')) {
+          localStorage.removeItem('adminToken')
+        } else {
+          localStorage.removeItem('userToken')
+        }
         window.location.href = '/login'
       }
     } else if (error.request) {

@@ -9,7 +9,14 @@ const stationsApi = axios.create({
 // 请求拦截器
 stationsApi.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('token')
+    // 管理端 API 使用 adminToken，用户端 API 使用 userToken
+    let token = null
+    if (config.url.includes('/admin/')) {
+      token = localStorage.getItem('adminToken')
+    } else {
+      token = localStorage.getItem('userToken')
+    }
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -110,15 +117,50 @@ export const searchStationsAPI = (keyword, params = {}) => {
 }
 
 /**
- * 获取站点照片列表
- * @param {string} stationId - 站点 ID
- * @returns {Promise<Array>} 照片列表
+ * 新增站点（管理员功能）
+ * @param {Object} data - 站点数据
+ * @param {string} data.name - 站点名称
+ * @param {string} data.type - 站点类型：'battery' | 'service' | 'all'
+ * @param {string} data.address - 地址
+ * @param {number} data.latitude - 纬度
+ * @param {number} data.longitude - 经度
+ * @param {string} data.contactPhone - 联系电话
+ * @param {string} data.manager - 管理者
+ * @param {string} data.serviceTime - 服务时间
+ * @param {number} data.availableBatteries - 可用电池数
+ * @param {number} data.availableSlots - 空闲车位数
+ * @param {string} data.status - 状态：'active' | 'online' | 'offline' | 'maintenance' | 'closed'
+ * @returns {Promise<Object>} 创建结果
  */
-export const getStationPhotosAPI = (stationId) => {
-  return stationsApi.get(`/stations/${stationId}/photos`)
+export const createStationAPI = (data) => {
+  return stationsApi.post('/admin/stations', data)
     .then(response => {
-      // 响应格式：{ code: 200, message: 'success', data: [...] }
-      return response.data.data || []
+      return response.data
+    })
+}
+
+/**
+ * 更新站点（管理员功能）
+ * @param {string} stationId - 站点 ID
+ * @param {Object} data - 站点数据
+ * @returns {Promise<Object>} 更新结果
+ */
+export const updateStationAPI = (stationId, data) => {
+  return stationsApi.put(`/admin/stations/${stationId}`, data)
+    .then(response => {
+      return response.data
+    })
+}
+
+/**
+ * 删除站点（管理员功能）
+ * @param {string} stationId - 站点 ID
+ * @returns {Promise<Object>} 删除结果
+ */
+export const deleteStationAPI = (stationId) => {
+  return stationsApi.delete(`/admin/stations/${stationId}`)
+    .then(response => {
+      return response.data
     })
 }
 
@@ -130,9 +172,9 @@ export const getStationPhotosAPI = (stationId) => {
  */
 export const uploadStationPhotoAPI = (stationId, file) => {
   const formData = new FormData()
-  formData.append('photo', file)
+  formData.append('file', file)  // 使用 'file' 而不是 'photo'
   
-  return stationsApi.post(`/stations/${stationId}/photos`, formData, {
+  return stationsApi.post(`/admin/stations/${stationId}/photos`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
@@ -148,24 +190,21 @@ export const uploadStationPhotoAPI = (stationId, file) => {
  * @returns {Promise<Object>} 删除结果
  */
 export const deleteStationPhotoAPI = (stationId, photoId) => {
-  return stationsApi.delete(`/stations/${stationId}/photos/${photoId}`)
+  return stationsApi.delete(`/admin/stations/${stationId}/photos/${photoId}`)
     .then(response => {
       return response.data
     })
 }
 
 /**
- * 上报站点状态（如设备故障、电池不足等）
+ * 获取站点照片列表
  * @param {string} stationId - 站点 ID
- * @param {Object} data - 上报数据
- * @param {string} data.type - 上报类型：'battery_low' | 'device_error' | 'full_battery' | 'other'
- * @param {string} data.description - 描述
- * @returns {Promise<Object>} 上报结果
+ * @returns {Promise<Array>} 照片列表
  */
-export const reportStationStatusAPI = (stationId, data) => {
-  return stationsApi.post(`/stations/${stationId}/status-report`, data)
+export const getStationPhotosAPI = (stationId) => {
+  return stationsApi.get(`/admin/stations/${stationId}/photos`)
     .then(response => {
-      return response.data
+      return response.data.data || []
     })
 }
 
@@ -173,8 +212,10 @@ export default {
   getStationsListAPI,
   getStationDetailAPI,
   searchStationsAPI,
+  createStationAPI,
+  updateStationAPI,
+  deleteStationAPI,
   getStationPhotosAPI,
   uploadStationPhotoAPI,
-  deleteStationPhotoAPI,
-  reportStationStatusAPI
+  deleteStationPhotoAPI
 }

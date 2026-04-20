@@ -221,7 +221,7 @@ import { userProfileAPI, userAvatarAPI, userSettingsAPI } from '../services/user
 
 const router = useRouter()
 
-const username = ref(localStorage.getItem('username') || '用户')
+const username = ref(localStorage.getItem('userUsername') || '用户')
 const userEmail = ref(localStorage.getItem('userEmail') || '')
 const userAvatar = ref(localStorage.getItem('userAvatar') || '')
 const userRole = ref(localStorage.getItem('userRole') || 'user')
@@ -259,20 +259,20 @@ const loadUserProfile = async () => {
       }
       
       // 更新用户信息
-      username.value = res.data.username || localStorage.getItem('username') || '用户'
+      username.value = res.data.username || localStorage.getItem('userUsername') || '用户'
       userEmail.value = res.data.email || localStorage.getItem('userEmail') || ''
       userAvatar.value = avatarUrl || localStorage.getItem('userAvatar') || ''
       userRole.value = res.data.role || localStorage.getItem('userRole') || 'user'
       
       // 更新本地存储
-      localStorage.setItem('username', res.data.username)
+      localStorage.setItem('userUsername', res.data.username)
       localStorage.setItem('userEmail', res.data.email)
       localStorage.setItem('userAvatar', userAvatar.value)
       localStorage.setItem('userRole', res.data.role)
     }
   } catch (error) {
     // 如果 API 调用失败，使用 localStorage 作为备用方案
-    username.value = localStorage.getItem('username') || '用户'
+    username.value = localStorage.getItem('userUsername') || '用户'
     userEmail.value = localStorage.getItem('userEmail') || ''
     userAvatar.value = localStorage.getItem('userAvatar') || ''
     userRole.value = localStorage.getItem('userRole') || 'user'
@@ -471,9 +471,16 @@ const loadStats = async () => {
   } catch (error) {
     console.error('加载统计数据失败:', error)
     // 如果 API 调用失败，使用 localStorage 作为备用方案
-    const vehicles = JSON.parse(localStorage.getItem('userVehicles') || '[]')
-    const batteries = JSON.parse(localStorage.getItem('userBatteries') || '[]')
-    const orders = JSON.parse(localStorage.getItem('userOrders') || '[]')
+    let vehicles = []
+    let batteries = []
+    let orders = []
+    try {
+      vehicles = JSON.parse(localStorage.getItem('userVehicles') || '[]')
+      batteries = JSON.parse(localStorage.getItem('userBatteries') || '[]')
+      orders = JSON.parse(localStorage.getItem('userOrders') || '[]')
+    } catch (parseError) {
+      console.error('解析 localStorage 数据失败:', parseError)
+    }
     
     vehicleCount.value = vehicles.length
     batteryCount.value = batteries.length

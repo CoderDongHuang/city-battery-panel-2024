@@ -10,6 +10,11 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true
+      },
+      // 代理图片上传目录
+      '/uploads': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
       }
     }
   }

@@ -203,8 +203,24 @@
                 <input v-model="formData.contactPhone" type="text" class="form-input" />
               </div>
               <div class="form-group">
+                <label>管理者</label>
+                <input v-model="formData.manager" type="text" class="form-input" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
                 <label>服务时间</label>
                 <input v-model="formData.serviceTime" type="text" placeholder="例如：24 小时营业" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label>站点状态</label>
+                <select v-model="formData.status" class="form-input">
+                  <option value="active">活跃</option>
+                  <option value="online">在线</option>
+                  <option value="offline">离线</option>
+                  <option value="maintenance">维护中</option>
+                  <option value="closed">已关闭</option>
+                </select>
               </div>
             </div>
             <div class="form-row">
@@ -217,13 +233,29 @@
                 <input v-model="formData.availableSlots" type="number" class="form-input" />
               </div>
             </div>
+            
+            <!-- 照片上传 -->
             <div class="form-group">
-              <label>状态</label>
-              <select v-model="formData.status" class="form-input">
-                <option value="active">正常运营</option>
-                <option value="offline">离线</option>
-                <option value="maintenance">维护中</option>
-              </select>
+              <label>站点照片</label>
+              <div class="photo-upload-area">
+                <input
+                  ref="photoInput"
+                  type="file"
+                  accept="image/*"
+                  @change="handlePhotoUpload"
+                  class="photo-input"
+                />
+                <div v-if="formData.photos && formData.photos.length > 0" class="photo-preview">
+                  <div v-for="(photo, index) in formData.photos" :key="photo.id || index" class="photo-item">
+                    <img :src="photo.url || photo" :alt="`照片${index + 1}`" class="photo-thumb" @error="() => console.log('图片加载失败:', photo.url)" />
+                    <button @click="removePhoto(index)" class="remove-photo-btn" title="删除照片">×</button>
+                  </div>
+                </div>
+                <div v-else class="upload-placeholder">
+                  <span class="upload-icon">📷</span>
+                  <span class="upload-text">点击上传照片</span>
+                </div>
+              </div>
             </div>
           </form>
         </div>
@@ -239,11 +271,18 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
+import { 
+  createStationAPI, 
+  updateStationAPI, 
+  deleteStationAPI,
+  uploadStationPhotoAPI,
+  deleteStationPhotoAPI
+} from '../services/stationsAPI'
 
 const stations = ref([])
 const loading = ref(false)
 const searchQuery = ref('')
-const filterType = ref('all')
+const filterType = ref('')
 const filterStatus = ref('all')
 
 // 高级筛选
@@ -263,11 +302,15 @@ const formData = ref({
   latitude: '',
   longitude: '',
   contactPhone: '',
+  manager: '',
   serviceTime: '',
   availableBatteries: 0,
   availableSlots: 0,
-  status: 'active'
+  status: 'active',
+  photos: []
 })
+
+const photoInput = ref(null)
 
 // 加载站点列表
 const loadStations = async () => {
@@ -398,18 +441,46 @@ const viewDetail = (station) => {
 
 const editStation = (station) => {
   currentStation.value = station
+  
+  console.log('编辑站点数据:', station)
+  console.log('联系电话:', station.contactPhone)
+  console.log('管理者:', station.manager)
+  console.log('照片数据:', station.photos)
+  
+  // 处理照片回显：确保是对象数组格式
+  const photos = []
+  if (station.photos && Array.isArray(station.photos)) {
+    station.photos.forEach(photo => {
+      if (typeof photo === 'string') {
+        // 如果是字符串 URL，转换为对象格式
+        photos.push({ url: photo, id: null })
+      } else if (photo && typeof photo === 'object') {
+        // 如果已经是对象，直接使用
+        photos.push({ ...photo })
+      }
+    })
+  }
+  
+  console.log('处理后的照片:', photos)
+  
   formData.value = {
     name: station.name,
     type: station.type,
     address: station.address,
-    latitude: station.latitude,
-    longitude: station.longitude,
-    contactPhone: station.contactPhone,
-    serviceTime: station.serviceTime,
-    availableBatteries: station.availableBatteries,
-    availableSlots: station.availableSlots,
-    status: station.status
+    latitude: station.latitude ? String(station.latitude) : '',
+    longitude: station.longitude ? String(station.longitude) : '',
+    contactPhone: station.contactPhone || '',
+    manager: station.manager || '',
+    serviceTime: station.serviceTime || '',
+    availableBatteries: station.availableBatteries || 0,
+    availableSlots: station.availableSlots || 0,
+    status: station.status,
+    photos: photos
   }
+  
+  console.log('formData.photos:', formData.value.photos)
+  console.log('照片长度:', formData.value.photos.length)
+  
   showEditModal.value = true
 }
 
@@ -419,7 +490,7 @@ const deleteStation = async (station) => {
   }
   
   try {
-    await axios.delete(`/api/stations/${station.stationId || station.id}`)
+    await deleteStationAPI(station.stationId || station.id)
     alert('删除成功')
     loadStations()
   } catch (error) {
@@ -439,29 +510,119 @@ const closeModal = () => {
     latitude: '',
     longitude: '',
     contactPhone: '',
+    manager: '',
     serviceTime: '',
     availableBatteries: 0,
     availableSlots: 0,
-    status: 'active'
+    status: 'active',
+    photos: []
+  }
+  if (photoInput.value) {
+    photoInput.value.value = ''
   }
 }
 
 const handleSubmit = async () => {
   try {
+    // 过滤掉文件对象，只保留 URL（用于编辑时回显）
+    const submitData = { ...formData.value }
+    const photoFiles = submitData.photos.filter(p => p.file)
+    submitData.photos = submitData.photos.map(p => p.url || p)
+    
     if (showEditModal.value && currentStation.value) {
       // 更新站点
-      await axios.put(`/api/stations/${currentStation.value.stationId || currentStation.value.id}`, formData.value)
+      await updateStationAPI(currentStation.value.stationId || currentStation.value.id, submitData)
+      
+      // 上传新添加的照片
+      const stationId = currentStation.value.stationId || currentStation.value.id
+      for (const photo of photoFiles) {
+        try {
+          await uploadStationPhotoAPI(stationId, photo.file)
+        } catch (uploadError) {
+          console.error('照片上传失败:', uploadError)
+        }
+      }
+      
       alert('更新成功')
     } else {
       // 新增站点
-      await axios.post('/api/stations', formData.value)
+      const result = await createStationAPI(submitData)
+      
+      // 如果创建成功且有照片，上传照片
+      if (result.data && result.data.id && photoFiles.length > 0) {
+        const stationId = result.data.id
+        for (const photo of photoFiles) {
+          try {
+            await uploadStationPhotoAPI(stationId, photo.file)
+          } catch (uploadError) {
+            console.error('照片上传失败:', uploadError)
+          }
+        }
+      }
+      
       alert('添加成功')
     }
+    
     closeModal()
     loadStations()
   } catch (error) {
     console.error('操作失败:', error)
     alert('操作失败：' + (error.response?.data?.message || error.message))
+  }
+}
+
+// 处理照片上传（临时上传，不立即提交到后端）
+const handlePhotoUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  
+  // 验证文件大小（限制 5MB）
+  const maxSize = 5 * 1024 * 1024 // 5MB
+  if (file.size > maxSize) {
+    alert('图片大小不能超过 5MB，请压缩后重新上传')
+    return
+  }
+  
+  // 验证文件类型
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+  if (!allowedTypes.includes(file.type)) {
+    alert('只支持 JPG、PNG、GIF、WebP 格式的图片')
+    return
+  }
+  
+  // 读取文件为 Data URL，用于预览
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    formData.value.photos.push({
+      url: e.target.result,
+      file: file  // 保存文件对象，稍后一起提交
+    })
+  }
+  reader.readAsDataURL(file)
+  
+  // 清空 input，允许重复上传同一文件
+  if (photoInput.value) {
+    photoInput.value.value = ''
+  }
+}
+
+// 删除照片
+const removePhoto = async (index) => {
+  const photo = formData.value.photos[index]
+  if (!photo) return
+  
+  if (!confirm('确定要删除这张照片吗？')) return
+  
+  try {
+    // 如果是服务器上的照片（有 id），调用 API 删除
+    if (photo.id && currentStation.value) {
+      await deleteStationPhotoAPI(currentStation.value.stationId || currentStation.value.id, photo.id)
+    }
+    // 删除本地列表中的照片（无论是临时照片还是服务器照片）
+    formData.value.photos.splice(index, 1)
+  } catch (error) {
+    console.error('删除失败:', error)
+    alert('删除失败：' + (error.response?.data?.message || error.message))
   }
 }
 </script>
@@ -488,7 +649,7 @@ const handleSubmit = async () => {
 
 .btn-add {
   padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #333;
   color: white;
   border: none;
   border-radius: 8px;
@@ -498,8 +659,7 @@ const handleSubmit = async () => {
 }
 
 .btn-add:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: #555;
 }
 
 .search-section {
@@ -889,6 +1049,94 @@ const handleSubmit = async () => {
   gap: 16px;
 }
 
+/* 照片上传 */
+.photo-upload-area {
+  position: relative;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.photo-upload-area:hover {
+  border-color: #333;
+  background: #fafafa;
+}
+
+.photo-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #999;
+}
+
+.upload-icon {
+  font-size: 32px;
+}
+
+.upload-text {
+  font-size: 14px;
+}
+
+.photo-preview {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.photo-item {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.photo-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-photo-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.remove-photo-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -917,14 +1165,13 @@ const handleSubmit = async () => {
 }
 
 .btn-submit {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #333;
   border: none;
   color: white;
 }
 
 .btn-submit:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: #555;
 }
 
 </style>

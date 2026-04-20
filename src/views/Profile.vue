@@ -45,7 +45,7 @@ const router = useRouter()
 const username = ref('')
 
 onMounted(() => {
-  const storedUsername = localStorage.getItem('username')
+  const storedUsername = localStorage.getItem('adminUsername')
   if (storedUsername) {
     username.value = storedUsername
   } else {
@@ -54,8 +54,8 @@ onMounted(() => {
 })
 
 const handleLogout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('username')
+  localStorage.removeItem('adminToken')
+  localStorage.removeItem('adminUsername')
   router.push('/login')
 }
 </script>

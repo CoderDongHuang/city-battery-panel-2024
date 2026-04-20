@@ -314,17 +314,24 @@ const handleLogin = async () => {
     console.log('[登录响应] user:', response.data?.user)
     
     if (response.code === 200 || response.code === 0) {
-      localStorage.setItem('token', response.data.token)
-      localStorage.setItem('userId', response.data.user?.id || response.data.user?.userId || response.data.user?.uid)
-      localStorage.setItem('username', response.data.user.username)
-      localStorage.setItem('userRole', response.data.user.role || 'user')
+      const userRole = response.data.user.role || 'user'
       
-      console.log('[登录] 保存的 userId:', localStorage.getItem('userId'))
-      
-      // 根据角色跳转到不同的界面
-      if (response.data.user.role === 'admin') {
+      // 根据角色保存到不同的 storage key
+      if (userRole === 'admin') {
+        // 管理员登录
+        localStorage.setItem('adminToken', response.data.token)
+        localStorage.setItem('adminUserId', response.data.user?.id || response.data.user?.userId || response.data.user?.uid)
+        localStorage.setItem('adminUsername', response.data.user.username)
+        localStorage.setItem('adminRole', userRole)
+        console.log('[登录] 管理员登录成功')
         router.push('/admin/dashboard')
       } else {
+        // 普通用户登录
+        localStorage.setItem('userToken', response.data.token)
+        localStorage.setItem('userUserId', response.data.user?.id || response.data.user?.userId || response.data.user?.uid)
+        localStorage.setItem('userUsername', response.data.user.username)
+        localStorage.setItem('userRole', userRole)
+        console.log('[登录] 用户登录成功')
         router.push('/dashboard')
       }
     } else {
