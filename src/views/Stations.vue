@@ -18,15 +18,18 @@
         </div>
         <div class="filter-group">
           <select v-model="filterType" class="filter-select">
-            <option value="all">全部类型</option>
-            <option value="swap">换电站</option>
+            <option value="">全部类型</option>
+            <option value="battery">换电站</option>
             <option value="service">服务中心</option>
+            <option value="all">综合站</option>
           </select>
           <select v-model="filterStatus" class="filter-select">
             <option value="all">全部状态</option>
-            <option value="available">可用</option>
-            <option value="busy">繁忙</option>
+            <option value="active">活跃</option>
+            <option value="online">在线</option>
             <option value="offline">离线</option>
+            <option value="maintenance">维护中</option>
+            <option value="closed">已关闭</option>
           </select>
         </div>
       </div>
@@ -262,7 +265,7 @@ import SiteFooter from '../components/SiteFooter.vue'
 import { getStationsListAPI, getStationPhotosAPI } from '../services/stationsAPI'
 
 const searchQuery = ref('')
-const filterType = ref('all')
+const filterType = ref('')
 const filterStatus = ref('all')
 
 // 高级筛选
@@ -302,11 +305,12 @@ onMounted(() => {
 const filteredStations = computed(() => {
   let result = stations.value
 
-  // 基础筛选
-  if (filterType.value !== 'all') {
+  // 基础筛选 - 类型筛选
+  if (filterType.value !== '') {
     result = result.filter(station => station.type === filterType.value)
   }
 
+  // 状态筛选
   if (filterStatus.value !== 'all') {
     result = result.filter(station => station.status === filterStatus.value)
   }
@@ -380,18 +384,20 @@ const clearFilters = () => {
 
 const getStatusText = (status) => {
   const statusMap = {
-    available: '可用',
-    busy: '繁忙',
-    offline: '离线'
+    active: '活跃',
+    online: '在线',
+    offline: '离线',
+    maintenance: '维护中',
+    closed: '已关闭'
   }
   return statusMap[status] || status
 }
 
 const getTypeText = (type) => {
   const typeMap = {
-    swap: '换电站',
+    battery: '换电站',
     service: '服务中心',
-    charging: '充电站'
+    all: '综合站'
   }
   return typeMap[type] || type
 }
@@ -669,23 +675,12 @@ html.dark-mode .clear-filters-btn:hover {
   position: absolute;
   top: 16px;
   right: 16px;
-  padding: 6px 16px;
-  border-radius: 20px;
   font-size: 13px;
   font-weight: 500;
-  color: white;
-}
-
-.status-badge.available {
-  background: #4caf50;
-}
-
-.status-badge.busy {
-  background: #ff9800;
-}
-
-.status-badge.offline {
-  background: #9e9e9e;
+  color: #333;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 .station-info {
