@@ -970,14 +970,19 @@ html.dark-mode .detail-value.notes {
 }
 
 .modal-container {
-  background: var(--card-bg);
+  background: #ffffff;
   border-radius: 16px;
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 8px 32px var(--shadow-color);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+html.dark-mode .modal-container {
+  background: #1e1e1e;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
 .modal-header {
@@ -985,15 +990,27 @@ html.dark-mode .detail-value.notes {
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e8e8e8;
   transition: border-color 0.3s ease;
+}
+
+html.dark-mode .modal-header {
+  border-bottom-color: #3a3a3a;
+}
+
+.modal-body {
+  padding: 24px;
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 24px;
-  color: var(--text-primary);
+  color: #333;
   transition: color 0.3s ease;
+}
+
+html.dark-mode .modal-header h2 {
+  color: #ffffff;
 }
 
 .modal-close {
@@ -1002,41 +1019,67 @@ html.dark-mode .detail-value.notes {
   border: none;
   background: transparent;
   font-size: 24px;
-  color: var(--text-secondary);
+  color: #666;
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
+html.dark-mode .modal-close {
+  color: #cccccc;
+}
+
 .modal-close:hover {
-  background: var(--hover-bg);
-  color: var(--text-primary);
+  background: #f5f5f5;
+  color: #333;
+}
+
+html.dark-mode .modal-close:hover {
+  background: #2a2a2a;
+  color: #ffffff;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .form-label {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #333;
   transition: color 0.3s ease;
+}
+
+html.dark-mode .form-label {
+  color: #ffffff;
 }
 
 .form-input,
 .form-textarea {
   padding: 12px 16px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #d9d9d9;
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
   font-family: inherit;
-  background: var(--input-bg);
-  color: var(--text-primary);
+  background: #ffffff;
+  color: #333;
+}
+
+html.dark-mode .form-input,
+html.dark-mode .form-textarea {
+  background: #2a2a2a;
+  color: #ffffff;
+  border-color: #3a3a3a;
 }
 
 .form-input:focus,
 .form-textarea:focus {
-  border-color: var(--border-color);
+  border-color: #40a9ff;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(153, 153, 153, 0.2);
+  box-shadow: 0 0 0 2px rgba(64, 169, 255, 0.2);
 }
 
 .form-textarea {
