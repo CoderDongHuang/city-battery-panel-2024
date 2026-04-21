@@ -184,6 +184,27 @@
             </div>
 
             <div class="form-group">
+              <label class="form-label">
+                <span class="required">*</span> 当前使用的车辆
+              </label>
+              <select
+                v-model="formData.currentVehicleId"
+                class="form-select"
+                required
+              >
+                <option value="">请选择车辆</option>
+                <option
+                  v-for="vehicle in userVehicles"
+                  :key="vehicle.id"
+                  :value="vehicle.id"
+                >
+                  {{ vehicle.name || vehicle.brand || '未命名车辆' }}
+                </option>
+              </select>
+              <p class="form-tip">电池需要安装到车辆上才能使用</p>
+            </div>
+
+            <div class="form-group">
               <label class="form-label">备注</label>
               <textarea
                 v-model="formData.notes"
@@ -279,7 +300,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import SiteFooter from '../components/SiteFooter.vue'
-import { userBatteryAPI } from '../services/userAPI'
+import { userBatteryAPI, userVehicleAPI } from '../services/userAPI'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
@@ -290,6 +311,7 @@ const showEditModal = ref(false)
 const showDetailModal = ref(false)
 const submitting = ref(false)
 const selectedBattery = ref(null)
+const userVehicles = ref([]) // 用户车辆列表
 
 const formData = ref({
   name: '',
@@ -297,7 +319,8 @@ const formData = ref({
   code: '',
   capacity: '',
   purchaseDate: '',
-  notes: ''
+  notes: '',
+  currentVehicleId: '' // 当前使用的车辆 ID
 })
 
 const isEditing = ref(false)
@@ -321,6 +344,20 @@ const loadBatteries = async () => {
   }
 }
 
+// 加载用户车辆列表
+const loadUserVehicles = async () => {
+  try {
+    const res = await userVehicleAPI.getVehicles()
+    if (res.code === 200) {
+      userVehicles.value = res.data || []
+    } else {
+      console.error('加载车辆列表失败:', res.message)
+    }
+  } catch (error) {
+    console.error('加载车辆列表失败:', error)
+  }
+}
+
 // 打开添加弹窗
 const showAddModalHandler = () => {
   formData.value = {
@@ -329,7 +366,8 @@ const showAddModalHandler = () => {
     code: '',
     capacity: '',
     purchaseDate: '',
-    notes: ''
+    notes: '',
+    currentVehicleId: ''
   }
   showAddModal.value = true
 }
@@ -343,8 +381,10 @@ const editBattery = (battery) => {
     code: battery.code,
     capacity: battery.capacity,
     purchaseDate: battery.purchaseDate,
-    notes: battery.notes || ''
+    notes: battery.notes || '',
+    currentVehicleId: battery.currentVehicleId || ''
   }
+  isEditing.value = true
   showEditModal.value = true
 }
 
@@ -385,6 +425,12 @@ const confirmDelete = async (battery) => {
 
 // 提交表单
 const handleSubmit = async () => {
+  // 验证：添加电池时必须有车辆
+  if (!isEditing.value && !formData.value.currentVehicleId) {
+    ElMessage.warning('请先添加车辆，再添加电池')
+    return
+  }
+  
   submitting.value = true
   try {
     if (isEditing.value && currentBattery.value) {
@@ -418,6 +464,7 @@ const handleSubmit = async () => {
 
 onMounted(() => {
   loadBatteries()
+  loadUserVehicles() // 加载车辆列表
 })
 
 // 查看电池详情
@@ -899,14 +946,19 @@ html.dark-mode .action-btn.delete:hover {
 }
 
 .modal-container {
-  background: var(--card-bg);
+  background: #ffffff;
   border-radius: 16px;
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px var(--shadow-color);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+html.dark-mode .modal-container {
+  background: #1e1e1e;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 .modal-header {
@@ -914,16 +966,24 @@ html.dark-mode .action-btn.delete:hover {
   justify-content: space-between;
   align-items: center;
   padding: 24px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e8e8e8;
   transition: border-color 0.3s ease;
+}
+
+html.dark-mode .modal-header {
+  border-bottom-color: #3a3a3a;
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #333;
   transition: color 0.3s ease;
+}
+
+html.dark-mode .modal-header h2 {
+  color: #ffffff;
 }
 
 .modal-close {
@@ -932,7 +992,7 @@ html.dark-mode .action-btn.delete:hover {
   border: none;
   background: transparent;
   font-size: 24px;
-  color: var(--text-tertiary);
+  color: #999;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -941,37 +1001,98 @@ html.dark-mode .action-btn.delete:hover {
   transition: all 0.2s ease;
 }
 
+html.dark-mode .modal-close {
+  color: #cccccc;
+}
+
 .modal-close:hover {
-  background: var(--hover-bg);
-  color: var(--text-primary);
+  background: #f5f5f5;
+  color: #333;
+}
+
+html.dark-mode .modal-close:hover {
+  background: #2a2a2a;
+  color: #ffffff;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.battery-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .form-label {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #333;
   transition: color 0.3s ease;
+}
+
+html.dark-mode .form-label {
+  color: #ffffff;
+}
+
+.required {
+  color: #ff4d4f;
+  margin-right: 4px;
 }
 
 .form-input,
 .form-textarea,
 .form-select {
   padding: 12px 16px;
-  border: 1px solid var(--border-color);
+  border: 1px solid #d9d9d9;
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
   font-family: inherit;
-  background: var(--input-bg);
-  color: var(--text-primary);
+  background: #ffffff;
+  color: #333;
+}
+
+html.dark-mode .form-input,
+html.dark-mode .form-textarea,
+html.dark-mode .form-select {
+  background: #2a2a2a;
+  color: #ffffff;
+  border-color: #3a3a3a;
+}
+
+.form-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
 }
 
 .form-input:focus,
 .form-textarea:focus,
 .form-select:focus {
-  border-color: var(--border-color);
+  border-color: #40a9ff;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(153, 153, 153, 0.2);
+  box-shadow: 0 0 0 2px rgba(64, 169, 255, 0.2);
+}
+
+.form-tip {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+html.dark-mode .form-tip {
+  color: #666;
 }
 
 .form-textarea {
