@@ -95,6 +95,7 @@
       <div class="batteries-table">
         <div class="table-header">
           <div class="col-id">电池编号</div>
+          <div class="col-source">来源</div>
           <div class="col-status">状态</div>
           <div class="col-vehicle">当前车辆</div>
           <div class="col-voltage">电压</div>
@@ -111,6 +112,12 @@
             
             <div class="col-id">
               <span class="battery-id">{{ battery.pid }}</span>
+            </div>
+            
+            <div class="col-source">
+              <span class="source-badge" :class="battery.source">
+                {{ battery.source === 'admin' ? '管理端' : '用户端' }}
+              </span>
             </div>
             
             <div class="col-status">
@@ -403,6 +410,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useBatteryStore } from '../store/modules/batteryStore'
+import { batteryAPI } from '../services/api'
+import { getUserBatteries } from '../services/adminUserDataService'
 import SiteFooter from '../components/SiteFooter.vue'
 
 const batteryStore = useBatteryStore()
@@ -591,7 +600,48 @@ const getChartModalTitle = () => {
 // 刷新电池数据
 const refreshBatteries = async () => {
   try {
-    await batteryStore.fetchBatteries()
+    // 获取管理端电池
+    const adminRes = await batteryAPI.getBatteries()
+    const adminBatteries = adminRes.data?.content || adminRes.data || []
+    const adminBatteriesWithSource = adminBatteries.map(b => ({
+      ...b,
+      source: 'admin',
+      pid: b.pid,
+      name: b.pid,
+      model: b.model || '未知型号',
+      code: b.code || b.pid,
+      capacity: b.capacity || 100
+    }))
+    
+    // 获取用户端电池
+    try {
+      const userRes = await getUserBatteries({ page: 1, size: 1000 })
+      if (userRes.code === 200 && userRes.data) {
+        const userBatteriesData = userRes.data.content || userRes.data || []
+        const userBatteries = userBatteriesData.map(b => ({
+          ...b,
+          source: 'user',
+          pid: `UB${b.id}`,
+          voltage: b.voltage || 3.7,
+          temperature: b.temperature || 25,
+          batteryLevel: b.batteryLevel || 0,
+          health: b.health || 100,
+          vid: b.currentVehicleId ? `U${b.currentVehicleId}` : null,
+          lastUpdate: b.lastUpdateTime || new Date().toISOString(),
+          status: b.status || 'available'
+        }))
+        
+        // 合并管理端和用户端电池
+        batteryStore.batteries = [...adminBatteriesWithSource, ...userBatteries]
+      } else {
+        // 如果用户端数据获取失败，至少显示管理端数据
+        batteryStore.batteries = adminBatteriesWithSource
+      }
+    } catch (userError) {
+      console.error('获取用户端电池失败:', userError)
+      // 如果获取用户端失败，至少显示管理端数据
+      batteryStore.batteries = adminBatteriesWithSource
+    }
   } catch (error) {
     console.error('刷新电池数据失败:', error)
   }
@@ -920,7 +970,7 @@ onUnmounted(() => {
 
 .table-header {
   display: grid;
-  grid-template-columns: 120px 100px 120px 100px 100px 100px 100px 80px 120px;
+  grid-template-columns: 120px 100px 100px 120px 100px 100px 100px 100px 80px 120px;
   padding: 20px 24px;
   background: #f8f9fa;
   font-weight: 600;
@@ -936,7 +986,7 @@ onUnmounted(() => {
 
 .table-row {
   display: grid;
-  grid-template-columns: 120px 100px 120px 100px 100px 100px 100px 80px 120px;
+  grid-template-columns: 120px 100px 100px 120px 100px 100px 100px 100px 80px 120px;
   padding: 20px 24px;
   border-bottom: 1px solid #f0f0f0;
   align-items: center;
@@ -989,6 +1039,24 @@ onUnmounted(() => {
 .col-status .status-badge.maintenance {
   background: #fff3cd;
   color: #856404;
+}
+
+.col-source .source-badge {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.col-source .source-badge.admin {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.col-source .source-badge.user {
+  background: #d4edda;
+  color: #155724;
 }
 
 .col-vehicle .vehicle-value {

@@ -107,6 +107,7 @@
       <div class="vehicles-table">
         <div class="table-header">
           <div class="col-id">车辆编号</div>
+          <div class="col-source">来源</div>
           <div class="col-status">状态</div>
           <div class="col-battery">电池编号</div>
           <div class="col-voltage">电压</div>
@@ -128,6 +129,12 @@
             
             <div class="col-id">
               <span class="vehicle-id">{{ vehicle.vid }}</span>
+            </div>
+            
+            <div class="col-source">
+              <span class="source-badge" :class="vehicle.source">
+                {{ vehicle.source === 'admin' ? '管理端' : '用户端' }}
+              </span>
             </div>
             
             <div class="col-status">
@@ -299,6 +306,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
 import { vehicleAPI, alertAPI, createWebSocket } from '../services/api'
+import { getUserVehicles } from '../services/adminUserDataService'
 import VehicleLightControl from '../components/VehicleLightControl.vue'
 import VehicleHornControl from '../components/VehicleHornControl.vue'
 import VehiclePositionControl from '../components/VehiclePositionControl.vue'
@@ -424,7 +432,45 @@ const clearSelection = () => {
 
 const refreshVehicles = async () => {
   try {
+    // 获取管理端车辆
     await vehicleStore.fetchVehicles()
+    const adminVehicles = vehicleStore.vehicles.map(v => ({
+      ...v,
+      source: 'admin',
+      vid: v.vid,
+      name: v.vid,
+      brand: '管理端',
+      plateNumber: v.vid
+    }))
+    
+    // 获取用户端车辆
+    try {
+      const userRes = await getUserVehicles({ page: 1, size: 1000 })
+      if (userRes.code === 200 && userRes.data) {
+        const userVehiclesData = userRes.data.content || userRes.data || []
+        const userVehicles = userVehiclesData.map(v => ({
+          ...v,
+          source: 'user',
+          vid: `U${v.id}`,
+          online: v.online !== undefined ? v.online : true,
+          voltage: v.voltage || 3.7,
+          temperature: v.temperature || 25,
+          batteryLevel: v.batteryLevel || 0,
+          pid: v.batteryId ? `B${v.batteryId}` : null,
+          lightStatus: 'off',
+          position: { x: 0, y: 0 },
+          lastUpdate: v.lastUpdateTime || new Date().toISOString()
+        }))
+        
+        // 合并管理端和用户端车辆
+        vehicleStore.vehicles = [...adminVehicles, ...userVehicles]
+      }
+    } catch (userError) {
+      console.error('获取用户端车辆失败:', userError)
+      // 如果获取用户端失败，至少显示管理端数据
+      vehicleStore.vehicles = adminVehicles
+    }
+    
     await fetchAlerts()
   } catch (error) {
     console.error('刷新数据失败:', error)
@@ -810,7 +856,7 @@ onMounted(async () => {
 
 .table-header {
   display: grid;
-  grid-template-columns: 120px 100px 120px 100px 100px 100px 80px 120px;
+  grid-template-columns: 120px 100px 100px 120px 100px 100px 100px 80px 120px;
   padding: 20px 24px;
   background: #f8f9fa;
   font-weight: 600;
@@ -826,7 +872,7 @@ onMounted(async () => {
 
 .table-row {
   display: grid;
-  grid-template-columns: 120px 100px 120px 100px 100px 100px 80px 120px;
+  grid-template-columns: 120px 100px 100px 120px 100px 100px 100px 80px 120px;
   padding: 20px 24px;
   border-bottom: 1px solid #f0f0f0;
   align-items: center;
@@ -885,6 +931,24 @@ onMounted(async () => {
 .col-status .status-badge:not(.online) {
   background: #f8d7da;
   color: #721c24;
+}
+
+.col-source .source-badge {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.col-source .source-badge.admin {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.col-source .source-badge.user {
+  background: #d4edda;
+  color: #155724;
 }
 
 .col-battery .battery-id {
