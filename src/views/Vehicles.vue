@@ -128,7 +128,7 @@
                }">
             
             <div class="col-id">
-              <span class="vehicle-id">{{ vehicle.vid }}</span>
+              <span class="vehicle-id">{{ vehicle.name || vehicle.vid }}</span>
             </div>
             
             <div class="col-source">
@@ -204,7 +204,7 @@
               <div class="details-table">
                 <div class="detail-row">
                   <div class="detail-label">车辆编号</div>
-                  <div class="detail-value">{{ selectedVehicleDetails.vid }}</div>
+                  <div class="detail-value">{{ selectedVehicleDetails.name || selectedVehicleDetails.vid }}</div>
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">状态</div>
@@ -440,7 +440,9 @@ const refreshVehicles = async () => {
       vid: v.vid,
       name: v.vid,
       brand: '管理端',
-      plateNumber: v.vid
+      plateNumber: v.vid,
+      // 电池编号可能是中文或英文，直接使用
+      pid: v.pid || null
     }))
     
     // 获取用户端车辆
@@ -452,11 +454,18 @@ const refreshVehicles = async () => {
           ...v,
           source: 'user',
           vid: `U${v.id}`,
+          // 车辆编号使用 name 字段（如："特斯拉 Model 3"）
+          name: v.name || v.brand || '未命名车辆',
+          brand: v.brand || '未知品牌',
+          plateNumber: v.plateNumber || '--',
+          vin: v.vin || '',
+          status: v.status || 'offline',
           online: v.online !== undefined ? v.online : true,
           voltage: v.voltage || 3.7,
           temperature: v.temperature || 25,
           batteryLevel: v.batteryLevel || 0,
-          pid: v.batteryId ? `B${v.batteryId}` : null,
+          // 电池编号使用 batteryName 字段（如："主电池包"）
+          pid: v.batteryName || null,
           lightStatus: 'off',
           position: { x: 0, y: 0 },
           lastUpdate: v.lastUpdateTime || new Date().toISOString()

@@ -111,7 +111,7 @@
                :class="getBatteryStatusClass(battery)">
             
             <div class="col-id">
-              <span class="battery-id">{{ battery.pid }}</span>
+              <span class="battery-id">{{ battery.name || battery.pid }}</span>
             </div>
             
             <div class="col-source">
@@ -257,7 +257,7 @@
               <div class="details-table">
                 <div class="detail-row">
                   <div class="detail-label">电池编号</div>
-                  <div class="detail-value">{{ selectedBatteryDetails.pid }}</div>
+                  <div class="detail-value">{{ selectedBatteryDetails.name || selectedBatteryDetails.pid }}</div>
                 </div>
                 <div class="detail-row">
                   <div class="detail-label">状态</div>
@@ -506,13 +506,18 @@ const capacityChartPoints = computed(() => {
 
 const getStatusText = (status) => {
   const statusMap = {
+    // 管理端状态
     inUse: '使用中',
     available: '可用',
     maintenance: '维护中',
     normal: '正常',
     low: '低电量',
     overheat: '过热',
-    low_voltage: '低电压'
+    low_voltage: '低电压',
+    // 用户端状态
+    online: '在线',
+    offline: '离线',
+    charging: '充电中'
   }
   return statusMap[status] || status || '未知'
 }
@@ -610,7 +615,9 @@ const refreshBatteries = async () => {
       name: b.pid,
       model: b.model || '未知型号',
       code: b.code || b.pid,
-      capacity: b.capacity || 100
+      capacity: b.capacity || 100,
+      // 当前车辆可能是中文或英文，直接使用
+      vid: b.vid || null
     }))
     
     // 获取用户端电池
@@ -622,13 +629,19 @@ const refreshBatteries = async () => {
           ...b,
           source: 'user',
           pid: `UB${b.id}`,
+          // 电池编号使用 name 字段（如："主电池包"）
+          name: b.name || '未命名电池',
+          model: b.model || '未知型号',
+          code: b.code || b.pid,
+          capacity: b.capacity || 100,
           voltage: b.voltage || 3.7,
           temperature: b.temperature || 25,
           batteryLevel: b.batteryLevel || 0,
           health: b.health || 100,
-          vid: b.currentVehicleId ? `U${b.currentVehicleId}` : null,
-          lastUpdate: b.lastUpdateTime || new Date().toISOString(),
-          status: b.status || 'available'
+          status: b.status || 'available',
+          // 当前车辆使用 currentVehicleName 字段（如："特斯拉 Model 3"）
+          vid: b.currentVehicleName || null,
+          lastUpdate: b.lastUpdateTime || new Date().toISOString()
         }))
         
         // 合并管理端和用户端电池
