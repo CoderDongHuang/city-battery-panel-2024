@@ -103,6 +103,16 @@
                 <span class="nav-text">换电站管理</span>
               </router-link>
               
+              <!-- 消息管理 -->
+              <router-link 
+                :to="{ name: 'MessageManagement' }"
+                class="nav-item"
+                :class="{ active: $route.name === 'MessageManagement' }"
+              >
+                <span class="nav-icon">📧</span>
+                <span class="nav-text">消息管理</span>
+              </router-link>
+              
               <!-- 报警管理（带下拉菜单） -->
               <div class="nav-item dropdown" :class="{ active: isAlarmRoute }" @click="toggleAlarmDropdown">
                 <div class="dropdown-trigger">

@@ -156,6 +156,12 @@ const routes = [
         meta: { title: '系统设置' }
       },
       {
+        path: 'messages',
+        name: 'MessageManagement',
+        component: () => import('../views/MessageManagement.vue'),
+        meta: { title: '消息管理' }
+      },
+      {
         path: 'profile',
         name: 'AdminProfile',
         component: () => import('../views/Profile.vue'),

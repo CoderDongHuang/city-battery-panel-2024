@@ -14,62 +14,77 @@
         <div class="filter-tabs">
           <button 
             :class="['filter-tab', { active: currentTab === 'all' }]"
-            @click="currentTab = 'all'"
+            @click="handleTabChange('all')"
           >
             全部
-            <span class="unread-dot" v-if="totalCount > 0">{{ totalCount }}</span>
+            <span class="badge" v-if="statistics.totalCount > 0">{{ statistics.totalCount }}</span>
           </button>
           <button 
             :class="['filter-tab', { active: currentTab === 'system' }]"
-            @click="currentTab = 'system'"
+            @click="handleTabChange('system')"
           >
             系统通知
-            <span class="unread-dot" v-if="systemCount > 0">{{ systemCount }}</span>
+            <span class="badge" v-if="statistics.byCategory?.system?.unread > 0">
+              {{ statistics.byCategory.system.unread }}
+            </span>
           </button>
           <button 
             :class="['filter-tab', { active: currentTab === 'swap' }]"
-            @click="currentTab = 'swap'"
+            @click="handleTabChange('swap')"
           >
             换电提醒
-            <span class="unread-dot" v-if="swapCount > 0">{{ swapCount }}</span>
+            <span class="badge" v-if="statistics.byCategory?.swap?.unread > 0">
+              {{ statistics.byCategory.swap.unread }}
+            </span>
           </button>
           <button 
             :class="['filter-tab', { active: currentTab === 'alert' }]"
-            @click="currentTab = 'alert'"
+            @click="handleTabChange('alert')"
           >
             报警通知
-            <span class="unread-dot" v-if="alertCount > 0">{{ alertCount }}</span>
+            <span class="badge" v-if="statistics.byCategory?.alert?.unread > 0">
+              {{ statistics.byCategory.alert.unread }}
+            </span>
           </button>
           <button 
             :class="['filter-tab', { active: currentTab === 'activity' }]"
-            @click="currentTab = 'activity'"
+            @click="handleTabChange('activity')"
           >
             活动公告
-            <span class="unread-dot" v-if="activityCount > 0">{{ activityCount }}</span>
+            <span class="badge" v-if="statistics.byCategory?.activity?.unread > 0">
+              {{ statistics.byCategory.activity.unread }}
+            </span>
           </button>
         </div>
 
         <div class="sort-filters">
           <!-- 来源筛选 -->
-          <select v-model="sourceFilter" class="filter-select">
+          <select v-model="sourceFilter" class="filter-select" @change="loadMessages">
             <option value="all">全部来源</option>
-            <option value="system">管理端</option>
+            <option value="admin">管理端</option>
             <option value="hardware">硬件设备</option>
           </select>
 
+          <!-- 已读/未读筛选 -->
+          <select v-model="readFilter" class="filter-select" @change="loadMessages">
+            <option value="all">全部消息</option>
+            <option value="unread">未读</option>
+            <option value="read">已读</option>
+          </select>
+
           <!-- 排序方式 -->
-          <select v-model="sortType" class="filter-select">
+          <select v-model="sortType" class="filter-select" @change="loadMessages">
             <option value="time">按时间排序</option>
-            <option value="priority">按优先级排序</option>
+            <option value="priority">按优先级</option>
           </select>
         </div>
 
         <div class="actions">
-          <button class="btn-action" @click="markAllAsRead">
+          <button class="btn-action" @click="markAllAsRead" :disabled="statistics.unreadCount === 0">
             <span class="btn-icon">✅</span>
             全部已读
           </button>
-          <button class="btn-action danger" @click="deleteRead">
+          <button class="btn-action danger" @click="deleteReadMessages">
             <span class="btn-icon">🗑️</span>
             删除已读
           </button>
@@ -79,9 +94,9 @@
       <!-- 消息列表 -->
       <div class="message-list">
         <div 
-          v-for="message in filteredMessages" 
+          v-for="message in messages" 
           :key="message.id"
-          :class="['message-card', { unread: !message.read }]"
+          :class="['message-card', { unread: !message.isRead }]"
         >
           <div class="message-card-header">
             <div class="message-left">
@@ -90,7 +105,7 @@
               </div>
               <div class="message-info">
                 <h3 class="message-title">{{ message.title }}</h3>
-                <p class="message-time">{{ message.time }}</p>
+                <p class="message-time">{{ formatTime(message.createTime) }}</p>
               </div>
             </div>
             <div class="message-right">
@@ -105,22 +120,65 @@
               </button>
             </div>
           </div>
+          
           <div class="message-content" @click="toggleRead(message)">
             <p class="message-text">{{ message.content }}</p>
+            
+            <!-- 高亮信息（如果有） -->
+            <div v-if="message.displayData?.highlights" class="message-highlights">
+              <div 
+                v-for="(highlight, index) in message.displayData.highlights" 
+                :key="index"
+                class="highlight-item"
+                :style="{ color: highlight.color }"
+              >
+                <span class="highlight-label">{{ highlight.label }}:</span>
+                <span class="highlight-value">{{ highlight.value }}</span>
+              </div>
+            </div>
           </div>
+          
           <div class="message-card-footer" @click="toggleRead(message)">
-            <span class="read-status" :class="{ 'is-read': message.read }">
-              {{ message.read ? '已读' : '未读' }}
+            <span class="read-status" :class="{ 'is-read': message.isRead }">
+              {{ message.isRead ? '已读' : '未读' }}
             </span>
-            <span class="click-hint">点击标记为{{ message.read ? '未读' : '已读' }}</span>
+            <span class="click-hint">
+              点击标记为{{ message.isRead ? '未读' : '已读' }}
+            </span>
           </div>
         </div>
 
-        <div v-if="filteredMessages.length === 0" class="empty-state">
+        <!-- 加载状态 -->
+        <div v-if="loading" class="loading-state">
+          <div class="loading-spinner">🔄</div>
+          <p>加载中...</p>
+        </div>
+
+        <!-- 空状态 -->
+        <div v-if="!loading && messages.length === 0" class="empty-state">
           <div class="empty-icon">📭</div>
           <h3>暂无消息</h3>
           <p>这里空空如也，还没有任何消息</p>
         </div>
+      </div>
+
+      <!-- 分页 -->
+      <div v-if="totalPages > 1" class="pagination">
+        <button 
+          :disabled="currentPage === 1"
+          @click="changePage(currentPage - 1)"
+          class="btn-page"
+        >
+          上一页
+        </button>
+        <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+        <button 
+          :disabled="currentPage === totalPages"
+          @click="changePage(currentPage + 1)"
+          class="btn-page"
+        >
+          下一页
+        </button>
       </div>
     </div>
     
@@ -130,108 +188,112 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import SiteFooter from '../components/SiteFooter.vue'
+import { messageAPI } from '../services/messageAPI.js'
 
+// 状态管理
+const messages = ref([])
+const loading = ref(false)
+const currentPage = ref(1)
+const totalPages = ref(1)
+
+// 筛选条件
 const currentTab = ref('all')
 const sourceFilter = ref('all')
+const readFilter = ref('all')
 const sortType = ref('time')
 
-// 消息来源定义
-const messageSources = {
-  system: 'system',    // 管理端
-  activity: 'system',  // 管理端
-  swap: 'hardware',    // 硬件设备
-  alert: 'hardware'    // 硬件设备
-}
-
-// 优先级定义（数字越大优先级越高）
-const messagePriorities = {
-  alert: 4,    // 报警通知 - 最高优先级
-  swap: 3,     // 换电提醒 - 高优先级
-  system: 2,   // 系统通知 - 中优先级
-  activity: 1  // 活动公告 - 低优先级
-}
-
-const messages = ref([
-  {
-    id: 1,
-    category: 'system',
-    title: '系统维护通知',
-    content: '尊敬的用户，系统将于今晚 23:00-02:00 进行例行维护，期间部分功能可能无法正常使用。',
-    time: '2024-01-15 10:30',
-    read: false
-  },
-  {
-    id: 2,
-    category: 'swap',
-    title: '换电完成提醒',
-    content: '您的车辆（京 A·12345）已在朝阳科技园站完成换电，新电池电量 95%，续航约 450km。',
-    time: '2024-01-15 09:15',
-    read: false
-  },
-  {
-    id: 3,
-    category: 'alert',
-    title: '电池低电量警告',
-    content: '您的车辆（京 A·67890）电池电量已低于 20%，请尽快前往附近换电站进行更换。',
-    time: '2024-01-14 16:20',
-    read: true
-  },
-  {
-    id: 4,
-    category: 'activity',
-    title: '新春优惠活动',
-    content: '新春期间换电享受 8 折优惠，活动时间：2 月 1 日 -2 月 15 日，欢迎广大用户积极参与！',
-    time: '2024-01-14 08:00',
-    read: false
-  },
-  {
-    id: 5,
-    category: 'swap',
-    title: '换电预约成功',
-    content: '您已成功预约望京 SOHO 站的换电服务，预约时间：2024-01-16 14:00，请准时到达。',
-    time: '2024-01-13 15:45',
-    read: true
+// 统计信息
+const statistics = reactive({
+  totalCount: 0,
+  unreadCount: 0,
+  byCategory: {
+    system: { total: 0, unread: 0 },
+    swap: { total: 0, unread: 0 },
+    alert: { total: 0, unread: 0 },
+    activity: { total: 0, unread: 0 }
   }
-])
-
-// 先按分类筛选，再按来源筛选，最后排序
-const filteredMessages = computed(() => {
-  let result = messages.value
-  
-  // 按分类筛选
-  if (currentTab.value !== 'all') {
-    result = result.filter(msg => msg.category === currentTab.value)
-  }
-  
-  // 按来源筛选
-  if (sourceFilter.value !== 'all') {
-    result = result.filter(msg => messageSources[msg.category] === sourceFilter.value)
-  }
-  
-  // 排序
-  if (sortType.value === 'priority') {
-    // 按优先级排序（从高到低）
-    result = [...result].sort((a, b) => {
-      return messagePriorities[b.category] - messagePriorities[a.category]
-    })
-  } else {
-    // 按时间排序（从新到旧）
-    result = [...result].sort((a, b) => {
-      return new Date(b.time) - new Date(a.time)
-    })
-  }
-  
-  return result
 })
 
-const totalCount = computed(() => messages.value.filter(m => !m.read).length)
-const systemCount = computed(() => messages.value.filter(m => m.category === 'system' && !m.read).length)
-const swapCount = computed(() => messages.value.filter(m => m.category === 'swap' && !m.read).length)
-const alertCount = computed(() => messages.value.filter(m => m.category === 'alert' && !m.read).length)
-const activityCount = computed(() => messages.value.filter(m => m.category === 'activity' && !m.read).length)
+// 加载消息列表
+const loadMessages = async () => {
+  loading.value = true
+  
+  try {
+    const params = {
+      page: currentPage.value,
+      size: 10,
+      category: currentTab.value !== 'all' ? currentTab.value : undefined,
+      source: sourceFilter.value !== 'all' ? sourceFilter.value : undefined,
+      isRead: readFilter.value === 'all' ? undefined : readFilter.value === 'read',
+      sort: sortType.value
+    }
 
+    const response = await messageAPI.getUserMessages(params)
+    
+    messages.value = response.data.content
+    currentPage.value = response.data.pagination.currentPage
+    totalPages.value = response.data.pagination.totalPages
+    
+    // 更新统计信息
+    if (response.data.statistics) {
+      statistics.totalCount = response.data.statistics.totalCount
+      statistics.unreadCount = response.data.statistics.unreadCount
+      statistics.byCategory = response.data.statistics.byCategory
+    }
+  } catch (error) {
+    console.error('加载消息列表失败:', error)
+    alert('加载消息失败，请稍后重试')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 切换标签
+const handleTabChange = (tab) => {
+  currentTab.value = tab
+  currentPage.value = 1
+  loadMessages()
+}
+
+// 切换页码
+const changePage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  loadMessages()
+}
+
+// 格式化时间
+const formatTime = (time) => {
+  if (!time) return ''
+  const date = new Date(time)
+  const now = new Date()
+  const diff = now - date
+  
+  // 今天
+  if (diff < 24 * 60 * 60 * 1000) {
+    return date.toLocaleTimeString('zh-CN', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
+  }
+  
+  // 最近 7 天
+  if (diff < 7 * 24 * 60 * 60 * 1000) {
+    const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    return days[date.getDay()]
+  }
+  
+  // 其他日期
+  return date.toLocaleDateString('zh-CN', { 
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
+}
+
+// 获取分类图标
 const getCategoryIcon = (category) => {
   const icons = {
     system: '⚙️',
@@ -242,6 +304,7 @@ const getCategoryIcon = (category) => {
   return icons[category] || '📧'
 }
 
+// 获取分类文本
 const getCategoryText = (category) => {
   const texts = {
     system: '系统通知',
@@ -252,24 +315,112 @@ const getCategoryText = (category) => {
   return texts[category] || '消息'
 }
 
-const toggleRead = (message) => {
-  message.read = !message.read
-}
-
-const markAllAsRead = () => {
-  messages.value.forEach(msg => msg.read = true)
-}
-
-const deleteRead = () => {
-  messages.value = messages.value.filter(msg => !msg.read)
-}
-
-const deleteMessage = (message) => {
-  const index = messages.value.findIndex(m => m.id === message.id)
-  if (index > -1) {
-    messages.value.splice(index, 1)
+// 标记为已读/未读
+const toggleRead = async (message) => {
+  try {
+    await messageAPI.markAsRead(message.id)
+    message.isRead = !message.isRead
+    message.readTime = new Date().toISOString()
+    
+    // 更新统计
+    updateStatistics(message.isRead ? -1 : 1)
+  } catch (error) {
+    console.error('操作失败:', error)
+    alert('操作失败，请稍后重试')
   }
 }
+
+// 全部标记为已读
+const markAllAsRead = async () => {
+  if (!confirm('确定要将所有消息标记为已读吗？')) return
+  
+  try {
+    const unreadIds = messages.value.filter(m => !m.isRead).map(m => m.id)
+    await messageAPI.markBatchAsRead(unreadIds)
+    
+    // 更新本地状态
+    messages.value.forEach(msg => {
+      if (!msg.isRead) {
+        msg.isRead = true
+        msg.readTime = new Date().toISOString()
+      }
+    })
+    
+    // 更新统计
+    statistics.unreadCount = 0
+    Object.keys(statistics.byCategory).forEach(key => {
+      statistics.byCategory[key].unread = 0
+    })
+    
+    alert('已全部标记为已读')
+  } catch (error) {
+    console.error('操作失败:', error)
+    alert('操作失败，请稍后重试')
+  }
+}
+
+// 删除已读消息
+const deleteReadMessages = async () => {
+  if (!confirm('确定要删除所有已读消息吗？此操作不可恢复！')) return
+  
+  try {
+    const readIds = messages.value.filter(m => m.isRead).map(m => m.id)
+    await messageAPI.deleteBatchMessages(readIds)
+    
+    // 更新本地状态
+    messages.value = messages.value.filter(m => !m.isRead)
+    
+    // 重新加载
+    loadMessages()
+    
+    alert('删除成功')
+  } catch (error) {
+    console.error('删除失败:', error)
+    alert('删除失败，请稍后重试')
+  }
+}
+
+// 删除单条消息
+const deleteMessage = async (message) => {
+  if (!confirm('确定要删除这条消息吗？')) return
+  
+  try {
+    await messageAPI.deleteMessage(message.id)
+    
+    // 更新本地状态
+    const index = messages.value.findIndex(m => m.id === message.id)
+    if (index > -1) {
+      messages.value.splice(index, 1)
+    }
+    
+    // 更新统计
+    if (!message.isRead) {
+      updateStatistics(-1)
+    }
+    
+    alert('删除成功')
+  } catch (error) {
+    console.error('删除失败:', error)
+    alert('删除失败，请稍后重试')
+  }
+}
+
+// 更新统计信息
+const updateStatistics = (delta) => {
+  statistics.unreadCount = Math.max(0, statistics.unreadCount + delta)
+  
+  if (currentTab.value !== 'all' && statistics.byCategory[currentTab.value]) {
+    statistics.byCategory[currentTab.value].unread = Math.max(
+      0,
+      statistics.byCategory[currentTab.value].unread + delta
+    )
+  }
+}
+
+// 生命周期
+onMounted(() => {
+  loadMessages()
+})
 </script>
 
 <style scoped>
@@ -299,166 +450,140 @@ const deleteMessage = (message) => {
 }
 
 .page-title {
-  font-size: 48px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: bold;
   color: #1a1a1a;
-  margin-bottom: 12px;
-  letter-spacing: -0.5px;
+  margin: 0 0 10px 0;
 }
 
 .page-subtitle {
-  color: #666666;
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: 14px;
+  color: #666;
+  margin: 0;
 }
 
-/* 主容器 */
+/* 消息容器 */
 .messages-container {
   max-width: 1200px;
   margin: 0 auto;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   padding: 20px;
 }
 
 /* 顶部操作栏 */
 .top-bar {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 24px;
   flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
 }
 
 .filter-tabs {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .filter-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  position: relative;
   padding: 10px 18px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #f5f5f5;
+  border: 2px solid transparent;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
-  color: #333333;
+  color: #666;
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  position: relative;
+  transition: all 0.3s;
 }
 
 .filter-tab:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: #e8e8e8;
 }
 
 .filter-tab.active {
-  background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
-  color: #ffffff;
-  border-color: transparent;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
-/* 未读消息红点 */
-.unread-dot {
+.badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 6px;
-  background: linear-gradient(135deg, #ff4444 0%, #ff6666 100%);
+  top: -8px;
+  right: -8px;
+  background: #ff4d4f;
   color: white;
   border-radius: 10px;
+  padding: 2px 8px;
   font-size: 11px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(255, 68, 68, 0.4);
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-.actions {
-  display: flex;
-  gap: 10px;
+  font-weight: 600;
+  min-width: 18px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(255, 77, 79, 0.3);
 }
 
 .sort-filters {
   display: flex;
   gap: 10px;
-  align-items: center;
 }
 
 .filter-select {
-  padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
+  padding: 10px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
   font-size: 14px;
-  font-weight: 500;
-  color: #333333;
+  background: white;
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  outline: none;
-  min-width: 120px;
+  transition: all 0.3s;
 }
 
 .filter-select:hover {
-  border-color: rgba(0, 0, 0, 0.15);
-  background: rgba(255, 255, 255, 1);
+  border-color: #667eea;
 }
 
 .filter-select:focus {
-  border-color: rgba(0, 0, 0, 0.2);
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+  outline: none;
+  border-color: #667eea;
+}
+
+.actions {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
 }
 
 .btn-action {
+  padding: 10px 18px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 18px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333333;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  transition: all 0.3s;
 }
 
 .btn-action:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-action.danger:hover {
-  color: #ff4444;
-  border-color: rgba(255, 68, 68, 0.3);
-  background: rgba(255, 68, 68, 0.08);
+  border-color: #ff4d4f;
+  color: #ff4d4f;
 }
 
 .btn-icon {
@@ -469,203 +594,348 @@ const deleteMessage = (message) => {
 .message-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 15px;
+  min-height: 400px;
 }
 
-/* 消息卡片 */
 .message-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  background: white;
+  border: 2px solid #f0f0f0;
+  border-radius: 12px;
+  padding: 18px;
+  transition: all 0.3s;
 }
 
 .message-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-  border-color: rgba(0, 0, 0, 0.1);
 }
 
 .message-card.unread {
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  border-left: 4px solid #1a1a1a;
+  border-left: 4px solid #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
 }
 
 .message-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  align-items: flex-start;
+  margin-bottom: 12px;
 }
 
 .message-left {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  gap: 12px;
+  align-items: flex-start;
 }
 
 .message-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
+  font-size: 32px;
   flex-shrink: 0;
 }
 
-.message-card.unread .message-icon {
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-}
-
 .message-info {
-  flex: 1;
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .message-title {
   font-size: 16px;
   font-weight: 600;
   color: #1a1a1a;
-  margin: 0 0 4px 0;
-  line-height: 1.4;
+  margin: 0;
 }
 
 .message-time {
   font-size: 13px;
-  color: #999999;
+  color: #999;
+  margin: 0;
 }
 
 .message-right {
   display: flex;
+  gap: 10px;
   align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
 }
 
 .category-tag {
-  padding: 5px 12px;
+  padding: 4px 12px;
   border-radius: 6px;
   font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: 500;
 }
 
 .category-tag.system {
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  color: #1976d2;
+  background: #e6f7ff;
+  color: #1890ff;
 }
 
 .category-tag.swap {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-  color: #388e3c;
+  background: #f6ffed;
+  color: #52c41a;
 }
 
 .category-tag.alert {
-  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-  color: #f57c00;
+  background: #fff7e6;
+  color: #fa8c16;
 }
 
 .category-tag.activity {
-  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
-  color: #c2185b;
+  background: #fff1f0;
+  color: #f5222d;
 }
 
 .btn-delete {
-  padding: 6px 14px;
-  background: transparent;
-  color: #999999;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 4px 12px;
+  background: white;
+  border: 1px solid #e0e0e0;
   border-radius: 6px;
   font-size: 13px;
-  font-weight: 500;
+  color: #666;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
 }
 
 .btn-delete:hover {
-  color: #ff4444;
-  background: rgba(255, 68, 68, 0.08);
-  border-color: rgba(255, 68, 68, 0.2);
+  border-color: #ff4d4f;
+  color: #ff4d4f;
 }
 
 .message-content {
-  padding: 16px 20px;
+  margin-bottom: 12px;
   cursor: pointer;
 }
 
 .message-text {
   font-size: 14px;
-  color: #555555;
-  line-height: 1.7;
+  color: #333;
+  line-height: 1.6;
   margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+}
+
+.message-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.highlight-item {
+  display: flex;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.highlight-label {
+  font-weight: 500;
+}
+
+.highlight-value {
+  font-weight: 600;
 }
 
 .message-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
-  background: rgba(0, 0, 0, 0.02);
-  border-top: 1px solid rgba(0, 0, 0, 0.04);
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
   cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.message-card-footer:hover {
-  background: rgba(0, 0, 0, 0.03);
 }
 
 .read-status {
   font-size: 13px;
-  color: #999999;
-  font-weight: 500;
+  color: #999;
+  padding: 4px 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  transition: all 0.3s;
 }
 
 .read-status.is-read {
-  color: #666666;
+  background: #e6f7ff;
+  color: #1890ff;
 }
 
 .click-hint {
   font-size: 12px;
-  color: #bbbbbb;
+  color: #999;
+}
+
+/* 加载状态 */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.loading-spinner {
+  font-size: 48px;
+  margin-bottom: 15px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* 空状态 */
 .empty-state {
-  text-align: center;
-  padding: 80px 20px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
 }
 
-.empty-icon {
+.empty-state .empty-icon {
   font-size: 80px;
   margin-bottom: 20px;
-  opacity: 0.4;
 }
 
 .empty-state h3 {
-  font-size: 20px;
-  font-weight: 600;
-  color: #333333;
-  margin-bottom: 8px;
+  font-size: 18px;
+  margin: 0 0 8px 0;
 }
 
 .empty-state p {
-  color: #999999;
   font-size: 14px;
+  margin: 0;
+}
+
+/* 分页 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  padding: 20px 0;
+  margin-top: 20px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.btn-page {
+  padding: 10px 20px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-page:hover:not(:disabled) {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+
+.btn-page:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* 暗色模式 */
+html.dark-mode .messages-page {
+  background: linear-gradient(180deg, 
+    rgba(30, 30, 40, 0.8) 0%, 
+    rgba(25, 25, 35, 0.85) 50%, 
+    rgba(20, 20, 30, 0.9) 100%) !important;
+}
+
+html.dark-mode .messages-container {
+  background: rgba(30, 30, 40, 0.95);
+}
+
+html.dark-mode .page-title {
+  color: #e0e0e0;
+}
+
+html.dark-mode .page-subtitle {
+  color: #999;
+}
+
+html.dark-mode .filter-tab {
+  background: #2a2a3e;
+  color: #999;
+}
+
+html.dark-mode .filter-tab:hover {
+  background: #3a3a4e;
+}
+
+html.dark-mode .filter-select {
+  background: #2a2a3e;
+  border-color: #3a3a4e;
+  color: #e0e0e0;
+}
+
+html.dark-mode .message-card {
+  background: #1e1e2e;
+  border-color: #3a3a4e;
+}
+
+html.dark-mode .message-card.unread {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+}
+
+html.dark-mode .message-title {
+  color: #e0e0e0;
+}
+
+html.dark-mode .message-text {
+  color: #e0e0e0;
+}
+
+html.dark-mode .btn-action {
+  background: #2a2a3e;
+  border-color: #3a3a4e;
+  color: #e0e0e0;
+}
+
+html.dark-mode .btn-action:hover {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+html.dark-mode .btn-delete {
+  background: #2a2a3e;
+  border-color: #3a3a4e;
+  color: #999;
+}
+
+html.dark-mode .btn-delete:hover {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+
+html.dark-mode .read-status {
+  background: #2a2a3e;
+  color: #999;
+}
+
+html.dark-mode .read-status.is-read {
+  background: rgba(24, 144, 255, 0.2);
+  color: #1890ff;
+}
+
+html.dark-mode .page-info {
+  color: #999;
 }
 
 /* 响应式设计 */
@@ -679,145 +949,23 @@ const deleteMessage = (message) => {
     justify-content: center;
   }
   
+  .sort-filters {
+    justify-content: center;
+  }
+  
   .actions {
     justify-content: center;
+    margin-left: 0;
   }
   
   .message-card-header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
   }
   
   .message-right {
     width: 100%;
     justify-content: space-between;
   }
-}
-
-/* 深色模式 */
-html.dark-mode .page-title {
-  color: #ffffff;
-}
-
-html.dark-mode .page-subtitle {
-  color: #a0a0a0;
-}
-
-html.dark-mode .filter-tab {
-  background: rgba(40, 40, 50, 0.8);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: #e0e0e0;
-}
-
-html.dark-mode .filter-tab:hover {
-  background: rgba(50, 50, 60, 0.9);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-html.dark-mode .filter-tab.active {
-  background: linear-gradient(135deg, #4a4a5a 0%, #5a5a6a 100%);
-}
-
-html.dark-mode .unread-dot {
-  border-color: rgba(30, 30, 40, 0.9);
-}
-
-html.dark-mode .sort-filters {
-  gap: 10px;
-}
-
-html.dark-mode .filter-select {
-  background: rgba(40, 40, 50, 0.8);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: #e0e0e0;
-}
-
-html.dark-mode .filter-select:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  background: rgba(50, 50, 60, 0.9);
-}
-
-html.dark-mode .filter-select:focus {
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
-}
-
-html.dark-mode .btn-action {
-  background: rgba(40, 40, 50, 0.8);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: #e0e0e0;
-}
-
-html.dark-mode .btn-action:hover {
-  background: rgba(50, 50, 60, 0.9);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-html.dark-mode .message-card {
-  background: rgba(40, 40, 50, 0.8);
-  border-color: rgba(255, 255, 255, 0.06);
-}
-
-html.dark-mode .message-card:hover {
-  background: rgba(50, 50, 60, 0.9);
-}
-
-html.dark-mode .message-card.unread {
-  background: linear-gradient(135deg, rgba(50, 50, 60, 0.8) 0%, rgba(40, 40, 50, 0.8) 100%);
-  border-left-color: #6a6a7a;
-}
-
-html.dark-mode .message-icon {
-  background: linear-gradient(135deg, #3a3a4a 0%, #4a4a5a 100%);
-}
-
-html.dark-mode .message-card.unread .message-icon {
-  background: linear-gradient(135deg, rgba(60, 80, 100, 0.6) 0%, rgba(50, 70, 90, 0.6) 100%);
-}
-
-html.dark-mode .message-title {
-  color: #e0e0e0;
-}
-
-html.dark-mode .message-time {
-  color: #808080;
-}
-
-html.dark-mode .message-text {
-  color: #a0a0a0;
-}
-
-html.dark-mode .message-card-header {
-  border-bottom-color: rgba(255, 255, 255, 0.06);
-}
-
-html.dark-mode .message-card-footer {
-  background: rgba(0, 0, 0, 0.15);
-  border-top-color: rgba(255, 255, 255, 0.06);
-}
-
-html.dark-mode .message-card-footer:hover {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-html.dark-mode .read-status {
-  color: #808080;
-}
-
-html.dark-mode .read-status.is-read {
-  color: #a0a0a0;
-}
-
-html.dark-mode .click-hint {
-  color: #666666;
-}
-
-html.dark-mode .empty-state {
-  background: rgba(40, 40, 50, 0.8);
-}
-
-html.dark-mode .empty-state h3 {
-  color: #e0e0e0;
 }
 </style>
