@@ -544,14 +544,29 @@ const sendMessage = async () => {
       content: formData.content,
       category: formData.category,
       targetType: formData.targetType,
-      targetIds: targetIds,
-      priority: formData.priority,
-      scheduledTime: formData.scheduledTime || null,
-      extraData: extraData
+      priority: formData.priority
     }
+    
+    // 只在必要时添加 targetIds
+    if (formData.targetType !== 'all' && targetIds.length > 0) {
+      requestData.targetIds = targetIds
+    }
+    
+    // 只在必要时添加 scheduledTime
+    if (formData.scheduledTime) {
+      requestData.scheduledTime = formData.scheduledTime
+    }
+    
+    // 只在必要时添加 extraData
+    if (formData.extraDataText && Object.keys(extraData).length > 0) {
+      requestData.extraData = extraData
+    }
+
+    console.log('发送消息请求数据:', requestData)
 
     const response = await messageAPI.sendMessage(requestData)
     
+    console.log('发送成功响应:', response)
     alert(`消息发送成功！\n消息 ID: ${response.data.messageId}\n接收人数：${response.data.recipientCount}`)
     
     // 关闭弹窗
@@ -564,6 +579,7 @@ const sendMessage = async () => {
     loadMessages()
   } catch (error) {
     console.error('发送消息失败:', error)
+    console.error('错误响应:', error.response?.data)
     alert('发送失败：' + (error.response?.data?.message || error.message))
   } finally {
     isSending.value = false
