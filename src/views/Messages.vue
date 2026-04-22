@@ -49,6 +49,21 @@
           </button>
         </div>
 
+        <div class="sort-filters">
+          <!-- 来源筛选 -->
+          <select v-model="sourceFilter" class="filter-select">
+            <option value="all">全部来源</option>
+            <option value="system">管理端</option>
+            <option value="hardware">硬件设备</option>
+          </select>
+
+          <!-- 排序方式 -->
+          <select v-model="sortType" class="filter-select">
+            <option value="time">按时间排序</option>
+            <option value="priority">按优先级排序</option>
+          </select>
+        </div>
+
         <div class="actions">
           <button class="btn-action" @click="markAllAsRead">
             <span class="btn-icon">✅</span>
@@ -119,6 +134,24 @@ import { ref, computed } from 'vue'
 import SiteFooter from '../components/SiteFooter.vue'
 
 const currentTab = ref('all')
+const sourceFilter = ref('all')
+const sortType = ref('time')
+
+// 消息来源定义
+const messageSources = {
+  system: 'system',    // 管理端
+  activity: 'system',  // 管理端
+  swap: 'hardware',    // 硬件设备
+  alert: 'hardware'    // 硬件设备
+}
+
+// 优先级定义（数字越大优先级越高）
+const messagePriorities = {
+  alert: 4,    // 报警通知 - 最高优先级
+  swap: 3,     // 换电提醒 - 高优先级
+  system: 2,   // 系统通知 - 中优先级
+  activity: 1  // 活动公告 - 低优先级
+}
 
 const messages = ref([
   {
@@ -163,11 +196,34 @@ const messages = ref([
   }
 ])
 
+// 先按分类筛选，再按来源筛选，最后排序
 const filteredMessages = computed(() => {
-  if (currentTab.value === 'all') {
-    return messages.value
+  let result = messages.value
+  
+  // 按分类筛选
+  if (currentTab.value !== 'all') {
+    result = result.filter(msg => msg.category === currentTab.value)
   }
-  return messages.value.filter(msg => msg.category === currentTab.value)
+  
+  // 按来源筛选
+  if (sourceFilter.value !== 'all') {
+    result = result.filter(msg => messageSources[msg.category] === sourceFilter.value)
+  }
+  
+  // 排序
+  if (sortType.value === 'priority') {
+    // 按优先级排序（从高到低）
+    result = [...result].sort((a, b) => {
+      return messagePriorities[b.category] - messagePriorities[a.category]
+    })
+  } else {
+    // 按时间排序（从新到旧）
+    result = [...result].sort((a, b) => {
+      return new Date(b.time) - new Date(a.time)
+    })
+  }
+  
+  return result
 })
 
 const totalCount = computed(() => messages.value.filter(m => !m.read).length)
@@ -343,6 +399,37 @@ const deleteMessage = (message) => {
 .actions {
   display: flex;
   gap: 10px;
+}
+
+.sort-filters {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.filter-select {
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  outline: none;
+  min-width: 120px;
+}
+
+.filter-select:hover {
+  border-color: rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 1);
+}
+
+.filter-select:focus {
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
 }
 
 .btn-action {
@@ -634,6 +721,26 @@ html.dark-mode .filter-tab.active {
 
 html.dark-mode .unread-dot {
   border-color: rgba(30, 30, 40, 0.9);
+}
+
+html.dark-mode .sort-filters {
+  gap: 10px;
+}
+
+html.dark-mode .filter-select {
+  background: rgba(40, 40, 50, 0.8);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #e0e0e0;
+}
+
+html.dark-mode .filter-select:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(50, 50, 60, 0.9);
+}
+
+html.dark-mode .filter-select:focus {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
 }
 
 html.dark-mode .btn-action {
