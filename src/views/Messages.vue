@@ -8,89 +8,89 @@
       </div>
     </div>
 
-    <div class="messages-container">
-      <!-- 顶部操作栏 -->
-      <div class="top-bar">
-        <div class="filter-tabs">
-          <button 
-            :class="['filter-tab', { active: currentTab === 'all' }]"
-            @click="handleTabChange('all')"
-          >
-            全部
-            <span class="badge" v-if="statistics.totalCount > 0">{{ statistics.totalCount }}</span>
-          </button>
-          <button 
-            :class="['filter-tab', { active: currentTab === 'system' }]"
-            @click="handleTabChange('system')"
-          >
-            系统通知
-            <span class="badge" v-if="statistics.byCategory?.system?.unread > 0">
-              {{ statistics.byCategory.system.unread }}
-            </span>
-          </button>
-          <button 
-            :class="['filter-tab', { active: currentTab === 'swap' }]"
-            @click="handleTabChange('swap')"
-          >
-            换电提醒
-            <span class="badge" v-if="statistics.byCategory?.swap?.unread > 0">
-              {{ statistics.byCategory.swap.unread }}
-            </span>
-          </button>
-          <button 
-            :class="['filter-tab', { active: currentTab === 'alert' }]"
-            @click="handleTabChange('alert')"
-          >
-            报警通知
-            <span class="badge" v-if="statistics.byCategory?.alert?.unread > 0">
-              {{ statistics.byCategory.alert.unread }}
-            </span>
-          </button>
-          <button 
-            :class="['filter-tab', { active: currentTab === 'activity' }]"
-            @click="handleTabChange('activity')"
-          >
-            活动公告
-            <span class="badge" v-if="statistics.byCategory?.activity?.unread > 0">
-              {{ statistics.byCategory.activity.unread }}
-            </span>
-          </button>
-        </div>
-
-        <div class="sort-filters">
-          <!-- 来源筛选 -->
-          <select v-model="sourceFilter" class="filter-select" @change="loadMessages">
-            <option value="all">全部来源</option>
-            <option value="admin">管理端</option>
-            <option value="hardware">硬件设备</option>
-          </select>
-
-          <!-- 已读/未读筛选 -->
-          <select v-model="readFilter" class="filter-select" @change="loadMessages">
-            <option value="all">全部消息</option>
-            <option value="unread">未读</option>
-            <option value="read">已读</option>
-          </select>
-
-          <!-- 排序方式 -->
-          <select v-model="sortType" class="filter-select" @change="loadMessages">
-            <option value="time">按时间排序</option>
-            <option value="priority">按优先级</option>
-          </select>
-        </div>
-
-        <div class="actions">
-          <button class="btn-action" @click="markAllAsRead" :disabled="statistics.unreadCount === 0">
-            <span class="btn-icon">✅</span>
-            全部已读
-          </button>
-          <button class="btn-action danger" @click="deleteReadMessages">
-            <span class="btn-icon">🗑️</span>
-            删除已读
-          </button>
-        </div>
+    <!-- 顶部操作栏 -->
+    <div class="top-bar">
+      <div class="filter-tabs">
+        <button 
+          :class="['filter-tab', { active: currentTab === 'all' }]"
+          @click="handleTabChange('all')"
+        >
+          全部
+          <span class="badge" v-if="statistics.totalCount > 0">{{ statistics.totalCount }}</span>
+        </button>
+        <button 
+          :class="['filter-tab', { active: currentTab === 'system' }]"
+          @click="handleTabChange('system')"
+        >
+          系统通知
+          <span class="badge" v-if="statistics.byCategory?.system?.unread > 0">
+            {{ statistics.byCategory.system.unread }}
+          </span>
+        </button>
+        <button 
+          :class="['filter-tab', { active: currentTab === 'swap' }]"
+          @click="handleTabChange('swap')"
+        >
+          换电提醒
+          <span class="badge" v-if="statistics.byCategory?.swap?.unread > 0">
+            {{ statistics.byCategory.swap.unread }}
+          </span>
+        </button>
+        <button 
+          :class="['filter-tab', { active: currentTab === 'alert' }]"
+          @click="handleTabChange('alert')"
+        >
+          报警通知
+          <span class="badge" v-if="statistics.byCategory?.alert?.unread > 0">
+            {{ statistics.byCategory.alert.unread }}
+          </span>
+        </button>
+        <button 
+          :class="['filter-tab', { active: currentTab === 'activity' }]"
+          @click="handleTabChange('activity')"
+        >
+          活动公告
+          <span class="badge" v-if="statistics.byCategory?.activity?.unread > 0">
+            {{ statistics.byCategory.activity.unread }}
+          </span>
+        </button>
       </div>
 
+      <div class="sort-filters">
+        <!-- 来源筛选 -->
+        <select v-model="sourceFilter" class="filter-select" @change="loadMessages">
+          <option value="all">全部来源</option>
+          <option value="admin">管理端</option>
+          <option value="hardware">硬件设备</option>
+        </select>
+
+        <!-- 已读/未读筛选 -->
+        <select v-model="readFilter" class="filter-select" @change="loadMessages">
+          <option value="all">全部消息</option>
+          <option value="unread">未读</option>
+          <option value="read">已读</option>
+        </select>
+
+        <!-- 排序方式 -->
+        <select v-model="sortType" class="filter-select" @change="loadMessages">
+          <option value="time">按时间排序</option>
+          <option value="priority">按优先级</option>
+        </select>
+      </div>
+
+      <div class="actions">
+        <button class="btn-action" @click="markAllAsRead" :disabled="statistics.unreadCount === 0">
+          <span class="btn-icon">✅</span>
+          全部已读
+        </button>
+        <button class="btn-action danger" @click="deleteReadMessages">
+          <span class="btn-icon">🗑️</span>
+          删除已读
+        </button>
+      </div>
+    </div>
+
+    <div class="messages-container">
       <!-- 消息列表 -->
       <div class="message-list">
         <div 
@@ -223,11 +223,21 @@ const loadMessages = async () => {
   try {
     const params = {
       page: currentPage.value,
-      size: 10,
-      category: currentTab.value !== 'all' ? currentTab.value : undefined,
-      source: sourceFilter.value !== 'all' ? sourceFilter.value : undefined,
-      isRead: readFilter.value === 'all' ? undefined : readFilter.value === 'read',
-      sort: sortType.value
+      size: 10
+    }
+    
+    // 只在有值时添加参数
+    if (currentTab.value !== 'all') {
+      params.category = currentTab.value
+    }
+    if (sourceFilter.value !== 'all') {
+      params.source = sourceFilter.value
+    }
+    if (readFilter.value !== 'all') {
+      params.isRead = readFilter.value === 'read'
+    }
+    if (sortType.value) {
+      params.sort = sortType.value
     }
 
     const response = await messageAPI.getUserMessages(params)
@@ -317,13 +327,32 @@ const getCategoryText = (category) => {
 
 // 标记为已读/未读
 const toggleRead = async (message) => {
+  // 如果是已读状态，点击后变为未读（只更新本地状态，不调用 API）
+  if (message.isRead) {
+    message.isRead = false
+    message.readTime = null
+    updateStatistics(1, message.category) // 未读数 +1，指定分类
+    
+    // 如果当前筛选的是已读消息，需要从列表中移除这条消息
+    if (readFilter.value === 'read') {
+      setTimeout(() => loadMessages(), 300)
+    }
+    return
+  }
+  
+  // 如果是未读状态，点击后标记为已读（调用 API）
   try {
     await messageAPI.markAsRead(message.id)
-    message.isRead = !message.isRead
+    message.isRead = true
     message.readTime = new Date().toISOString()
     
-    // 更新统计
-    updateStatistics(message.isRead ? -1 : 1)
+    // 更新统计：未读数 -1，指定分类
+    updateStatistics(-1, message.category)
+    
+    // 如果当前筛选的是未读消息，需要从列表中移除这条消息
+    if (readFilter.value === 'unread') {
+      setTimeout(() => loadMessages(), 300)
+    }
   } catch (error) {
     console.error('操作失败:', error)
     alert('操作失败，请稍后重试')
@@ -393,9 +422,9 @@ const deleteMessage = async (message) => {
       messages.value.splice(index, 1)
     }
     
-    // 更新统计
+    // 更新统计：如果删除的是未读消息
     if (!message.isRead) {
-      updateStatistics(-1)
+      updateStatistics(-1, message.category)
     }
     
     alert('删除成功')
@@ -406,10 +435,18 @@ const deleteMessage = async (message) => {
 }
 
 // 更新统计信息
-const updateStatistics = (delta) => {
+const updateStatistics = (delta, category) => {
+  // 更新总未读数
   statistics.unreadCount = Math.max(0, statistics.unreadCount + delta)
   
-  if (currentTab.value !== 'all' && statistics.byCategory[currentTab.value]) {
+  // 更新分类统计
+  if (category && statistics.byCategory[category]) {
+    statistics.byCategory[category].unread = Math.max(
+      0,
+      statistics.byCategory[category].unread + delta
+    )
+  } else if (currentTab.value !== 'all') {
+    // 如果没有指定分类，使用当前 tab 的分类
     statistics.byCategory[currentTab.value].unread = Math.max(
       0,
       statistics.byCategory[currentTab.value].unread + delta
@@ -462,40 +499,29 @@ onMounted(() => {
   margin: 0;
 }
 
-/* 消息容器 */
-.messages-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  padding: 20px;
-}
-
 /* 顶部操作栏 */
 .top-bar {
+  max-width: 1200px;
+  margin: 0 auto 15px;
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 12px;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #f0f0f0;
 }
 
 .filter-tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .filter-tab {
   position: relative;
-  padding: 10px 18px;
+  padding: 8px 14px;
   background: #f5f5f5;
   border: 2px solid transparent;
-  border-radius: 10px;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 500;
   color: #666;
   cursor: pointer;
@@ -507,35 +533,35 @@ onMounted(() => {
 }
 
 .filter-tab.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1a1a1a;
   color: white;
 }
 
 .badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -6px;
+  right: -6px;
   background: #ff4d4f;
   color: white;
-  border-radius: 10px;
-  padding: 2px 8px;
-  font-size: 11px;
+  border-radius: 8px;
+  padding: 1px 6px;
+  font-size: 10px;
   font-weight: 600;
-  min-width: 18px;
+  min-width: 16px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(255, 77, 79, 0.3);
 }
 
 .sort-filters {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .filter-select {
-  padding: 10px 15px;
+  padding: 8px 12px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   background: white;
   cursor: pointer;
   transition: all 0.3s;
@@ -553,21 +579,21 @@ onMounted(() => {
 .actions {
   margin-left: auto;
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .btn-action {
-  padding: 10px 18px;
+  padding: 8px 14px;
   background: white;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: #333;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   transition: all 0.3s;
 }
 
@@ -590,12 +616,21 @@ onMounted(() => {
   font-size: 16px;
 }
 
+/* 消息容器 */
+.messages-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+}
+
 /* 消息列表 */
 .message-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  min-height: 400px;
 }
 
 .message-card {
@@ -792,18 +827,18 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 100px 20px;
   color: #999;
 }
 
 .empty-state .empty-icon {
-  font-size: 80px;
-  margin-bottom: 20px;
+  font-size: 100px;
+  margin-bottom: 50px;
 }
 
 .empty-state h3 {
-  font-size: 18px;
-  margin: 0 0 8px 0;
+  font-size: 20px;
+  margin: 0 0 15px 0;
 }
 
 .empty-state p {

@@ -434,8 +434,17 @@ const loadMessages = async () => {
 }
 
 // 选择消息
-const selectMessage = (msg) => {
+const selectMessage = async (msg) => {
   selectedMessage.value = msg
+  
+  // 获取消息详情（包含完整内容）- 使用管理端 API
+  try {
+    const response = await messageAPI.getAdminMessageDetail(msg.id)
+    selectedMessage.value = response.data
+    console.log('消息详情:', response.data)
+  } catch (error) {
+    console.error('获取消息详情失败:', error)
+  }
 }
 
 // 切换页码
@@ -1031,17 +1040,17 @@ onMounted(() => {
   justify-content: center;
   height: 100%;
   color: #999;
-  padding: 100px 20px;
+  padding: 80px 20px;
 }
 
 .empty-detail .empty-icon {
   font-size: 80px;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .empty-detail h3 {
   font-size: 18px;
-  margin: 0 0 12px 0;
+  margin: 0 0 10px 0;
 }
 
 .empty-detail p {
@@ -1293,18 +1302,18 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 100px 20px;
+  padding: 80px 20px;
   color: #999;
 }
 
 .empty-state .empty-icon {
   font-size: 80px;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .empty-state h3 {
   font-size: 18px;
-  margin: 0 0 12px 0;
+  margin: 0 0 10px 0;
 }
 
 .empty-state p {
