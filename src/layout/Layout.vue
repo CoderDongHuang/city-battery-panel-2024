@@ -113,34 +113,15 @@
                 <span class="nav-text">消息管理</span>
               </router-link>
               
-              <!-- 报警管理（带下拉菜单） -->
-              <div class="nav-item dropdown" :class="{ active: isAlarmRoute }" @click="toggleAlarmDropdown">
-                <div class="dropdown-trigger">
-                  <span class="nav-icon">🚨</span>
-                  <span class="nav-text">报警管理</span>
-                  <span class="nav-arrow" :class="{ rotated: showAlarmDropdown }">▼</span>
-                </div>
-                <div v-if="showAlarmDropdown" class="dropdown-menu" @click.stop>
-                  <router-link 
-                    :to="{ name: 'Alarms' }"
-                    class="dropdown-item"
-                    :class="{ active: $route.name === 'Alarms' }"
-                    @click="closeAlarmDropdown"
-                  >
-                    <span class="nav-icon">⚠️</span>
-                    <span class="nav-text">电池报警</span>
-                  </router-link>
-                  <router-link 
-                    :to="{ name: 'Alerts' }"
-                    class="dropdown-item"
-                    :class="{ active: $route.name === 'Alerts' }"
-                    @click="closeAlarmDropdown"
-                  >
-                    <span class="nav-icon">🔔</span>
-                    <span class="nav-text">系统报警</span>
-                  </router-link>
-                </div>
-              </div>
+              <!-- 报警管理 -->
+              <router-link 
+                :to="{ name: 'Alerts' }"
+                class="nav-item"
+                :class="{ active: $route.name === 'Alerts' }"
+              >
+                <span class="nav-icon">🚨</span>
+                <span class="nav-text">报警管理</span>
+              </router-link>
               
               <!-- 地图监控 -->
               <router-link 
@@ -214,37 +195,20 @@ const router = useRouter()
 
 const currentTime = ref('')
 const onlineVehiclesCount = ref(0)
-const showAlarmDropdown = ref(false)
 const showProjectDropdown = ref(false)
 const showProfileDropdown = ref(false)
-
-const isAlarmRoute = computed(() => {
-  return ['Alarms', 'Alerts'].includes(route.name)
-})
 
 const isProfileRoute = computed(() => {
   return ['Profile'].includes(route.name)
 })
 
-const toggleAlarmDropdown = () => {
-  showAlarmDropdown.value = !showAlarmDropdown.value
-  showProjectDropdown.value = false
-  showProfileDropdown.value = false
-}
-
-const closeAlarmDropdown = () => {
-  showAlarmDropdown.value = false
-}
-
 const toggleProjectDropdown = () => {
   showProjectDropdown.value = !showProjectDropdown.value
-  showAlarmDropdown.value = false
   showProfileDropdown.value = false
 }
 
 const toggleProfileDropdown = () => {
   showProfileDropdown.value = !showProfileDropdown.value
-  showAlarmDropdown.value = false
   showProjectDropdown.value = false
 }
 
@@ -270,7 +234,6 @@ const handleClickOutside = (event) => {
   const dropdown = event.target.closest('.dropdown')
   const linkDropdown = event.target.closest('.link-dropdown')
   if (!dropdown) {
-    closeAlarmDropdown()
     showProfileDropdown.value = false
   }
   if (!linkDropdown) {
