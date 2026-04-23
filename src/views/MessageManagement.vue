@@ -639,15 +639,20 @@ const sendMessage = async () => {
     // 3. 前端发送邮件（需要后端支持邮件发送接口）
     if (formData.sendEmail) {
       try {
+        // 确保 highlights 是数组
+        const highlights = Array.isArray(extraData?.highlights) ? extraData.highlights : []
+        
+        // TODO: 实际使用时，这里应该从后端获取目标用户的邮箱列表
+        // 后端需要根据消息的 targetType 和 targetIds 查询对应用户的邮箱
         await emailService.sendEmail({
-          to: 'user@example.com', // TODO: 实际使用时需要从后端获取用户邮箱
+          to: '1218798773@qq.com',
           subject: formData.title,
           content: emailService.generateEmailHTML({
             title: formData.title,
             content: formData.content,
             category: formData.category,
             displayData: {
-              highlights: extraData.highlights || []
+              highlights: highlights
             }
           }),
           category: formData.category

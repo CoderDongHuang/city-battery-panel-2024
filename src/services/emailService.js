@@ -215,16 +215,24 @@ export const emailService = {
 
   /**
    * 生成高亮信息 HTML
-   * @param {Array} highlights - 高亮信息数组
+   * @param {Object} displayData - 显示数据（包含 highlights）
    * @returns {string} HTML 内容
    */
-  generateHighlightsHTML(highlights) {
+  generateHighlightsHTML(displayData) {
+    // 兼容处理：可能是数组或对象
+    let highlights = []
+    if (Array.isArray(displayData)) {
+      highlights = displayData
+    } else if (displayData && displayData.highlights) {
+      highlights = Array.isArray(displayData.highlights) ? displayData.highlights : []
+    }
+    
     if (!highlights || highlights.length === 0) return ''
 
     return `
       <div class="highlights">
         ${highlights.map(h => `
-          <div class="highlight-item" style="color: ${h.color}">
+          <div class="highlight-item" style="color: ${h.color || '#1890ff'}">
             <span class="highlight-label">${h.label}:</span>
             <span class="highlight-value">${h.value}</span>
           </div>
