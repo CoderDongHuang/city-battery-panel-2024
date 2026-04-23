@@ -98,7 +98,7 @@ const checkNewMessages = async () => {
   try {
     // 获取未读消息数量
     const response = await messageAPI.getUnreadCount()
-    const unreadCount = response.data.count
+    const unreadCount = response.data?.count || 0
     
     if (unreadCount > 0 && !visible.value) {
       // 获取最新的未读消息
@@ -108,7 +108,7 @@ const checkNewMessages = async () => {
         isRead: false
       })
       
-      if (messagesResponse.data.content && messagesResponse.data.content.length > 0) {
+      if (messagesResponse.data?.content && messagesResponse.data.content.length > 0) {
         message.value = messagesResponse.data.content[0]
         visible.value = true
         

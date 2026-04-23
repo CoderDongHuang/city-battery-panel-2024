@@ -265,10 +265,14 @@
         </div>
       </div>
     </div>
+
+    <!-- 页脚组件 -->
+    <SiteFooter />
   </div>
 </template>
 
 <script setup>
+import SiteFooter from '../components/SiteFooter.vue'
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { 

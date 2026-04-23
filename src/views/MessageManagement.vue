@@ -413,10 +413,14 @@
         </div>
       </div>
     </div>
+
+    <!-- 页脚组件 -->
+    <SiteFooter />
   </div>
 </template>
 
 <script setup>
+import SiteFooter from '../components/SiteFooter.vue'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { messageAPI } from '../services/messageAPI.js'
 import { dingtalkService } from '../services/dingtalkService.js'
@@ -1603,4 +1607,5 @@ html.dark-mode .btn-default {
 html.dark-mode .btn-default:hover {
   background: #3a3a4e;
 }
+
 </style>

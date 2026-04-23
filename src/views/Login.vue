@@ -320,7 +320,7 @@ const handleLogin = async () => {
       if (userRole === 'admin') {
         // 管理员登录
         localStorage.setItem('adminToken', response.data.token)
-        localStorage.setItem('adminUserId', response.data.user?.id || response.data.user?.userId || response.data.user?.uid)
+        localStorage.setItem('userId', response.data.user?.id || response.data.user?.userId || response.data.user?.uid)
         localStorage.setItem('adminUsername', response.data.user.username)
         localStorage.setItem('adminRole', userRole)
         console.log('[登录] 管理员登录成功')
@@ -328,7 +328,7 @@ const handleLogin = async () => {
       } else {
         // 普通用户登录
         localStorage.setItem('userToken', response.data.token)
-        localStorage.setItem('userUserId', response.data.user?.id || response.data.user?.userId || response.data.user?.uid)
+        localStorage.setItem('userId', response.data.user?.id || response.data.user?.userId || response.data.user?.uid)
         localStorage.setItem('userUsername', response.data.user.username)
         localStorage.setItem('userRole', userRole)
         console.log('[登录] 用户登录成功')

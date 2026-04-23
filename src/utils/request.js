@@ -23,6 +23,17 @@ request.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
     
+    // 添加用户 ID（如果有）- 用于用户端接口认证
+    const userId = localStorage.getItem('userId')
+    console.log('[request.js] 当前 userId:', userId)
+    if (userId) {
+      config.headers['X-User-ID'] = userId
+      console.log('[request.js] 已添加 X-User-ID:', userId)
+    } else {
+      console.error('[request.js] 未找到 userId')
+    }
+    console.log('[request.js] 请求头:', config.headers)
+    
     return config
   },
   (error) => {

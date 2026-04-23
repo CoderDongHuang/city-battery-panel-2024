@@ -242,16 +242,22 @@ const loadMessages = async () => {
 
     const response = await messageAPI.getUserMessages(params)
     
-    messages.value = response.data.content
-    currentPage.value = response.data.pagination.currentPage
-    totalPages.value = response.data.pagination.totalPages
+    console.log('API 响应数据:', response)
+    console.log('response.data:', response.data)
+    
+    messages.value = response.data?.content || []
+    currentPage.value = response.data?.pagination?.currentPage || 1
+    totalPages.value = response.data?.pagination?.totalPages || 1
     
     // 更新统计信息
-    if (response.data.statistics) {
-      statistics.totalCount = response.data.statistics.totalCount
-      statistics.unreadCount = response.data.statistics.unreadCount
-      statistics.byCategory = response.data.statistics.byCategory
+    if (response.data?.statistics) {
+      statistics.totalCount = response.data.statistics.totalCount || 0
+      statistics.unreadCount = response.data.statistics.unreadCount || 0
+      statistics.byCategory = response.data.statistics.byCategory || {}
     }
+    
+    console.log('消息列表:', messages.value)
+    console.log('统计信息:', statistics)
   } catch (error) {
     console.error('加载消息列表失败:', error)
     alert('加载消息失败，请稍后重试')
@@ -456,6 +462,17 @@ const updateStatistics = (delta, category) => {
 
 // 生命周期
 onMounted(() => {
+  // 检查用户角色
+  const userRole = localStorage.getItem('userRole')
+  console.log('当前用户角色:', userRole)
+  
+  // 如果是管理员，提示跳转到管理端消息管理
+  if (userRole === 'admin') {
+    console.log('管理员账户，应访问管理端消息管理')
+    // 可以选择自动跳转或显示提示
+    // router.replace('/message-management')
+  }
+  
   loadMessages()
 })
 </script>
