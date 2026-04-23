@@ -140,12 +140,16 @@
     <main class="user-main-content">
       <router-view />
     </main>
+
+    <!-- 消息通知弹窗 -->
+    <MessageNotification />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import MessageNotification from '../components/MessageNotification.vue'
 
 const router = useRouter()
 const route = useRoute()

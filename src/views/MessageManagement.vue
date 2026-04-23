@@ -329,6 +329,45 @@
               ></textarea>
               <p class="form-hint">可选，用于存储消息的特有数据</p>
             </div>
+
+            <!-- 通知方式 -->
+            <div class="form-group">
+              <label class="form-label">通知方式</label>
+              <div class="notification-options">
+                <label class="checkbox-label">
+                  <input type="checkbox" v-model="formData.sendEmail" />
+                  <span>📧 邮件通知</span>
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" v-model="formData.sendDingtalk" />
+                  <span>🔔 钉钉机器人</span>
+                </label>
+              </div>
+              <p class="form-hint">勾选后将同时通过邮件和钉钉发送通知</p>
+            </div>
+
+            <!-- 钉钉 Webhook -->
+            <div v-if="formData.sendDingtalk" class="form-group">
+              <label class="form-label">钉钉机器人 Webhook</label>
+              <input
+                v-model="formData.dingtalkWebhook"
+                type="text"
+                class="form-input"
+                placeholder="https://oapi.dingtalk.com/robot/send?access_token=..."
+              />
+            </div>
+
+            <!-- 钉钉加签密钥 -->
+            <div v-if="formData.sendDingtalk" class="form-group">
+              <label class="form-label">钉钉加签密钥</label>
+              <input
+                v-model="formData.dingtalkSecret"
+                type="text"
+                class="form-input"
+                placeholder="SEC..."
+              />
+              <p class="form-hint">用于生成加签时间戳，增强安全性</p>
+            </div>
           </form>
         </div>
 
@@ -380,6 +419,8 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { messageAPI } from '../services/messageAPI.js'
+import { dingtalkService } from '../services/dingtalkService.js'
+import { emailService } from '../services/emailService.js'
 
 // 消息列表相关
 const messageList = ref([])
@@ -408,7 +449,11 @@ const formData = reactive({
   targetIdsText: '',
   priority: 2,
   scheduledTime: '',
-  extraDataText: ''
+  extraDataText: '',
+  sendEmail: true,
+  sendDingtalk: true,
+  dingtalkWebhook: 'https://oapi.dingtalk.com/robot/send?access_token=c0035ce98ff7ba9b2e2cd774c8bb215617967f23ec4b90454e1fe6157cff78b5',
+  dingtalkSecret: 'SEC0988aaa1865023adea982e7bf26b311bf1152c779a831a34b23633532f718cde'
 })
 
 // 加载消息列表
@@ -564,10 +609,56 @@ const sendMessage = async () => {
 
     console.log('发送消息请求数据:', requestData)
 
+    // 1. 发送消息到数据库
     const response = await messageAPI.sendMessage(requestData)
     
-    console.log('发送成功响应:', response)
-    alert(`消息发送成功！\n消息 ID: ${response.data.messageId}\n接收人数：${response.data.recipientCount}`)
+    console.log('消息保存成功:', response)
+    
+    // 2. 前端直接发送钉钉通知（不需要后端）
+    if (formData.sendDingtalk) {
+      try {
+        await dingtalkService.sendMessage({
+          webhook: formData.dingtalkWebhook,
+          secret: formData.dingtalkSecret,
+          message: {
+            title: formData.title,
+            content: formData.content,
+            category: formData.category,
+            createTime: new Date().toISOString(),
+            displayData: {
+              highlights: extraData.highlights || []
+            }
+          }
+        })
+        console.log('✅ 钉钉发送成功')
+      } catch (err) {
+        console.error('❌ 钉钉发送失败:', err)
+      }
+    }
+    
+    // 3. 前端发送邮件（需要后端支持邮件发送接口）
+    if (formData.sendEmail) {
+      try {
+        await emailService.sendEmail({
+          to: 'user@example.com', // TODO: 实际使用时需要从后端获取用户邮箱
+          subject: formData.title,
+          content: emailService.generateEmailHTML({
+            title: formData.title,
+            content: formData.content,
+            category: formData.category,
+            displayData: {
+              highlights: extraData.highlights || []
+            }
+          }),
+          category: formData.category
+        })
+        console.log('✅ 邮件发送成功')
+      } catch (err) {
+        console.error('❌ 邮件发送失败:', err)
+      }
+    }
+    
+    alert(`消息发送成功！\n已保存到数据库${formData.sendDingtalk ? '、发送到钉钉' : ''}${formData.sendEmail ? '、发送邮件' : ''}`)
     
     // 关闭弹窗
     showCreateModal.value = false
@@ -596,6 +687,10 @@ const resetForm = () => {
   formData.priority = 2
   formData.scheduledTime = ''
   formData.extraDataText = ''
+  formData.sendEmail = true
+  formData.sendDingtalk = true
+  formData.dingtalkWebhook = 'https://oapi.dingtalk.com/robot/send?access_token=c0035ce98ff7ba9b2e2cd774c8bb215617967f23ec4b90454e1fe6157cff78b5'
+  formData.dingtalkSecret = 'SEC0988aaa1865023adea982e7bf26b311bf1152c779a831a34b23633532f718cde'
 }
 
 // 取消定时消息
@@ -1198,6 +1293,34 @@ onMounted(() => {
   font-size: 12px;
   color: #999;
   margin: 0;
+}
+
+/* 通知选项 */
+.notification-options {
+  display: flex;
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.checkbox-label:hover {
+  color: #667eea;
 }
 
 /* 分类选择器 */

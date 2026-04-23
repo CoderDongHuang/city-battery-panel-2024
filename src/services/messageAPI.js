@@ -129,12 +129,41 @@ export const messageAPI = {
    * @param {number} data.priority - 优先级
    * @param {string} data.scheduledTime - 定时发送时间
    * @param {Object} data.extraData - 扩展数据
+   * @param {boolean} data.sendEmail - 是否发送邮件通知
+   * @param {boolean} data.sendDingtalk - 是否发送钉钉通知
    */
   sendMessage(data) {
     return request({
       url: '/admin/messages/send',
       method: 'post',
       data
+    })
+  },
+
+  /**
+   * 发送消息并通知（邮件 + 钉钉）
+   * @param {Object} data - 请求数据
+   * @param {string} data.title - 标题
+   * @param {string} data.content - 内容
+   * @param {string} data.category - 分类
+   * @param {string} data.targetType - 目标类型
+   * @param {number[]} data.targetIds - 目标 ID 数组
+   * @param {number} data.priority - 优先级
+   * @param {string} data.scheduledTime - 定时发送时间
+   * @param {Object} data.extraData - 扩展数据
+   * @param {boolean} data.sendEmail - 是否发送邮件通知
+   * @param {boolean} data.sendDingtalk - 是否发送钉钉通知
+   * @param {string} data.dingtalkWebhook - 钉钉机器人 webhook URL
+   */
+  sendMessageWithNotification(data) {
+    return request({
+      url: '/admin/messages/send-with-notification',
+      method: 'post',
+      data: {
+        ...data,
+        sendEmail: data.sendEmail !== false, // 默认发送
+        sendDingtalk: data.sendDingtalk !== false // 默认发送
+      }
     })
   },
 
