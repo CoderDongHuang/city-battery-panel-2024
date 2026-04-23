@@ -195,7 +195,7 @@ router.beforeEach((to, from, next) => {
       
       if (refreshToken) localStorage.setItem('adminRefreshToken', refreshToken)
       if (username) localStorage.setItem('adminUsername', username)
-      if (id) localStorage.setItem('adminUserId', id)
+      if (id) localStorage.setItem('userId', id)
       if (avatar) localStorage.setItem('adminAvatar', avatar)
       if (email) localStorage.setItem('adminEmail', email)
       if (urlRole) localStorage.setItem('adminRole', urlRole)
@@ -212,7 +212,7 @@ router.beforeEach((to, from, next) => {
       
       if (refreshToken) localStorage.setItem('userRefreshToken', refreshToken)
       if (username) localStorage.setItem('userUsername', username)
-      if (id) localStorage.setItem('userUserId', id)
+      if (id) localStorage.setItem('userId', id)
       if (avatar) localStorage.setItem('userAvatar', avatar)
       if (email) localStorage.setItem('userEmail', email)
       if (urlRole) localStorage.setItem('userRole', urlRole)

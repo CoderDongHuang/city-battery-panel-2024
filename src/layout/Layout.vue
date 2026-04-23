@@ -222,7 +222,7 @@ const handleLogout = () => {
   // 清除管理端登录状态
   localStorage.removeItem('adminToken')
   localStorage.removeItem('adminUsername')
-  localStorage.removeItem('adminUserId')
+  localStorage.removeItem('userId')
   localStorage.removeItem('adminAvatar')
   localStorage.removeItem('adminEmail')
   localStorage.removeItem('adminRefreshToken')

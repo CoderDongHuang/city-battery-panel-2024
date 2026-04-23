@@ -190,7 +190,7 @@ const handleLogout = () => {
   localStorage.removeItem('userToken')
   localStorage.removeItem('userRefreshToken')
   localStorage.removeItem('userUsername')
-  localStorage.removeItem('userUserId')
+  localStorage.removeItem('userId')
   localStorage.removeItem('userAvatar')
   localStorage.removeItem('userEmail')
   localStorage.removeItem('userRole')
