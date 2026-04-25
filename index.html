@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>city-battery-panel-2024</title>
+    <!-- 高德地图加载器 -->
+    <script type="text/javascript">
+      window._AMapSecurityConfig = {
+        securityJsCode: 'c5be1016aba27b4b039100e2caf17ba1'
+      }
+    </script>
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=5fb7e4ea217020851f30f04ef08dd9fb&callback=onAmapLoaded"></script>
+    <script type="text/javascript">
+      function onAmapLoaded() {
+        console.log('高德地图加载完成')
+        window.dispatchEvent(new Event('AMapLoaded'))
+      }
+    </script>
   </head>
   <body>
     <div id="app"></div>

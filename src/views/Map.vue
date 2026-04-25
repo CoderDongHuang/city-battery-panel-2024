@@ -8,7 +8,7 @@
           <p class="section-description">选择车辆并管理地图显示，支持智能路径规划</p>
         </div>
         <div class="section-controls">
-          <button class="refresh-btn" @click="loadMapData">
+          <button class="refresh-btn" @click="refreshMap">
             <span class="refresh-icon">🔄</span>
             刷新地图
           </button>
@@ -46,7 +46,6 @@
             </div>
           </div>
           <div class="control-body">
-            <!-- 完整的位置控制组件 -->
             <div v-if="selectedVehicleId" class="position-control-container">
               <VehiclePositionControl :vehicle="getSelectedVehicle()" />
             </div>
@@ -99,13 +98,6 @@
             </div>
           </div>
           <div class="legend-item">
-            <div class="legend-color obstacle"></div>
-            <div class="legend-content">
-              <span class="legend-label">障碍物</span>
-              <span class="legend-desc">不可通行区域</span>
-            </div>
-          </div>
-          <div class="legend-item">
             <div class="legend-color vehicle"></div>
             <div class="legend-content">
               <span class="legend-label">车辆</span>
@@ -115,27 +107,12 @@
         </div>
       </div>
       
+      <!-- 地图容器 -->
       <div class="map-container">
-        <div class="map-grid" v-if="mapGrid">
-          <div v-for="(row, y) in mapGrid" :key="y" class="map-row">
-            <div v-for="(cell, x) in row" :key="x" 
-                 class="map-cell" 
-                 :class="getCellClass(cell, x, y)"
-                 @click="setVehiclePosition(x, y)"
-                 :title="getCellTitle(cell, x, y)">
-              {{ getCellContent(cell, x, y) }}
-            </div>
-          </div>
-        </div>
-        
-        <div v-else class="map-placeholder">
-          <div class="placeholder-icon">🗺️</div>
-          <h3>地图数据未加载</h3>
-          <p>请点击下方按钮加载城市地图数据</p>
-          <button class="load-map-btn" @click="loadMapData">
-            <span class="btn-icon">📡</span>
-            加载地图数据
-          </button>
+        <div id="amap-container" class="amap-container"></div>
+        <div v-if="!mapLoaded" class="map-loading">
+          <div class="loading-spinner">🔄</div>
+          <p>地图加载中...</p>
         </div>
       </div>
     </div>
@@ -174,18 +151,18 @@
           <div class="route-details">
             <div class="route-item">
               <span class="item-label">目标换电站</span>
-              <span class="item-value">({{ recommendedRoute.station.x }}, {{ recommendedRoute.station.y }})</span>
+              <span class="item-value">{{ recommendedRoute.stationName }}</span>
             </div>
             <div class="route-item">
               <span class="item-label">预计距离</span>
-              <span class="item-value">{{ recommendedRoute.distance }} 格</span>
+              <span class="item-value">{{ recommendedRoute.distance?.toFixed(2) || 0 }} km</span>
             </div>
             <div class="route-item" v-if="recommendedRoute.rescueNeeded">
               <span class="item-label">状态</span>
               <span class="item-value warning">⚠️ 需要救援支持</span>
             </div>
             <div class="route-actions">
-              <button class="action-btn primary">
+              <button class="action-btn primary" @click="startNavigation">
                 <span class="action-icon">🚀</span>
                 开始导航
               </button>
@@ -212,7 +189,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onUnmounted, nextTick } from 'vue'
 import { useMapStore } from '../store/modules/mapStore'
 import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
 import { stationAPI } from '../services/api'
@@ -223,9 +200,12 @@ const mapStore = useMapStore()
 const vehicleStore = useApiVehicleStore()
 
 const selectedVehicleId = ref('')
-const mapGrid = ref(null)
+const mapInstance = ref(null)
 const recommendedRoute = ref(null)
 const swapStationsCount = ref(0)
+const vehicleMarkers = ref([])
+const stationMarkers = ref([])
+const mapLoaded = ref(false)
 
 const onlineVehicles = computed(() => {
   return vehicleStore.vehicles.filter(v => v.online)
@@ -260,600 +240,464 @@ const getSelectedVehicle = () => {
   return vehicleStore.getVehicleById(selectedVehicleId.value)
 }
 
-const getCellClass = (cell, x, y) => {
-  const classes = []
-  
-  if (cell === 0) classes.push('road')
-  else if (cell === 1) classes.push('station')
-  else if (cell === 2) classes.push('obstacle')
-  
-  const vehicleAtPosition = Object.entries(mapStore.vehiclePositions).find(
-    ([vid, pos]) => pos.x === x + 1 && pos.y === y + 1
-  )
-  
-  if (vehicleAtPosition) {
-    classes.push('vehicle')
-    if (vehicleAtPosition[0] === selectedVehicleId.value) {
-      classes.push('selected-vehicle')
+// 初始化高德地图
+const initMap = async () => {
+  try {
+    // 等待 DOM 渲染完成
+    await nextTick()
+    
+    // 确保容器存在
+    const container = document.getElementById('amap-container')
+    if (!container) {
+      console.error('地图容器不存在')
+      return
     }
+    
+    // 确保 AMap 已加载
+    if (!window.AMap) {
+      console.error('AMap 未加载')
+      return
+    }
+    
+    console.log('开始初始化地图...')
+    console.log('容器:', container)
+    console.log('容器高度:', window.getComputedStyle(container).height)
+    
+    // 直接创建地图实例
+    mapInstance.value = new window.AMap.Map('amap-container', {
+      center: [116.397428, 39.90923], // 北京市中心
+      zoom: 12,
+      mapStyle: 'amap://styles/normal',
+      features: ['bg', 'road', 'building', 'point']
+    })
+    
+    console.log('地图初始化成功:', mapInstance.value)
+    
+    mapLoaded.value = true
+    
+    // 添加缩放控件（高德地图 2.0 默认已包含基础控件）
+    // 如果需要自定义控件，可以使用 mapInstance.value.addControl()
+    
+    // 加载车辆和换电站数据
+    await loadMapData()
+    
+    // 监听地图事件
+    mapInstance.value.on('click', (e) => {
+      console.log('地图点击事件:', e.lnglat)
+    })
+  } catch (error) {
+    console.error('初始化地图失败:', error)
+    alert('地图加载失败，请检查网络或高德地图 Key 配置')
   }
-  
-  return classes
 }
 
-const getCellContent = (cell, x, y) => {
-  const vehicleAtPosition = Object.entries(mapStore.vehiclePositions).find(
-    ([vid, pos]) => pos.x === x + 1 && pos.y === y + 1
-  )
-  
-  if (vehicleAtPosition) {
-    const vehicle = vehicleStore.getVehicleById(vehicleAtPosition[0])
-    return vehicle ? vehicle.vid.slice(-2) : 'V'
-  }
-  
-  return ''
+// 刷新地图
+const refreshMap = async () => {
+  await loadMapData()
 }
 
-const getCellTitle = (cell, x, y) => {
-  const position = `坐标: (${x + 1}, ${y + 1})`
-  let type = ''
-  
-  if (cell === 0) type = '道路'
-  else if (cell === 1) type = '换电站'
-  else if (cell === 2) type = '障碍物'
-  
-  const vehicleAtPosition = Object.entries(mapStore.vehiclePositions).find(
-    ([vid, pos]) => pos.x === x + 1 && pos.y === y + 1
-  )
-  
-  if (vehicleAtPosition) {
-    const vehicle = vehicleStore.getVehicleById(vehicleAtPosition[0])
-    return `${position} | ${type} | 车辆: ${vehicle?.vid || '未知'}`
-  }
-  
-  return `${position} | ${type}`
-}
-
+// 加载地图数据（车辆和换电站）
 const loadMapData = async () => {
   try {
-    await mapStore.loadMapData('/data/map.txt')
-    mapGrid.value = mapStore.getMapGrid
-  } catch (error) {
-    console.warn('地图文件加载失败，使用默认地图数据')
-    const defaultMapData = `0 0 0 0 1 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0
-0 0 1 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0
-0 0 0 0 0 0 0 0 0 0`
-    mapStore.mapData = defaultMapData
-    mapGrid.value = mapStore.getMapGrid
-  }
-  
-  try {
+    // 加载车辆数据
+    await vehicleStore.loadVehicles()
+    updateVehicleMarkers()
+    
+    // 加载换电站数据
     const response = await stationAPI.getStationStatistics()
     if (response.code === 200 && response.data) {
       swapStationsCount.value = response.data.total || 0
+      await loadStationMarkers()
     }
   } catch (error) {
-    console.error('获取换电站统计失败:', error)
+    console.error('加载地图数据失败:', error)
   }
 }
 
-const setVehiclePosition = (x, y) => {
-  if (selectedVehicleId.value) {
-    const position = { x: x + 1, y: y + 1 }
-    mapStore.setVehiclePosition(selectedVehicleId.value, position)
+// 更新车辆标记
+const updateVehicleMarkers = () => {
+  if (!mapInstance.value) return
+  
+  // 清除旧标记
+  clearMarkers(mapInstance.value, vehicleMarkers.value)
+  vehicleMarkers.value = []
+  
+  // 创建新标记
+  const vehicles = vehicleStore.vehicles
+  const markers = vehicles.map(vehicle => {
+    const position = [vehicle.longitude || 116.397428, vehicle.latitude || 39.90923]
     
-    const nearest = mapStore.findNearestSwapStation(position)
-    if (nearest) {
-      const vehicle = vehicleStore.getVehicleById(selectedVehicleId.value)
-      const batteryLevel = vehicle?.batteryLevel || 0
-      
-      recommendedRoute.value = {
-        station: nearest.station,
-        distance: nearest.distance,
-        rescueNeeded: batteryLevel < nearest.distance
-      }
-    }
-  }
-}
-
-const setRandomPosition = () => {
-  if (selectedVehicleId.value && mapGrid.value) {
-    const roads = []
-    for (let y = 0; y < mapGrid.value.length; y++) {
-      for (let x = 0; x < mapGrid.value[y].length; x++) {
-        if (mapGrid.value[y][x] === 0) {
-          roads.push({ x: x + 1, y: y + 1 })
-        }
-      }
-    }
+    const marker = createMarker(mapInstance.value, position, {
+      title: `${vehicle.vid} - ${vehicle.online ? '在线' : '离线'}`,
+      label: vehicle.vid
+    })
     
-    if (roads.length > 0) {
-      const randomPos = roads[Math.floor(Math.random() * roads.length)]
-      mapStore.setVehiclePosition(selectedVehicleId.value, randomPos)
+    // 添加点击事件
+    marker.on('click', () => {
+      selectedVehicleId.value = vehicle.vid
+      showVehicleInfo(vehicle)
+    })
+    
+    return marker
+  })
+  
+  vehicleMarkers.value = markers
+}
+
+// 创建换电站标记
+const loadStationMarkers = async () => {
+  if (!mapInstance.value) return
+  
+  try {
+    // TODO: 调用后端 API 获取换电站列表
+    // 这里使用模拟数据
+    const stations = [
+      { id: 1, name: '市中心换电站', longitude: 116.407428, latitude: 39.91923, availableBatteries: 15 },
+      { id: 2, name: '科技园换电站', longitude: 116.387428, latitude: 39.89923, availableBatteries: 8 }
+    ]
+    
+    // 清除旧标记
+    clearMarkers(mapInstance.value, stationMarkers.value)
+    stationMarkers.value = []
+    
+    // 创建新标记
+    const markers = stations.map(station => {
+      const position = [station.longitude, station.latitude]
       
-      const nearest = mapStore.findNearestSwapStation(randomPos)
-      if (nearest) {
-        const vehicle = vehicleStore.getVehicleById(selectedVehicleId.value)
-        const batteryLevel = vehicle?.batteryLevel || 0
-        
-        recommendedRoute.value = {
-          station: nearest.station,
-          distance: nearest.distance,
-          rescueNeeded: batteryLevel < nearest.distance
-        }
-      }
-    }
+      const marker = createMarker(mapInstance.value, position, {
+        title: `${station.name} - 可用电池：${station.availableBatteries}`,
+        label: station.name
+      })
+      
+      // 添加点击事件
+      marker.on('click', () => {
+        showStationInfo(station)
+      })
+      
+      return marker
+    })
+    
+    stationMarkers.value = markers
+  } catch (error) {
+    console.error('加载换电站标记失败:', error)
   }
 }
 
+// 显示车辆信息
+const showVehicleInfo = (vehicle) => {
+  if (!mapInstance.value) return
+  
+  const content = `
+    <div class="info-window">
+      <h4>${vehicle.vid}</h4>
+      <p>状态：${vehicle.online ? '🟢 在线' : '🔴 离线'}</p>
+      <p>电量：${vehicle.batteryLevel || 0}%</p>
+      <p>速度：${vehicle.speed || 0} km/h</p>
+    </div>
+  `
+  
+  const position = [vehicle.longitude || 116.397428, vehicle.latitude || 39.90923]
+  createInfoWindow(mapInstance.value, position, content)
+}
+
+// 显示换电站信息
+const showStationInfo = (station) => {
+  if (!mapInstance.value) return
+  
+  const content = `
+    <div class="info-window">
+      <h4>${station.name}</h4>
+      <p>可用电池：${station.availableBatteries}</p>
+      <p>地址：${station.address || '未知'}</p>
+    </div>
+  `
+  
+  const position = [station.longitude, station.latitude]
+  createInfoWindow(mapInstance.value, position, content)
+}
+
+// 车辆选择事件
 const onVehicleSelect = () => {
   if (selectedVehicleId.value) {
-    const position = mapStore.getVehiclePosition(selectedVehicleId.value)
-    if (position) {
-      const nearest = mapStore.findNearestSwapStation(position)
-      if (nearest) {
-        const vehicle = vehicleStore.getVehicleById(selectedVehicleId.value)
-        const batteryLevel = vehicle?.batteryLevel || 0
-        
-        recommendedRoute.value = {
-          station: nearest.station,
-          distance: nearest.distance,
-          rescueNeeded: batteryLevel < nearest.distance
-        }
-      }
+    const vehicle = getSelectedVehicle()
+    if (vehicle && mapInstance.value) {
+      const position = [vehicle.longitude || 116.397428, vehicle.latitude || 39.90923]
+      mapInstance.value.panTo(position)
+      mapInstance.value.setZoom(15)
+      
+      // 计算路径规划
+      calculateRoute(vehicle)
     }
   } else {
     recommendedRoute.value = null
   }
 }
 
-onMounted(async () => {
-  await loadMapData()
-  
-  // 加载车辆数据
-  console.log('开始加载车辆数据...')
-  console.log('当前车辆数量:', vehicleStore.vehicles.length)
-  
-  if (vehicleStore.vehicles.length === 0) {
-    try {
-      console.log('调用 fetchVehicles()...')
-      await vehicleStore.fetchVehicles()
-      console.log('车辆数据加载完成，数量:', vehicleStore.vehicles.length)
-      console.log('车辆列表:', vehicleStore.vehicles)
-    } catch (error) {
-      console.error('车辆数据加载失败:', error)
-      console.error('错误详情:', error.message)
-    }
-  } else {
-    console.log('已有车辆数据，无需重新加载')
+// 计算路径规划
+const calculateRoute = async (vehicle) => {
+  // TODO: 实现路径规划逻辑
+  // 这里使用模拟数据
+  recommendedRoute.value = {
+    stationName: '市中心换电站',
+    distance: 3.5,
+    rescueNeeded: (vehicle.batteryLevel || 0) < 20
+  }
+}
+
+// 开始导航
+const startNavigation = () => {
+  if (recommendedRoute.value) {
+    alert(`开始导航到：${recommendedRoute.value.stationName}`)
+    // TODO: 集成导航功能
+  }
+}
+
+// 生命周期
+onMounted(() => {
+  initMap()
+})
+
+onUnmounted(() => {
+  if (mapInstance.value) {
+    mapInstance.value.destroy()
   }
 })
 </script>
 
 <style scoped>
 .map-view {
-  padding: 24px;   /* 与 Dashboard 统一内边距 */
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f5f7fa;
+  padding: 24px;
 }
 
-/* 大模块间距设置 - 与系统概览页面保持一致 */
 .map-controls-section {
   background: white;
-  border-radius: 16px;
-  padding: 32px;
-  margin-bottom: 48px;          /* 大模块间距 */
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.map-display-section {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  margin-bottom: 48px;          /* 大模块间距 */
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-}
-
-.info-panels-section {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  margin-bottom: 0;             /* 最后一个模块不要下边距 */
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
-}
-
-/* 大模块悬停效果 */
-.map-controls-section:hover,
-.map-display-section:hover,
-.info-panels-section:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-}
-
-/* 移除外层card-section样式，避免重复 */
-
-/* 位置控制组件样式 */
-.position-control-container {
-  margin-top: 12px;
-}
-
-.position-control-container .vehicle-position-control {
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  margin-bottom: 0;
-  padding: 0;
-  background: transparent;
-}
-
-.position-control-container .control-header {
-  display: none;
-}
-
-.position-control-container .vehicle-info {
-  display: none;
-}
-
-.position-control-container .current-position-info {
-  display: none;
-}
-
-.position-control-container .coordinate-inputs {
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.position-control-container .coordinate-input label {
-  font-size: 12px;
-  margin-bottom: 4px;
-}
-
-.position-control-container .coordinate-input input {
-  padding: 6px 8px;
-  font-size: 12px;
-}
-
-.position-control-container .map-section {
-  margin: 12px 0;
-}
-
-.position-control-container .map-section label {
-  font-size: 12px;
-  margin-bottom: 6px;
-}
-
-.position-control-container .map-container {
-  height: 100px;
-}
-
-.position-control-container .btn-set-position {
-  padding: 8px 16px;
-  font-size: 12px;
-  min-width: 140px;
-}
-
-.position-control-container .offline-notice {
-  font-size: 11px;
-  padding: 6px 10px;
-  margin-top: 8px;
-}
-
-.position-control-container .message {
-  font-size: 11px;
-  padding: 6px 10px;
-  margin-top: 8px;
-}
-
-.no-vehicle-selected {
-  text-align: center;
-  color: #666;
-  font-size: 14px;
-  padding: 20px;
-}
-
-.no-vehicles {
-  text-align: center;
-  color: #999;
-  font-size: 12px;
-  padding: 10px;
-  background: #f5f5f5;
-  border-radius: 4px;
-  margin-top: 8px;
-}
-
-/* 头部样式（已移除，保留原有内部样式） */
 .section-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   margin-bottom: 24px;
-  gap: 24px;
 }
 
 .section-title-group {
   flex: 1;
-  min-width: 0;
 }
 
 .section-title {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: bold;
   color: #1a1a1a;
-  margin: 0 0 12px 0;
-  line-height: 1.2;
+  margin: 0 0 8px 0;
 }
 
 .section-description {
-  font-size: 16px;
+  font-size: 14px;
   color: #666;
   margin: 0;
-  line-height: 1.5;
 }
 
 .section-controls {
   display: flex;
-  align-items: center;
-  gap: 24px;
-  flex-shrink: 0;
+  gap: 12px;
 }
 
 .refresh-btn {
+  padding: 10px 20px;
+  background: white;
+  border: 2px solid #e8e8e8;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
-  border: 1px solid #007bff;
-  border-radius: 6px;
-  background: white;
-  color: #007bff;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
 }
 
 .refresh-btn:hover {
-  background: #007bff;
-  color: white;
+  border-color: #667eea;
+  background: #f0f5ff;
 }
 
 .refresh-icon {
   font-size: 16px;
 }
 
-/* 控制卡片样式（保持原有） */
 .controls-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
+  gap: 16px;
 }
 
 .control-card {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e9ecef;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.control-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 16px;
 }
 
 .control-header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .control-icon {
   font-size: 32px;
-  flex-shrink: 0;
-}
-
-.control-info {
-  flex: 1;
 }
 
 .control-info h3 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #1a1a1a;
   margin: 0 0 4px 0;
 }
 
 .control-info p {
-  font-size: 14px;
+  font-size: 13px;
   color: #666;
   margin: 0;
 }
 
+.control-body {
+  min-height: 80px;
+}
+
 .vehicle-select {
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  background: #f8f9fa;
+  padding: 10px;
+  border: 2px solid #e8e8e8;
+  border-radius: 6px;
   font-size: 14px;
-  transition: border-color 0.3s ease;
+  background: white;
+  cursor: pointer;
 }
 
 .vehicle-select:focus {
+  border-color: #667eea;
   outline: none;
-  border-color: #007bff;
 }
 
-.position-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  background: white;
-  color: #495057;
-  cursor: pointer;
+.no-vehicles,
+.no-vehicle-selected {
+  padding: 20px;
+  text-align: center;
+  color: #999;
   font-size: 14px;
-  transition: all 0.3s ease;
-  flex: 1;
 }
 
-.action-btn.primary {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
+.position-control-container {
+  min-height: 80px;
 }
 
-.action-btn.secondary {
-  background: #6c757d;
-  color: white;
-  border-color: #6c757d;
+.map-display-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.action-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.action-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.action-icon {
-  font-size: 16px;
-}
-
-/* 地图区域 */
 .map-stats {
   display: flex;
   gap: 24px;
 }
 
 .stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: center;
 }
 
 .stat-label {
-  font-size: 14px;
-  color: #666;
+  display: block;
+  font-size: 13px;
+  color: #999;
   margin-bottom: 4px;
 }
 
 .stat-value {
+  display: block;
   font-size: 24px;
-  font-weight: 700;
-  color: #1a1a1a;
+  font-weight: bold;
+  color: #667eea;
 }
 
-/* 地图图例样式 */
 .map-legend {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 24px;
-  border: 1px solid #e9ecef;
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
 }
 
 .legend-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .legend-header h4 {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
   color: #1a1a1a;
   margin: 0;
 }
 
 .legend-badge {
-  background: #007bff;
+  padding: 2px 8px;
+  background: #667eea;
   color: white;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .legend-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  background: white;
-  border-radius: 8px;
-  transition: transform 0.2s ease;
-}
-
-.legend-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  gap: 8px;
 }
 
 .legend-color {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border-radius: 4px;
-  flex-shrink: 0;
 }
 
 .legend-color.road {
-  background: linear-gradient(135deg, #ecf0f1, #d5dbdb);
-  border: 1px solid #bdc3c7;
+  background: #e0e0e0;
 }
 
 .legend-color.station {
-  background: linear-gradient(135deg, #28a745, #20c997);
-}
-
-.legend-color.obstacle {
-  background: linear-gradient(135deg, #dc3545, #e83e8c);
+  background: #667eea;
 }
 
 .legend-color.vehicle {
-  background: linear-gradient(135deg, #ffc107, #fd7e14);
+  background: #52c41a;
 }
 
 .legend-content {
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
 .legend-label {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   color: #1a1a1a;
 }
 
@@ -863,170 +707,72 @@ onMounted(async () => {
 }
 
 .map-container {
-  background: #f8f9fa;
-  border-radius: 16px;
-  padding: 32px;
-  margin-top: 24px;
-  min-height: 500px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow-x: auto;
-}
-
-.map-grid {
-  display: inline-block;
-  border: 3px solid #2c3e50;
+  position: relative;
+  height: 600px;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-.map-row {
-  display: flex;
+.amap-container {
+  width: 100%;
+  height: 100%;
 }
 
-.map-cell {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #bdc3c7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.map-cell:hover {
-  transform: scale(1.2);
-  z-index: 2;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.map-cell.road {
-  background: linear-gradient(135deg, #ecf0f1, #d5dbdb);
-  color: #2c3e50;
-}
-
-.map-cell.station {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-  color: white;
-  font-weight: 800;
-}
-
-.map-cell.obstacle {
-  background: linear-gradient(135deg, #2c3e50, #1a252f);
-  color: white;
-}
-
-.map-cell.vehicle {
-  background: linear-gradient(135deg, #3498db, #2980b9);
-  color: white;
-  border: 2px solid #2980b9;
-  font-weight: 800;
-}
-
-.map-cell.selected-vehicle {
-  background: linear-gradient(135deg, #f39c12, #e67e22);
-  border: 2px solid #e67e22;
-  animation: pulse-glow 2s infinite;
-}
-
-@keyframes pulse-glow {
-  0% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(243, 156, 18, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(243, 156, 18, 0); }
-}
-
-.map-placeholder {
-  height: 400px;
+.map-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: center;
-  align-items: center;
-  color: #6c757d;
-  text-align: center;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 1000;
 }
 
-.placeholder-icon {
-  font-size: 64px;
+.loading-spinner {
+  font-size: 48px;
   margin-bottom: 16px;
-  opacity: 0.7;
+  animation: spin 1s linear infinite;
 }
 
-.map-placeholder h3 {
-  font-size: 24px;
-  font-weight: 600;
-  margin: 0 0 8px 0;
-  color: #495057;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.map-placeholder p {
+.map-loading p {
   font-size: 16px;
-  margin: 0 0 24px 0;
-  color: #6c757d;
+  color: #666;
 }
 
-.load-map-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  background: #007bff;
-  color: white;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  transition: all 0.3s ease;
+.info-panels-section {
+  margin-bottom: 24px;
 }
 
-.load-map-btn:hover {
-  background: #0056b3;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-}
-
-.btn-icon {
-  font-size: 18px;
-}
-
-/* 信息面板区域 */
 .panel-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 24px;
 }
 
 .info-panel {
   background: white;
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e9ecef;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.info-panel:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .panel-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e9ecef;
 }
 
 .panel-header h3 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: #1a1a1a;
   margin: 0;
@@ -1034,75 +780,46 @@ onMounted(async () => {
 
 .panel-badge {
   padding: 4px 12px;
+  background: #52c41a;
+  color: white;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
-  background: #28a745;
-  color: white;
 }
 
 .panel-badge.warning {
-  background: #dc3545;
+  background: #ff4d4f;
 }
 
-.legend-grid {
-  display: grid;
-  gap: 16px;
-}
-
-.legend-item {
+.vehicle-status {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 12px;
-  border-radius: 8px;
-  background: #f8f9fa;
-  transition: background-color 0.3s ease;
+  gap: 24px;
 }
 
-.legend-item:hover {
-  background: #e9ecef;
-}
-
-.legend-color {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
-
-.legend-color.road {
-  background: linear-gradient(135deg, #ecf0f1, #d5dbdb);
-}
-
-.legend-color.station {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-}
-
-.legend-color.obstacle {
-  background: linear-gradient(135deg, #2c3e50, #1a252f);
-}
-
-.legend-color.vehicle {
-  background: linear-gradient(135deg, #3498db, #2980b9);
-}
-
-.legend-content {
+.status-item {
   flex: 1;
+  text-align: center;
+  padding: 16px;
+  background: #f5f7fa;
+  border-radius: 8px;
 }
 
-.legend-label {
+.status-label {
   display: block;
   font-size: 14px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 2px;
+  color: #666;
+  margin-bottom: 8px;
 }
 
-.legend-desc {
+.status-value {
   display: block;
-  font-size: 12px;
-  color: #6c757d;
+  font-size: 28px;
+  font-weight: bold;
+  color: #1a1a1a;
+}
+
+.status-value.warning {
+  color: #ff4d4f;
 }
 
 .route-details {
@@ -1115,32 +832,55 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #f8f9fa;
-}
-
-.route-item:last-child {
-  border-bottom: none;
+  padding: 12px;
+  background: #f5f7fa;
+  border-radius: 6px;
 }
 
 .item-label {
   font-size: 14px;
-  color: #6c757d;
-  font-weight: 500;
+  color: #666;
 }
 
 .item-value {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: #1a1a1a;
 }
 
 .item-value.warning {
-  color: #dc3545;
+  color: #ff4d4f;
 }
 
 .route-actions {
+  display: flex;
+  gap: 12px;
   margin-top: 16px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.action-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .route-placeholder {
@@ -1148,60 +888,112 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 120px;
-  color: #6c757d;
+  padding: 40px;
   text-align: center;
 }
 
-.route-placeholder .placeholder-icon {
-  font-size: 32px;
-  margin-bottom: 8px;
+.placeholder-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
 }
 
-/* 响应式设计 */
-@media (max-width: 1024px) {
-  .controls-grid {
-    grid-template-columns: 1fr;
-  }
-  .panel-grid {
-    grid-template-columns: 1fr;
-  }
-  .map-cell {
-    width: 35px;
-    height: 35px;
-  }
+.route-placeholder p {
+  font-size: 14px;
+  color: #999;
 }
 
-@media (max-width: 768px) {
-  .map-view {
-    padding: 16px;
-  }
-  .card-section {
-    padding: 20px;
-  }
-  .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-  .map-stats {
-    justify-content: space-between;
-  }
-  .map-cell {
-    width: 30px;
-    height: 30px;
-    font-size: 12px;
-  }
-  .position-actions {
-    flex-direction: column;
-  }
+/* 深色模式适配 */
+html.dark-mode .map-view {
+  background: #1a1a1a;
 }
 
-@media (max-width: 480px) {
-  .map-cell {
-    width: 25px;
-    height: 25px;
-    font-size: 10px;
-  }
+html.dark-mode .map-controls-section,
+html.dark-mode .map-display-section,
+html.dark-mode .info-panel {
+  background: #242424;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+html.dark-mode .section-title,
+html.dark-mode .control-info h3,
+html.dark-mode .panel-header h3 {
+  color: #e0e0e0;
+}
+
+html.dark-mode .section-description,
+html.dark-mode .control-info p,
+html.dark-mode .legend-label {
+  color: #b0b0b0;
+}
+
+html.dark-mode .refresh-btn {
+  background: #3d3d3d;
+  border-color: #555555;
+  color: #e0e0e0;
+}
+
+html.dark-mode .refresh-btn:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.15);
+}
+
+html.dark-mode .control-card {
+  background: #2d2d2d;
+}
+
+html.dark-mode .vehicle-select {
+  background: #3d3d3d;
+  border-color: #555555;
+  color: #e0e0e0;
+}
+
+html.dark-mode .no-vehicles,
+html.dark-mode .no-vehicle-selected {
+  color: #999999;
+}
+
+html.dark-mode .map-legend {
+  background: #2d2d2d;
+}
+
+html.dark-mode .legend-color.road {
+  background: #555555;
+}
+
+html.dark-mode .status-item {
+  background: #2d2d2d;
+}
+
+html.dark-mode .status-label {
+  color: #999999;
+}
+
+html.dark-mode .status-value {
+  color: #e0e0e0;
+}
+
+html.dark-mode .route-item {
+  background: #2d2d2d;
+}
+
+html.dark-mode .item-label {
+  color: #999999;
+}
+
+html.dark-mode .item-value {
+  color: #e0e0e0;
+}
+
+html.dark-mode .route-placeholder p {
+  color: #999999;
+}
+
+html.dark-mode .map-loading {
+  background: rgba(26, 26, 26, 0.9);
+}
+
+html.dark-mode .map-loading p {
+  color: #b0b0b0;
 }
 </style>
