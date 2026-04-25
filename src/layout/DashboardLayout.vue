@@ -34,12 +34,12 @@
         </router-link>
         
         <router-link 
-          :to="{ name: 'UserMap' }"
+          :to="{ name: 'SmartSwap' }"
           class="sidebar-item"
-          :class="{ active: $route.name === 'UserMap' }"
+          :class="{ active: $route.name === 'SmartSwap' }"
         >
-          <span class="sidebar-icon">🗺️</span>
-          <span>换电地图</span>
+          <span class="sidebar-icon">⚡</span>
+          <span>智能换电</span>
         </router-link>
         
         <router-link 

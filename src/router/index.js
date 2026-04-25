@@ -82,10 +82,10 @@ const routes = [
         meta: { title: '我的电池' }
       },
       {
-        path: 'map',
-        name: 'UserMap',
-        component: () => import('../views/UserMap.vue'),
-        meta: { title: '换电地图' }
+        path: 'smart-swap',
+        name: 'SmartSwap',
+        component: () => import('../views/SmartSwap.vue'),
+        meta: { title: '智能换电' }
       },
       {
         path: 'alerts',

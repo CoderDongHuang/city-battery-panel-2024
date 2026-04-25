@@ -9,12 +9,11 @@
 
       <!-- 四个按钮（扇形弧度排列） -->
       <div class="action-buttons-arc">
-        <router-link :to="{ name: 'UserMap' }" class="arc-btn">
+        <router-link :to="{ name: 'SmartSwap' }" class="arc-btn">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-            <circle cx="12" cy="10" r="3"/>
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
           </svg>
-          <span>查找换电站</span>
+          <span>智能换电</span>
         </router-link>
         <router-link :to="{ name: 'MyVehicles' }" class="arc-btn">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
