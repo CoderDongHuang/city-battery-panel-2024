@@ -307,6 +307,53 @@
       </div>
     </div>
 
+    <!-- 报表生成模态框 -->
+    <div v-if="showReportModal" class="report-modal-overlay" @click="closeReportModal">
+      <div class="report-modal-content" @click.stop>
+        <div class="report-modal-header">
+          <h3>📊 生成报表</h3>
+          <button class="report-modal-close" @click="closeReportModal">×</button>
+        </div>
+        
+        <div class="report-modal-body">
+          <div class="form-group">
+            <label class="form-label">报表类型</label>
+            <select v-model="reportType" class="form-select">
+              <option value="vehicle">车辆运营报表</option>
+              <option value="battery">电池状态报表</option>
+              <option value="station">换电站运营报表</option>
+              <option value="alert">报警统计报表</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">导出格式</label>
+            <select v-model="reportFormat" class="form-select">
+              <option value="pdf">PDF 文档</option>
+              <option value="excel">Excel 表格</option>
+              <option value="csv">CSV 文件</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">时间范围</label>
+            <select v-model="reportDateRange" class="form-select">
+              <option value="today">今日</option>
+              <option value="yesterday">昨日</option>
+              <option value="week">本周</option>
+              <option value="month">本月</option>
+              <option value="custom">自定义</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="report-modal-footer">
+          <button class="btn btn-secondary" @click="closeReportModal">取消</button>
+          <button class="btn btn-primary btn-black" @click="confirmGenerateReport">生成报表</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 图表放大模态框 -->
     <div v-if="showChartModal" class="chart-modal-overlay" @click="closeChartModal">
       <div class="chart-modal-content" @click.stop>
@@ -358,7 +405,7 @@
 import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue'
 import { useApiVehicleStore } from '../store/modules/apiVehicleStore'
 import { useBatteryStore } from '../store/modules/batteryStore'
-import { stationAPI, alertAPI, vehicleAPI } from '../services/api'
+import { stationAPI, alertAPI, vehicleAPI, batteryAPI } from '../services/api'
 import { useRouter } from 'vue-router'
 import SiteFooter from '../components/SiteFooter.vue'
 
@@ -525,10 +572,289 @@ export default {
     }
     
     // 快速操作函数
+    const showReportModal = ref(false)
+    const reportType = ref('vehicle')
+    const reportFormat = ref('pdf')
+    const reportDateRange = ref('today')
+    
     const generateReport = () => {
-      alert('生成报表功能即将开放，敬请期待！')
-      // TODO: 实现报表生成逻辑
-      // 可以跳转到报表页面或打开模态框选择报表类型
+      showReportModal.value = true
+    }
+    
+    const closeReportModal = () => {
+      showReportModal.value = false
+    }
+    
+    const confirmGenerateReport = async () => {
+      console.log('=== 开始生成报表 ===')
+      console.log('报表类型:', reportType.value)
+      console.log('导出格式:', reportFormat.value)
+      console.log('时间范围:', reportDateRange.value)
+      
+      // 报表类型映射
+      const reportTypes = {
+        vehicle: '车辆运营报表',
+        battery: '电池状态报表',
+        station: '换电站运营报表',
+        alert: '报警统计报表'
+      }
+      
+      const formatNames = {
+        pdf: 'PDF',
+        excel: 'Excel',
+        csv: 'CSV'
+      }
+      
+      // 确保数据已加载（已经在 generateReportData 中处理）
+      
+      // 生成报表数据
+      const reportData = await generateReportData(reportType.value, reportDateRange.value)
+      console.log('生成的报表数据:', reportData)
+      console.log('数据行数:', reportData.length)
+      
+      // 根据格式导出
+      if (reportFormat.value === 'csv') {
+        exportToCSV(reportData, `${reportTypes[reportType.value]}_${reportDateRange.value}`)
+      } else if (reportFormat.value === 'excel') {
+        exportToExcel(reportData, `${reportTypes[reportType.value]}_${reportDateRange.value}`)
+      } else {
+        // PDF 导出（使用浏览器打印功能）
+        console.log('生成 PDF 报表')
+        alert(`📄 正在生成 ${reportTypes[reportType.value]} (PDF)...\n\n提示：浏览器打印窗口打开后，选择"另存为 PDF"即可保存`)
+        
+        // 创建一个简单的打印页面
+        const printWindow = window.open('', '_blank')
+        const printContent = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>${reportTypes[reportType.value]}</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              h1 { color: #333; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #4a4a4a; color: white; }
+              tr:nth-child(even) { background-color: #f2f2f2; }
+              .info { margin-bottom: 20px; color: #666; }
+            </style>
+          </head>
+          <body>
+            <h1>📊 ${reportTypes[reportType.value]}</h1>
+            <div class="info">
+              <p><strong>生成时间:</strong> ${new Date().toLocaleString('zh-CN')}</p>
+              <p><strong>时间范围:</strong> ${reportDateRange.value}</p>
+            </div>
+            <table>
+              ${reportData.map((row, i) => 
+                `<tr>${row.map(cell => i === 0 ? `<th>${cell}</th>` : `<td>${cell}</td>`).join('')}</tr>`
+              ).join('')}
+            </table>
+          </body>
+          </html>
+        `
+        
+        printWindow.document.write(printContent)
+        printWindow.document.close()
+        printWindow.print()
+      }
+      
+      closeReportModal()
+    }
+    
+    // 生成报表数据
+    const generateReportData = async (type, dateRange) => {
+      const now = new Date()
+      const data = []
+      
+      console.log('生成报表数据，类型:', type)
+      
+      try {
+        if (type === 'vehicle') {
+          // 车辆运营数据 - 使用真实 API
+          console.log('正在调用车辆 API...')
+          const response = await vehicleAPI.getVehicles()
+          console.log('车辆 API 响应:', response)
+          
+          const vehicles = response.data?.content || response.data?.list || response.data || []
+          console.log('车辆数量:', vehicles.length)
+          
+          // 使用与车辆管理界面一致的字段
+          data.push(['车辆编号', '来源', '状态', '电池编号', '电压', '温度', '电量', '报警数'])
+          if (vehicles.length > 0) {
+            vehicles.forEach(v => {
+              data.push([
+                v.name || v.vid || 'N/A',
+                v.source === 'admin' ? '管理端' : '用户端',
+                v.online ? '在线' : '离线',
+                v.pid || '未安装',
+                v.voltage ? `${v.voltage}V` : '--',
+                v.temperature ? `${v.temperature}°C` : '--',
+                v.batteryLevel ? `${v.batteryLevel}%` : '--',
+                v.alerts && v.alerts.length > 0 ? v.alerts.length : 0
+              ])
+            })
+          } else {
+            data.push(['暂无数据', '-', '-', '-', '-', '-', '-', '-'])
+          }
+          
+        } else if (type === 'battery') {
+          // 电池状态数据 - 使用 batteryStore 的真实数据
+          console.log('使用 batteryStore 中的数据...')
+          console.log('batteryStore.batteries:', batteryStore.batteries)
+          console.log('电池数量:', batteryStore.batteries.length)
+          
+          data.push(['电池编号', '状态', '电量百分比', '电压', '温度', '健康度'])
+          if (batteryStore.batteries && batteryStore.batteries.length > 0) {
+            batteryStore.batteries.forEach(b => {
+              // 将状态代码转换为中文
+              const statusMap = {
+                normal: '正常',
+                low: '电量低',
+                overheat: '过热',
+                low_voltage: '电压过低',
+                charging: '充电中',
+                full: '已充满',
+                error: '故障'
+              }
+              
+              data.push([
+                b.id || b.batteryId || 'N/A',
+                statusMap[b.status] || b.status || '未知',
+                `${b.level || b.soc || b.batteryLevel || 0}%`,
+                `${b.voltage || 0}V`,
+                `${b.temperature || b.temp || 0}°C`,
+                `${b.health || b.soh || 100}%`
+              ])
+            })
+            console.log('电池数据已添加到报表')
+          } else {
+            console.warn('batteryStore 中没有数据')
+            data.push(['暂无数据', '-', '-', '-', '-', '-'])
+          }
+          
+        } else if (type === 'station') {
+          // 换电站数据 - 使用真实 API
+          console.log('正在调用换电站 API...')
+          const response = await stationAPI.getStations({})
+          console.log('换电站 API 响应:', response)
+          
+          const stations = response.data?.content || response.data?.list || response.data || []
+          console.log('换电站数量:', stations.length)
+          
+          data.push(['站点名称', '运营状态', '可用电池数', '站点地址'])
+          if (stations.length > 0) {
+            stations.forEach(s => {
+              const statusMap = {
+                active: '运营中',
+                maintenance: '维护中',
+                offline: '已关闭',
+                inactive: '未激活'
+              }
+              
+              data.push([
+                s.name || s.stationName || 'N/A',
+                statusMap[s.status] || s.status || '未知',
+                s.availableBatteries || s.batteryCount || 0,
+                s.address || s.location || '未知'
+              ])
+            })
+          } else {
+            data.push(['暂无数据', '-', '-', '-'])
+          }
+          
+        } else if (type === 'alert') {
+          // 报警数据 - 使用真实 API
+          console.log('正在调用报警 API...')
+          const response = await alertAPI.getAlerts({ size: 100 })
+          console.log('报警 API 响应:', response)
+          
+          const alerts = response.data?.content || response.data?.list || response.data || []
+          console.log('报警数量:', alerts.length)
+          
+          data.push(['报警类型', '报警级别', '处理状态', '报警时间', '报警描述'])
+          if (alerts.length > 0) {
+            alerts.forEach(a => {
+              const statusMap = {
+                resolved: '已处理',
+                unresolved: '未处理',
+                pending: '处理中',
+                ignored: '已忽略'
+              }
+              
+              const levelMap = {
+                critical: '严重',
+                major: '重要',
+                minor: '一般',
+                warning: '警告',
+                info: '提示'
+              }
+              
+              data.push([
+                a.type || a.alertType || '未知',
+                levelMap[a.level] || levelMap[a.severity] || a.level || '普通',
+                statusMap[a.status] || a.status || '未处理',
+                a.createdAt || a.time || now.toLocaleString(),
+                a.description || a.message || '无描述'
+              ])
+            })
+          } else {
+            data.push(['暂无数据', '-', '-', '-', '-'])
+          }
+        }
+      } catch (error) {
+        console.error('获取报表数据失败:', error)
+        data.push(['数据加载失败', '-', '-', '-', '-', '-'])
+        data.push(['错误信息:', error.message, '-', '-', '-', '-'])
+      }
+      
+      console.log('最终报表数据:', data)
+      console.log('报表数据预览:', data.slice(0, 5))
+      return data
+    }
+    
+    // 导出为 CSV
+    const exportToCSV = (data, filename) => {
+      console.log('开始导出 CSV:', filename)
+      console.log('数据:', data)
+      
+      const csvContent = data.map(row => row.join(',')).join('\n')
+      const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      
+      link.setAttribute('href', url)
+      link.setAttribute('download', `${filename}_${new Date().getTime()}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      
+      console.log('CSV 导出完成')
+      alert('✅ CSV 报表已生成并下载！')
+    }
+    
+    // 导出为 Excel（简化版，使用 CSV 格式但命名为 .xls）
+    const exportToExcel = (data, filename) => {
+      console.log('开始导出 Excel:', filename)
+      console.log('数据:', data)
+      
+      const csvContent = data.map(row => row.join(',')).join('\n')
+      const blob = new Blob(['\ufeff' + csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      
+      link.setAttribute('href', url)
+      link.setAttribute('download', `${filename}_${new Date().getTime()}.xls`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      
+      console.log('Excel 导出完成')
+      alert('✅ Excel 报表已生成并下载！')
     }
     
     const openNotificationSettings = () => {
@@ -676,6 +1002,15 @@ export default {
       generateReport,
       openNotificationSettings,
       openSystemSettings,
+      showReportModal,
+      reportType,
+      reportFormat,
+      reportDateRange,
+      closeReportModal,
+      confirmGenerateReport,
+      generateReportData,
+      exportToCSV,
+      exportToExcel,
       barData,
       chartLabels,
       chartPeriod,
@@ -1369,7 +1704,137 @@ export default {
   }
 }
 
-/* 图表放大模态框样式 - 与Batteries.vue保持一致 */
+/* 报表生成模态框样式 */
+.report-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.report-modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.report-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.report-modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.report-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #999;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.report-modal-close:hover {
+  background: #f5f5f5;
+  color: #1a1a1a;
+}
+
+.report-modal-body {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  background: white;
+  color: #1a1a1a;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.form-select:hover {
+  border-color: #667eea;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.report-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 24px;
+  border-top: 1px solid #e9ecef;
+}
+
+/* 黑白配色按钮 */
+.btn-black {
+  background: #4a4a4a !important;
+  color: white;
+}
+
+.btn-black:hover {
+  background: #5a5a5a !important;
+}
+
+/* 图表放大模态框样式 - 与 Batteries.vue 保持一致 */
 .chart-modal-overlay {
   position: fixed;
   top: 0;
