@@ -818,8 +818,12 @@ onUnmounted(() => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #4a4a4a;
   color: white;
+}
+
+.btn-primary:hover {
+  background: #5a5a5a;
 }
 
 /* 错误提示 */

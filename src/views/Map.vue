@@ -1096,12 +1096,12 @@ onUnmounted(() => {
 }
 
 .action-btn.primary {
-  background: #1a1a1a;
+  background: #4a4a4a;
   color: white;
 }
 
 .action-btn.primary:hover {
-  background: #333333;
+  background: #5a5a5a;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
