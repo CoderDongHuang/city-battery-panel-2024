@@ -84,7 +84,7 @@
           @click="setPosition"
           :disabled="!isOnline || isSetting"
         >
-          {{ isSetting ? '设置中...' : '🚀 发送位置设置指令' }}
+          {{ isSetting ? '设置中...' : '发送位置设置指令' }}
         </button>
       </div>
     </div>

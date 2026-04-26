@@ -8,11 +8,27 @@
           <p class="section-description">选择车辆并管理地图显示，支持智能路径规划</p>
         </div>
         <div class="section-controls">
-          <button class="refresh-btn" @click="refreshMap">
-            <span class="refresh-icon">🔄</span>
-            刷新地图
-          </button>
+        <!-- 城市选择器 -->
+        <div class="city-selector-wrapper">
+          <select v-model="selectedProvince" @change="onProvinceChange" class="city-selector">
+            <option value="">选择省份</option>
+            <option v-for="province in provinces" :key="province" :value="province">
+              {{ province }}
+            </option>
+          </select>
+          <select v-model="selectedCity" @change="onCityChange" class="city-selector" :disabled="!selectedProvince">
+            <option value="">选择城市</option>
+            <option v-for="city in filteredCities" :key="city.name" :value="city">
+              {{ city.name }}
+            </option>
+          </select>
         </div>
+        
+        <button class="refresh-btn" @click="refreshMap">
+          <span class="refresh-icon">🔄</span>
+          刷新地图
+        </button>
+      </div>
       </div>
       
       <div class="controls-grid">
@@ -80,7 +96,6 @@
       <div class="map-legend">
         <div class="legend-header">
           <h4>地图图例</h4>
-          <span class="legend-badge">参考指南</span>
         </div>
         <div class="legend-items">
           <div class="legend-item">
@@ -159,11 +174,10 @@
             </div>
             <div class="route-item" v-if="recommendedRoute.rescueNeeded">
               <span class="item-label">状态</span>
-              <span class="item-value warning">⚠️ 需要救援支持</span>
+              <span class="item-value warning">需要救援支持</span>
             </div>
             <div class="route-actions">
               <button class="action-btn primary" @click="startNavigation">
-                <span class="action-icon">🚀</span>
                 开始导航
               </button>
             </div>
@@ -207,6 +221,12 @@ const vehicleMarkers = ref([])
 const stationMarkers = ref([])
 const mapLoaded = ref(false)
 
+// 城市选择相关
+const selectedProvince = ref('')
+const selectedCity = ref(null)
+const provinces = ref([])
+const filteredCities = ref([])
+
 const onlineVehicles = computed(() => {
   return vehicleStore.vehicles.filter(v => v.online)
 })
@@ -238,6 +258,126 @@ const clearSelection = () => {
 const getSelectedVehicle = () => {
   if (!selectedVehicleId.value) return null
   return vehicleStore.getVehicleById(selectedVehicleId.value)
+}
+
+// ==================== 城市选择功能 ====================
+
+// 中国省份列表（完整）
+const chinaProvinces = [
+  '北京市', '天津市', '上海市', '重庆市', // 直辖市
+  '河北省', '山西省', '辽宁省', '吉林省', '黑龙江省', // 华北、东北
+  '江苏省', '浙江省', '安徽省', '福建省', '江西省', '山东省', // 华东
+  '河南省', '湖北省', '湖南省', // 华中
+  '广东省', '广西壮族自治区', '海南省', // 华南
+  '四川省', '贵州省', '云南省', // 西南
+  '陕西省', '甘肃省', '青海省', '宁夏回族自治区', '新疆维吾尔自治区', // 西北
+  '内蒙古自治区', '西藏自治区', // 北部、西部
+  '香港特别行政区', '澳门特别行政区', '台湾省' // 特别行政区、省份
+]
+
+// 省份简称映射（用于高德地图 API）
+const provinceAdcodes = {
+  '北京市': '110000', '天津市': '120000', '上海市': '310000', '重庆市': '500000',
+  '河北省': '130000', '山西省': '140000', '辽宁省': '210000', '吉林省': '220000', '黑龙江省': '230000',
+  '江苏省': '320000', '浙江省': '330000', '安徽省': '340000', '福建省': '350000', '江西省': '360000', '山东省': '370000',
+  '河南省': '410000', '湖北省': '420000', '湖南省': '430000',
+  '广东省': '440000', '广西壮族自治区': '450000', '海南省': '460000',
+  '四川省': '510000', '贵州省': '520000', '云南省': '530000',
+  '陕西省': '610000', '甘肃省': '620000', '青海省': '630000', '宁夏回族自治区': '640000', '新疆维吾尔自治区': '650000',
+  '内蒙古自治区': '150000',
+  '西藏自治区': '540000',
+  '香港特别行政区': '810000', '澳门特别行政区': '820000', '台湾省': '710000'
+}
+
+// 初始化城市数据
+const initCityData = () => {
+  provinces.value = chinaProvinces
+}
+
+// 获取省份的城市列表（从高德地图 API）
+const getCitiesByProvince = async (province) => {
+  return new Promise((resolve, reject) => {
+    if (!window.AMap) {
+      resolve([])
+      return
+    }
+    
+    const adcode = provinceAdcodes[province]
+    if (!adcode) {
+      resolve([])
+      return
+    }
+    
+    // 使用高德地图的 districtSearch 插件
+    window.AMap.plugin('AMap.DistrictSearch', () => {
+      const district = new window.AMap.DistrictSearch({
+        level: 'province',
+        extensions: 'all'
+      })
+      
+      district.search(adcode, (status, result) => {
+        if (status === 'complete' && result.districtList && result.districtList.length > 0) {
+          const provinceData = result.districtList[0]
+          const cities = []
+          
+          if (provinceData.districtList) {
+            provinceData.districtList.forEach(district => {
+              // 直辖市特殊处理
+              if (['北京市', '天津市', '上海市', '重庆市'].includes(province)) {
+                cities.push({
+                  name: province,
+                  center: district.center || [116.407526, 39.90403],
+                  zoom: 12
+                })
+              } else if (district.level === 'city' && district.center) {
+                cities.push({
+                  name: district.name,
+                  center: district.center,
+                  zoom: 12
+                })
+              }
+            })
+          }
+          
+          // 如果没有找到城市，使用省会
+          if (cities.length === 0 && provinceData.center) {
+            cities.push({
+              name: province,
+              center: provinceData.center,
+              zoom: 12
+            })
+          }
+          
+          console.log(`省份 ${province} 的城市列表:`, cities)
+          resolve(cities)
+        } else {
+          console.warn(`获取 ${province} 城市列表失败:`, status, result)
+          resolve([])
+        }
+      })
+    })
+  })
+}
+
+// 省份变化时
+const onProvinceChange = async () => {
+  if (selectedProvince.value) {
+    // 动态获取城市列表
+    const cities = await getCitiesByProvince(selectedProvince.value)
+    filteredCities.value = cities
+    selectedCity.value = null
+  } else {
+    filteredCities.value = []
+  }
+}
+
+// 城市变化时
+const onCityChange = () => {
+  if (selectedCity.value && mapInstance.value) {
+    mapInstance.value.panTo(selectedCity.value.center)
+    mapInstance.value.setZoom(selectedCity.value.zoom)
+    console.log('已切换到城市:', selectedCity.value.name)
+  }
 }
 
 // 初始化高德地图
@@ -299,8 +439,8 @@ const refreshMap = async () => {
 // 加载地图数据（车辆和换电站）
 const loadMapData = async () => {
   try {
-    // 加载车辆数据
-    await vehicleStore.loadVehicles()
+    // 加载车辆数据 - 修复错误：使用 fetchVehicles() 代替 loadVehicles()
+    await vehicleStore.fetchVehicles()
     updateVehicleMarkers()
     
     // 加载换电站数据
@@ -311,7 +451,53 @@ const loadMapData = async () => {
     }
   } catch (error) {
     console.error('加载地图数据失败:', error)
+    // 即使车辆数据加载失败，也继续显示地图
   }
+}
+
+// 清除标记
+const clearMarkers = (map, markers) => {
+  if (!map || !markers || markers.length === 0) return
+  markers.forEach(marker => {
+    marker.setMap(null)
+  })
+}
+
+// 创建标记
+const createMarker = (map, position, options = {}) => {
+  if (!map || !window.AMap) return null
+  
+  const marker = new window.AMap.Marker({
+    position: position,
+    title: options.title || '',
+    map: map
+  })
+  
+  // 如果有标签，添加标签
+  if (options.label) {
+    marker.setLabel({
+      content: options.label,
+      offset: new window.AMap.Pixel(0, -30),
+      direction: 'top'
+    })
+  }
+  
+  return marker
+}
+
+// 创建信息窗口
+const createInfoWindow = (map, position, content) => {
+  if (!map || !window.AMap) return
+  
+  const infoWindow = new window.AMap.InfoWindow({
+    content: content,
+    position: position,
+    offset: new window.AMap.Pixel(0, -10)
+  })
+  
+  infoWindow.open(map, position)
+  
+  return infoWindow
 }
 
 // 更新车辆标记
@@ -454,6 +640,7 @@ const startNavigation = () => {
 
 // 生命周期
 onMounted(() => {
+  initCityData()
   initMap()
 })
 
@@ -506,6 +693,41 @@ onUnmounted(() => {
 .section-controls {
   display: flex;
   gap: 12px;
+  align-items: center;
+}
+
+.city-selector-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.city-selector {
+  padding: 10px 16px;
+  border: 2px solid #e8e8e8;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 120px;
+}
+
+.city-selector:hover {
+  border-color: #667eea;
+}
+
+.city-selector:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.city-selector:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
 }
 
 .refresh-btn {
@@ -874,13 +1096,14 @@ onUnmounted(() => {
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1a1a1a;
   color: white;
 }
 
 .action-btn.primary:hover {
+  background: #333333;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .route-placeholder {
@@ -995,5 +1218,25 @@ html.dark-mode .map-loading {
 
 html.dark-mode .map-loading p {
   color: #b0b0b0;
+}
+
+html.dark-mode .city-selector {
+  background: #3d3d3d;
+  border-color: #555555;
+  color: #e0e0e0;
+}
+
+html.dark-mode .city-selector:hover {
+  border-color: #667eea;
+}
+
+html.dark-mode .city-selector:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+html.dark-mode .city-selector:disabled {
+  background: #2d2d2d;
+  color: #666666;
 }
 </style>
