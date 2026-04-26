@@ -95,7 +95,7 @@
       </div>
       
       <div class="navigation-grid">
-        <router-link to="/vehicles" class="navigation-card">
+        <router-link to="/admin/vehicles" class="navigation-card">
           <div class="card-header">
             <div class="card-icon">🚗</div>
             <div class="card-badge">{{ onlineVehiclesCount }} 在线</div>
@@ -112,7 +112,7 @@
           </div>
         </router-link>
         
-        <router-link to="/batteries" class="navigation-card">
+        <router-link to="/admin/batteries" class="navigation-card">
           <div class="card-header">
             <div class="card-icon">🔋</div>
             <div class="card-badge">{{ totalBatteriesCount }} 总数</div>
@@ -129,7 +129,7 @@
           </div>
         </router-link>
         
-        <router-link to="/map" class="navigation-card">
+        <router-link to="/admin/map" class="navigation-card">
           <div class="card-header">
             <div class="card-icon">🗺️</div>
             <div class="card-badge">实时监控</div>
@@ -146,7 +146,7 @@
           </div>
         </router-link>
         
-        <router-link to="/alerts" class="navigation-card">
+        <router-link to="/admin/alerts" class="navigation-card">
           <div class="card-header">
             <div class="card-icon">🚨</div>
             <div class="card-badge">{{ activeAlertsCount }} 报警</div>
@@ -160,6 +160,40 @@
           </div>
           <div class="card-footer">
             <span class="card-action">进入中心 →</span>
+          </div>
+        </router-link>
+        
+        <router-link to="/admin/stations" class="navigation-card">
+          <div class="card-header">
+            <div class="card-icon">🏢</div>
+            <div class="card-badge">{{ swapStationsCount }} 站点</div>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">换电站管理</h3>
+            <p class="card-description">
+              管理换电站点信息、运营状态、设备维护等，
+              支持站点布局优化、容量规划等功能。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="card-action">进入管理 →</span>
+          </div>
+        </router-link>
+        
+        <router-link to="/admin/messages" class="navigation-card">
+          <div class="card-header">
+            <div class="card-icon">📧</div>
+            <div class="card-badge">消息</div>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">消息管理</h3>
+            <p class="card-description">
+              发送和管理系统通知，支持邮件、钉钉等多种方式，
+              支持消息分类、发送记录查询等功能。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="card-action">进入管理 →</span>
           </div>
         </router-link>
       </div>
@@ -221,15 +255,15 @@
         <h2>快速操作</h2>
       </div>
       <div class="actions-grid">
-        <button class="action-btn">
+        <button class="action-btn" @click="generateReport">
           <span class="action-icon">📊</span>
           <span class="action-text">生成报表</span>
         </button>
-        <button class="action-btn">
+        <button class="action-btn" @click="openNotificationSettings">
           <span class="action-icon">🔔</span>
           <span class="action-text">通知设置</span>
         </button>
-        <button class="action-btn">
+        <button class="action-btn" @click="openSystemSettings">
           <span class="action-icon">⚙️</span>
           <span class="action-text">系统设置</span>
         </button>
@@ -490,6 +524,23 @@ export default {
       console.log('数据已刷新')
     }
     
+    // 快速操作函数
+    const generateReport = () => {
+      alert('生成报表功能即将开放，敬请期待！')
+      // TODO: 实现报表生成逻辑
+      // 可以跳转到报表页面或打开模态框选择报表类型
+    }
+    
+    const openNotificationSettings = () => {
+      // 跳转到消息管理页面
+      router.push('/admin/messages')
+    }
+    
+    const openSystemSettings = () => {
+      // 跳转到系统设置页面
+      router.push('/admin/settings')
+    }
+    
     // 饼图绘制（右上角图例，无引导线）
     const batteryPieCanvas = ref(null)
     const batteryPieCanvasLarge = ref(null)
@@ -622,6 +673,9 @@ export default {
       maintenanceStationsCount,
       currentTime,
       refreshData,
+      generateReport,
+      openNotificationSettings,
+      openSystemSettings,
       barData,
       chartLabels,
       chartPeriod,
