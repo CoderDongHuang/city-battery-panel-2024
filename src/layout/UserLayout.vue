@@ -314,7 +314,7 @@ onUnmounted(() => {
 
 .logout-btn {
   padding: 8px 20px;
-  background: linear-gradient(135deg, #0066cc 0%, #00cc99 100%);
+  background: #4a4a4a;
   color: white;
   border: none;
   border-radius: 4px;
@@ -322,12 +322,13 @@ onUnmounted(() => {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 102, 204, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .logout-btn:hover {
+  background: #5a5a5a;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 102, 204, 0.4);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .logo-section {
