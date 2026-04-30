@@ -196,7 +196,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { userBatteryAPI } from '../services/userAPI.js'
+import { getUserBatteries } from '../services/adminUserDataService.js'
 import { userStationAPI } from '../services/userAPI.js'
 import SiteFooter from '../components/SiteFooter.vue'
 
@@ -240,29 +240,55 @@ const refreshAllData = async () => {
   isRefreshing.value = false
 }
 
-// 加载电池数据
+// 加载电池数据 - 使用管理端 API
 const loadBatteries = async () => {
   loadingBatteries.value = true
   try {
-    const response = await userBatteryAPI.getBatteries()
-    console.log('电池数据:', response)
+    console.log('调用管理端 API 获取用户电池数据...')
+    const response = await getUserBatteries({ size: 100 })
+    console.log('电池数据响应:', response)
+    
+    // 处理响应数据
+    let batteryList = []
     
     if (response.code === 200) {
-      batteries.value = response.data || []
+      // 如果是标准响应格式
+      batteryList = response.data?.content || response.data?.list || response.data || []
+    } else if (Array.isArray(response)) {
+      // 如果直接返回数组
+      batteryList = response
+    } else if (response.data && Array.isArray(response.data)) {
+      batteryList = response.data
+    }
+    
+    console.log('获取到的电池数量:', batteryList.length)
+    
+    // 转换为界面需要的格式
+    batteries.value = batteryList.map(b => ({
+      id: b.id || b.batteryId,
+      batteryId: b.batteryId || b.id,
+      status: b.status || 'normal',
+      level: b.level || b.soc || b.batteryLevel || 0,
+      voltage: b.voltage || 0,
+      temperature: b.temperature || b.temp || 0,
+      health: b.health || b.soh || 100,
+      soc: b.soc || b.level || 0,
+      soh: b.soh || b.health || 100
+    }))
+    
+    // 计算平均电量
+    if (batteries.value.length > 0) {
+      const avgLevel = batteries.value.reduce((sum, b) => sum + (b.level || 0), 0) / batteries.value.length
+      currentBatteryLevel.value = Math.round(avgLevel)
       
-      // 计算平均电量
-      if (batteries.value.length > 0) {
-        const avgLevel = batteries.value.reduce((sum, b) => sum + (b.level || b.soc || 0), 0) / batteries.value.length
-        currentBatteryLevel.value = Math.round(avgLevel)
-        
-        // 如果电量低，显示推荐
-        if (avgLevel <= 30) {
-          await loadNearbyStations()
-        }
+      // 如果电量低，显示推荐
+      if (avgLevel <= 30) {
+        await loadNearbyStations()
       }
     }
   } catch (error) {
     console.error('加载电池数据失败:', error)
+    alert('加载电池数据失败：' + error.message)
   } finally {
     loadingBatteries.value = false
   }
